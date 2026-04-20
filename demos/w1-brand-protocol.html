@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · 品牌资产协议 5 步硬流程</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0c0c0c;
+    font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef, useCallback } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+
+  function interpolate(t, input, output, easing) {
+    const [inStart, inEnd] = input;
+    const [outStart, outEnd] = output;
+    if (t <= inStart) return outStart;
+    if (t >= inEnd) return outEnd;
+    let progress = (t - inStart) / (inEnd - inStart);
+    if (easing) progress = easing(progress);
+    return outStart + (outEnd - outStart) * progress;
+  }
+
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() {
+    const sprite = useContext(SpriteContext);
+    return sprite || { t: 0, elapsed: 0, duration: 0 };
+  }
+
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+
+    useEffect(() => {
+      function updateScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight - 56;
+        const s = Math.min(vw / width, vh / height);
+        setScale(s);
+      }
+      updateScale();
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }, [width, height]);
+
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false;
+      let last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) {
+          last = now;
+          if (typeof window !== 'undefined') window.__ready = true;
+        }
+        const delta = (now - last) / 1000;
+        last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+
+    const canvasStyle = {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transformOrigin: 'center center',
+      width,
+      height,
+      background: bgColor,
+      overflow: 'hidden',
+      transform: `translate(-50%, -50%) scale(${scale})`,
+    };
+
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={canvasStyle}>{children}</div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(10px)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    const spriteValue = { t, elapsed, duration, start, end: actualEnd };
+    return (
+      <SpriteContext.Provider value={spriteValue}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+const OLIVE = '#6a6b4e';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Scene 1: Trigger (0 – 3s) ─────────────────────────────
+function Scene1_Trigger() {
+  const { elapsed } = useSprite();
+  const labelOp = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const titleY = interpolate(elapsed, [0, 1], [30, 0], Easing.easeOut);
+  const titleOp = interpolate(elapsed, [0.2, 1], [0, 1]);
+  const brandsOp = interpolate(elapsed, [1, 1.6], [0, 1]);
+  const switchOp = interpolate(elapsed, [1.9, 2.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.6, 3], [1, 0]);
+
+  const brands = ['Kimi', 'Linear', 'Lovart', 'Stripe'];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 28, opacity: labelOp}}>
+        品 牌 资 产 协 议 · BRAND PROTOCOL
+      </div>
+      <div style={{fontFamily: serif, fontSize: 120, fontWeight: 500, color: INK,
+        lineHeight: 1, letterSpacing:'-0.01em',
+        opacity: titleOp, transform: `translateY(${titleY}px)`}}>
+        涉及具体品牌<span style={{color: TERRA, fontStyle:'italic'}}>？</span>
+      </div>
+
+      <div style={{display:'flex', gap: 48, marginTop: 64, opacity: brandsOp}}>
+        {brands.map((b, i) => (
+          <span key={i} style={{fontFamily: serif, fontStyle:'italic',
+            fontSize: 44, color: ASH, letterSpacing:'0.02em'}}>
+            {b}
+          </span>
+        ))}
+      </div>
+
+      <div style={{marginTop: 72, opacity: switchOp, textAlign:'center'}}>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 34,
+          color: TERRA, letterSpacing:'0.02em'}}>
+          先停下——走 5 步硬流程
+        </div>
+        <div style={{height:1, background: TERRA, width: 180, margin:'18px auto 0'}} />
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: Step 1 & 2 (3 – 7s) ──────────────────────────
+function Scene2_AskAndSearch() {
+  const { elapsed } = useSprite();
+  const headOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const leftOp = interpolate(elapsed, [0.3, 0.9], [0, 1]);
+  const leftY = interpolate(elapsed, [0.3, 0.9], [20, 0], Easing.easeOut);
+  const rightOp = interpolate(elapsed, [0.8, 1.4], [0, 1]);
+  const rightY = interpolate(elapsed, [0.8, 1.4], [20, 0], Easing.easeOut);
+  const fadeOut = interpolate(elapsed, [3.5, 4], [1, 0]);
+
+  // cursor sweeping through search paths 1.6 → 3.2
+  const paths = [
+    '<brand>.com/brand',
+    '<brand>.com/press',
+    'brand.<brand>.com',
+    '<brand>.github.io/brand',
+  ];
+  // current active index based on time
+  const activeIdx = Math.min(3, Math.max(0, Math.floor((elapsed - 1.6) / 0.4)));
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      padding:'72px 120px', display:'flex', flexDirection:'column'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', opacity: headOp, marginBottom: 48}}>
+        <div style={{fontFamily: serif, fontSize: 44, fontWeight: 500, color: INK}}>
+          Step 1 & 2 · 问 · 搜
+        </div>
+        <div style={{fontFamily: mono, fontSize: 11, color: ASH, letterSpacing:'0.25em'}}>
+          01 / 05  →  02 / 05
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap: 48, flex:1}}>
+        {/* Left: Step 1 Ask */}
+        <div style={{opacity: leftOp, transform:`translateY(${leftY}px)`,
+          display:'flex', flexDirection:'column', gap: 24}}>
+          <div style={{display:'flex', alignItems:'baseline', gap: 18}}>
+            <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+              letterSpacing:'0.3em'}}>STEP · 01</div>
+            <div style={{fontFamily: serif, fontSize: 40, color: INK,
+              fontWeight: 500}}>问</div>
+          </div>
+
+          <div style={{background:'#fff', border:`1px solid ${LINE}`,
+            padding:'32px 34px', position:'relative'}}>
+            <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 64,
+              color: TERRA, lineHeight:1, position:'absolute',
+              top: 8, left: 14}}>「</div>
+            <div style={{fontFamily: serif, fontSize: 24, color: INK,
+              lineHeight: 1.55, paddingLeft: 36}}>
+              这个品牌有 <span style={{fontStyle:'italic', color: TERRA}}>brand guidelines</span> 吗？
+            </div>
+            <div style={{height:1, background: LINE, margin:'22px 0'}} />
+            <div style={{fontFamily: serif, fontSize: 20, color: ASH,
+              lineHeight: 1.6, paddingLeft: 36}}>
+              有的话直接给我；没有我去搜。
+            </div>
+          </div>
+
+          <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+            letterSpacing:'0.15em', marginTop: 6}}>
+            ▸ 用户提供 &gt; AI 猜测
+          </div>
+        </div>
+
+        {/* Right: Step 2 Search */}
+        <div style={{opacity: rightOp, transform:`translateY(${rightY}px)`,
+          display:'flex', flexDirection:'column', gap: 24}}>
+          <div style={{display:'flex', alignItems:'baseline', gap: 18}}>
+            <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+              letterSpacing:'0.3em'}}>STEP · 02</div>
+            <div style={{fontFamily: serif, fontSize: 40, color: INK,
+              fontWeight: 500}}>搜 官 方 品 牌 页</div>
+          </div>
+
+          <div style={{background:'#1a1a1a', color:'#e8e3d6',
+            padding:'24px 28px', fontFamily: mono, fontSize: 16,
+            lineHeight: 1.9, flex: 1}}>
+            <div style={{color:'#6b6b6b', fontSize: 11,
+              letterSpacing:'0.2em', marginBottom: 14}}>
+              $ HTTP GET · typical paths
+            </div>
+            {paths.map((p, i) => {
+              const isActive = i === activeIdx && elapsed > 1.6 && elapsed < 3.4;
+              const visited = i < activeIdx;
+              return (
+                <div key={i} style={{
+                  color: isActive ? TERRA : (visited ? '#8a8878' : '#e8e3d6'),
+                  background: isActive ? 'rgba(192,74,26,0.12)' : 'transparent',
+                  padding:'2px 8px', marginLeft:-8,
+                  display:'flex', alignItems:'baseline', gap: 14}}>
+                  <span style={{color: isActive ? TERRA : '#555', fontSize: 13}}>
+                    {isActive ? '▸' : (visited ? '✓' : ' ')}
+                  </span>
+                  <span style={{letterSpacing:'0.02em'}}>{p}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+            color: ASH, marginTop: 6}}>
+            按顺序试，中断也要记 404 状态
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: Step 3 · Three fallbacks (7 – 12s) ───────────
+function Scene3_Fallbacks() {
+  const { elapsed } = useSprite();
+  const headOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const cardsOp = interpolate(elapsed, [0.3, 1], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.5, 5], [1, 0]);
+
+  // Card state: 0 idle, 1 active/lit, 2 failed/gray, 3 success
+  // Card 1 active 1.2→2.0, then fails at 2.0
+  // Card 2 active 2.2→3.0, then fails at 3.0
+  // Card 3 active 3.2→4.2, succeeds at 4.2
+  const card1State = elapsed < 1.2 ? 0 : elapsed < 2.0 ? 1 : 2;
+  const card2State = elapsed < 2.2 ? 0 : elapsed < 3.0 ? 1 : (elapsed < 3.2 ? 2 : 2);
+  const card3State = elapsed < 3.2 ? 0 : elapsed < 4.2 ? 1 : 3;
+
+  const captionOp = interpolate(elapsed, [4.2, 4.6], [0, 1]);
+
+  const cards = [
+    { n: '01', title: 'SVG 文件', cmd: 'curl -o logo.svg <url>', status: '最理想', state: card1State },
+    { n: '02', title: '官网 HTML', cmd: 'curl -A "Mozilla/5.0" \\\n  -L <url>', status: '80% 场景必用', state: card2State },
+    { n: '03', title: '产品截图取色', cmd: 'macOS Preview · 吸管', status: 'App 必走', state: card3State },
+  ];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      padding:'70px 100px 60px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headOp, marginBottom: 40}}>
+        <div style={{display:'flex', alignItems:'baseline', gap: 18, marginBottom: 6}}>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em'}}>STEP · 03</div>
+          <div style={{fontFamily: serif, fontSize: 18, color: ASH,
+            fontStyle:'italic'}}>下 · download</div>
+        </div>
+        <div style={{fontFamily: serif, fontSize: 60, fontWeight: 500,
+          color: INK, letterSpacing:'-0.01em'}}>
+          三条兜底路径
+        </div>
+        <div style={{height:1, background: LINE, width:'100%', marginTop: 20}} />
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr',
+        gap: 28, flex:1, opacity: cardsOp}}>
+        {cards.map((c, i) => {
+          const isIdle = c.state === 0;
+          const isActive = c.state === 1;
+          const isFailed = c.state === 2;
+          const isSuccess = c.state === 3;
+
+          const borderColor = isSuccess ? TERRA :
+                              isActive ? INK :
+                              isFailed ? '#c4bda7' : LINE;
+          const borderWidth = (isActive || isSuccess) ? 2 : 1;
+          const op = isFailed ? 0.42 : 1;
+          const bg = isSuccess ? '#fffaf3' : '#fff';
+
+          return (
+            <div key={i} style={{
+              background: bg,
+              border:`${borderWidth}px solid ${borderColor}`,
+              opacity: op,
+              padding:'28px 28px 24px',
+              display:'flex', flexDirection:'column',
+              position:'relative',
+              transition: 'none',
+            }}>
+              <div style={{display:'flex', justifyContent:'space-between',
+                alignItems:'baseline', marginBottom: 20}}>
+                <div style={{fontFamily: serif, fontSize: 56, fontWeight: 300,
+                  color: isSuccess ? TERRA : INK, lineHeight:1}}>
+                  {c.n}
+                </div>
+                <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.2em',
+                  color: isSuccess ? TERRA : isFailed ? ASH : INK}}>
+                  {isIdle && 'READY'}
+                  {isActive && '▸ TRYING…'}
+                  {isFailed && '× FAILED'}
+                  {isSuccess && '✓ GOT IT'}
+                </div>
+              </div>
+
+              <div style={{fontFamily: serif, fontSize: 28, fontWeight: 500,
+                color: INK, marginBottom: 14, letterSpacing:'-0.005em'}}>
+                {c.title}
+              </div>
+
+              <div style={{background:'#1a1a1a', color:'#e8e3d6',
+                fontFamily: mono, fontSize: 12, padding:'14px 16px',
+                whiteSpace:'pre-wrap', lineHeight: 1.6,
+                marginBottom: 20, borderLeft: `2px solid ${isSuccess ? TERRA : '#333'}`}}>
+                {c.cmd}
+              </div>
+
+              <div style={{marginTop:'auto', borderTop:`1px solid ${LINE}`,
+                paddingTop: 14, display:'flex', justifyContent:'space-between',
+                alignItems:'baseline'}}>
+                <div style={{fontFamily: serif, fontStyle:'italic',
+                  fontSize: 15, color: ASH}}>
+                  场景
+                </div>
+                <div style={{fontFamily: serif, fontSize: 16,
+                  color: isSuccess ? TERRA : INK, fontWeight: 500}}>
+                  {c.status}
+                </div>
+              </div>
+
+              {isSuccess && (
+                <div style={{position:'absolute', top:-10, right:-10,
+                  width: 28, height: 28, borderRadius:'50%', background: TERRA,
+                  color:'#fff', display:'flex', alignItems:'center',
+                  justifyContent:'center', fontFamily: serif, fontSize: 14,
+                  fontWeight: 600}}>
+                  ✓
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{opacity: captionOp, marginTop: 22, textAlign:'center',
+        fontFamily: serif, fontStyle:'italic', fontSize: 22, color: INK}}>
+        前一条失败，<span style={{color: TERRA}}>立刻</span>走下一条——不要停
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 4: Step 4 · Grep colors (12 – 17s) ──────────────
+function Scene4_GrepColors() {
+  const { elapsed } = useSprite();
+  const headOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const cmdOp = interpolate(elapsed, [0.4, 0.9], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.5, 5], [1, 0]);
+
+  const results = [
+    { count: 47, hex: '#1783FF', label: 'Kimi primary' },
+    { count: 32, hex: '#FAFAFA', label: 'background' },
+    { count: 18, hex: '#1a1a1a', label: 'ink' },
+    { count: 12, hex: '#FF6B35', label: 'accent' },
+    { count:  8, hex: '#6A6B4E', label: 'muted' },
+  ];
+
+  // Stagger each result row, starting at t=1.5
+  const rowStart = 1.5;
+  const rowStep = 0.32;
+
+  const captionOp = interpolate(elapsed, [3.6, 4.1], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:'#1a1a1a', opacity: fadeOut,
+      padding:'64px 100px', display:'flex', flexDirection:'column',
+      color:'#e8e3d6'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 36, opacity: headOp}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 4}}>STEP · 04</div>
+          <div style={{fontFamily: serif, fontSize: 54, fontWeight: 500,
+            color:'#faf6ef', letterSpacing:'-0.01em'}}>
+            Grep 色 值
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color:'#8a8878', textAlign:'right'}}>
+          频次排序 = 品牌色权重<br/>
+          <span style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.2em'}}>
+            / DON'T GUESS · COUNT
+          </span>
+        </div>
+      </div>
+
+      {/* Command */}
+      <div style={{opacity: cmdOp, background:'#0e0e0e',
+        border:'1px solid #333', padding:'20px 26px',
+        fontFamily: mono, fontSize: 15, lineHeight: 1.7,
+        marginBottom: 28}}>
+        <div style={{color: TERRA, fontSize: 10, letterSpacing:'0.2em',
+          marginBottom: 10}}>$ COMMAND</div>
+        <div style={{color:'#e8e3d6'}}>
+          <span style={{color:'#888'}}>$</span>{' '}
+          <span style={{color:'#7dd3fc'}}>grep</span>{' '}
+          <span style={{color:'#fbbf24'}}>-hoE</span>{' '}
+          <span style={{color:'#a5f3c5'}}>'#[0-9A-Fa-f]{'{6}'}'</span>{' '}
+          <span style={{color:'#e8e3d6'}}>assets/*.{'{svg,html}'}</span> \<br/>
+          {'  '}<span style={{color:'#666'}}>|</span>{' '}
+          <span style={{color:'#7dd3fc'}}>sort</span>{' '}
+          <span style={{color:'#666'}}>|</span>{' '}
+          <span style={{color:'#7dd3fc'}}>uniq -c</span>{' '}
+          <span style={{color:'#666'}}>|</span>{' '}
+          <span style={{color:'#7dd3fc'}}>sort -rn</span>{' '}
+          <span style={{color:'#666'}}>|</span>{' '}
+          <span style={{color:'#7dd3fc'}}>head -20</span>
+        </div>
+      </div>
+
+      {/* Results + swatches */}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap: 60,
+        flex: 1}}>
+        {/* Left: result list */}
+        <div style={{fontFamily: mono, fontSize: 18, lineHeight: 2}}>
+          <div style={{color:'#555', fontSize: 10, letterSpacing:'0.2em',
+            marginBottom: 12}}>▸ RESULT · top 5</div>
+          {results.map((r, i) => {
+            const visible = elapsed > (rowStart + i * rowStep);
+            if (!visible) return <div key={i} style={{height: 36}}/>;
+            const fadeIn = interpolate(elapsed,
+              [rowStart + i*rowStep, rowStart + i*rowStep + 0.3],
+              [0, 1]);
+            return (
+              <div key={i} style={{opacity: fadeIn, display:'flex',
+                alignItems:'center', gap: 20}}>
+                <span style={{color:'#fbbf24', minWidth: 40, textAlign:'right'}}>
+                  {String(r.count).padStart(3, ' ').replace(/ /g, '\u00A0')}
+                </span>
+                <span style={{color:'#e8e3d6'}}>{r.hex}</span>
+                <span style={{color:'#666', fontSize: 14}}>←</span>
+                <span style={{color:'#8a8878', fontStyle:'italic',
+                  fontFamily: serif, fontSize: 16}}>{r.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right: color swatches */}
+        <div style={{display:'flex', flexDirection:'column', gap: 14}}>
+          <div style={{color:'#555', fontFamily: mono, fontSize: 10,
+            letterSpacing:'0.2em', marginBottom: 2}}>▸ PALETTE</div>
+          {results.map((r, i) => {
+            const visible = elapsed > (rowStart + i * rowStep);
+            if (!visible) return <div key={i} style={{height: 54}}/>;
+            const fadeIn = interpolate(elapsed,
+              [rowStart + i*rowStep, rowStart + i*rowStep + 0.3],
+              [0, 1]);
+            const w = interpolate(elapsed,
+              [rowStart + i*rowStep, rowStart + i*rowStep + 0.5],
+              [0, r.count * 9]);
+            return (
+              <div key={i} style={{opacity: fadeIn, display:'flex',
+                alignItems:'center', gap: 14, height: 50}}>
+                <div style={{width: 50, height: 50, background: r.hex,
+                  border:'1px solid #333', flexShrink: 0}} />
+                <div style={{height: 24, background: r.hex,
+                  width: `${w}px`, opacity: 0.7}} />
+                <div style={{fontFamily: mono, fontSize: 12,
+                  color:'#8a8878'}}>×{r.count}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Key caption */}
+      <div style={{opacity: captionOp, textAlign:'center', marginTop: 18,
+        paddingTop: 18, borderTop:'1px solid #333'}}>
+        <span style={{fontFamily: serif, fontStyle:'italic', fontSize: 26,
+          color: TERRA}}>
+          不要凭记忆猜品牌色
+        </span>
+        <span style={{fontFamily: serif, fontSize: 20, color:'#8a8878',
+          marginLeft: 14}}>
+          ——频次说了算
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 5: Step 5 · brand-spec.md (17 – 22s) ────────────
+function Scene5_SpecFile() {
+  const { elapsed } = useSprite();
+  const headOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const mdOp = interpolate(elapsed, [0.3, 0.9], [0, 1]);
+  const mdX = interpolate(elapsed, [0.3, 0.9], [-40, 0], Easing.easeOut);
+  const cssOp = interpolate(elapsed, [0.9, 1.5], [0, 1]);
+  const cssX = interpolate(elapsed, [0.9, 1.5], [40, 0], Easing.easeOut);
+  const arrowOp = interpolate(elapsed, [2.2, 2.7], [0, 1]);
+  const captionOp = interpolate(elapsed, [3.4, 3.9], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.5, 5], [1, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      padding:'64px 80px 48px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headOp, marginBottom: 28, display:'flex',
+        justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 4}}>STEP · 05 · FINAL</div>
+          <div style={{fontFamily: serif, fontSize: 54, fontWeight: 500,
+            color: INK, letterSpacing:'-0.01em'}}>
+            固化为 <span style={{fontStyle:'italic'}}>brand-spec.md</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign:'right'}}>
+          单一真相源 · single source of truth
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1.1fr 0.9fr',
+        gap: 40, flex:1, position:'relative'}}>
+        {/* Left: .md preview */}
+        <div style={{opacity: mdOp, transform:`translateX(${mdX}px)`,
+          background:'#fff', border:`1px solid ${LINE}`,
+          display:'flex', flexDirection:'column'}}>
+          <div style={{padding:'12px 20px', borderBottom:`1px solid ${LINE}`,
+            display:'flex', justifyContent:'space-between', alignItems:'center',
+            background:'#f7f2e8'}}>
+            <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+              letterSpacing:'0.15em'}}>
+              ▸ brand-spec.md
+            </div>
+            <div style={{fontFamily: mono, fontSize: 10, color: TERRA,
+              letterSpacing:'0.15em'}}>
+              ✓ COMMITTED
+            </div>
+          </div>
+          <div style={{padding:'22px 28px', fontFamily: mono, fontSize: 12,
+            lineHeight: 1.75, color: INK, flex:1, overflow:'hidden'}}>
+            <div style={{color: ASH}}>---</div>
+            <div><span style={{color: OLIVE}}>brand</span>: Kimi</div>
+            <div><span style={{color: OLIVE}}>fetched</span>: 2026-04-20</div>
+            <div style={{color: ASH}}>---</div>
+            <div style={{height: 10}} />
+            <div style={{fontFamily: serif, fontSize: 20, fontWeight: 500,
+              marginBottom: 4}}>## 色板</div>
+            <div>- primary: <span style={{color: TERRA}}>#1783FF</span> (47)</div>
+            <div>- bg:      <span style={{color: TERRA}}>#FAFAFA</span> (32)</div>
+            <div>- ink:     <span style={{color: TERRA}}>#1a1a1a</span> (18)</div>
+            <div>- accent:  <span style={{color: TERRA}}>#FF6B35</span> (12)</div>
+            <div style={{height: 12}} />
+            <div style={{fontFamily: serif, fontSize: 20, fontWeight: 500,
+              marginBottom: 4}}>## 字型</div>
+            <div>- display: <span style={{color: OLIVE}}>Newsreader</span></div>
+            <div>- body:    <span style={{color: OLIVE}}>Inter</span></div>
+            <div>- mono:    <span style={{color: OLIVE}}>JetBrains Mono</span></div>
+            <div style={{height: 12}} />
+            <div style={{fontFamily: serif, fontSize: 20, fontWeight: 500,
+              marginBottom: 4}}>## 签名细节</div>
+            <div>- 1px hairlines</div>
+            <div>- 圆角半径统一 4px</div>
+            <div style={{height: 12}} />
+            <div style={{fontFamily: serif, fontSize: 20, fontWeight: 500,
+              marginBottom: 4, color: TERRA}}>## 禁区</div>
+            <div style={{color: ASH}}>- 不用紫渐变 / emoji / 4px 以上 shadow</div>
+          </div>
+        </div>
+
+        {/* Right: CSS vars + consumers */}
+        <div style={{opacity: cssOp, transform:`translateX(${cssX}px)`,
+          display:'flex', flexDirection:'column', gap: 20}}>
+          <div style={{background:'#0e0e0e', color:'#e8e3d6',
+            fontFamily: mono, fontSize: 14, padding:'22px 26px',
+            lineHeight: 1.7, flex: 1}}>
+            <div style={{color:'#666', fontSize: 10, letterSpacing:'0.2em',
+              marginBottom: 12}}>/* tokens.css */</div>
+            <div><span style={{color:'#7dd3fc'}}>:root</span> {'{'}</div>
+            <div>  <span style={{color:'#a5f3c5'}}>--brand-primary</span>: <span style={{color:'#fbbf24'}}>#1783FF</span>;</div>
+            <div>  <span style={{color:'#a5f3c5'}}>--brand-bg</span>:      <span style={{color:'#fbbf24'}}>#FAFAFA</span>;</div>
+            <div>  <span style={{color:'#a5f3c5'}}>--brand-ink</span>:     <span style={{color:'#fbbf24'}}>#1a1a1a</span>;</div>
+            <div>  <span style={{color:'#a5f3c5'}}>--brand-accent</span>:  <span style={{color:'#fbbf24'}}>#FF6B35</span>;</div>
+            <div>{'}'}</div>
+          </div>
+
+          {/* Arrow cascade */}
+          <div style={{opacity: arrowOp, position:'relative',
+            background:'#fff', border:`1px solid ${LINE}`,
+            padding:'20px 24px'}}>
+            <div style={{fontFamily: mono, fontSize: 10, color: TERRA,
+              letterSpacing:'0.2em', marginBottom: 12}}>▸ CONSUMERS</div>
+            <div style={{display:'flex', alignItems:'center', gap: 16,
+              fontFamily: mono, fontSize: 13, color: INK, flexWrap:'wrap'}}>
+              <span style={{padding:'4px 10px', border:`1px solid ${TERRA}`,
+                color: TERRA}}>brand-spec.md</span>
+              <span style={{color: TERRA}}>→</span>
+              <span style={{padding:'4px 10px', border:`1px solid ${INK}`}}>:root</span>
+              <span style={{color: TERRA}}>→</span>
+              <span style={{padding:'4px 10px', background: INK, color:'#fff'}}>all .html</span>
+            </div>
+            <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 15,
+              color: ASH, marginTop: 14, lineHeight: 1.5}}>
+              一个文件改动，所有 HTML 自动跟随。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{opacity: captionOp, marginTop: 22, textAlign:'center',
+        fontFamily: serif, fontStyle:'italic', fontSize: 22, color: INK}}>
+        全协议的<span style={{color: TERRA}}>制胜点</span>——让所有 CSS 引用这份文件
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 6: Final (22 – 24s) ─────────────────────────────
+function Scene6_Final() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.5], [0, 1], Easing.easeOut);
+  const titleY = interpolate(elapsed, [0, 0.8], [24, 0], Easing.easeOut);
+  const lineW = interpolate(elapsed, [0.5, 1.3], [0, 580]);
+  const subOp = interpolate(elapsed, [0.8, 1.4], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeIn,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 24}}>
+        01 → 02 → 03 → 04 → <span style={{color: INK}}>05 · DONE</span>
+      </div>
+
+      <div style={{fontFamily: serif, fontSize: 92, fontWeight: 500,
+        color: INK, lineHeight: 1.1, letterSpacing:'-0.01em',
+        textAlign:'center', transform: `translateY(${titleY}px)`}}>
+        <span style={{fontStyle:'italic', color: TERRA}}>15 分钟</span>的投资<br/>
+        省下 <span style={{fontStyle:'italic'}}>1–2 小时</span> 返工
+      </div>
+
+      <div style={{height:1, background: INK, width: lineW, marginTop: 40}} />
+
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 24,
+        color: ASH, marginTop: 28, opacity: subOp,
+        letterSpacing:'0.02em'}}>
+        这是稳定性最便宜的投资。
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ─────────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+// ── Main composition ──────────────────────────────────────
+function App() {
+  return (
+    <Stage duration={24} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3}><Scene1_Trigger /></Sprite>
+      <Sprite start={3} end={7}><Scene2_AskAndSearch /></Sprite>
+      <Sprite start={7} end={12}><Scene3_Fallbacks /></Sprite>
+      <Sprite start={12} end={17}><Scene4_GrepColors /></Sprite>
+      <Sprite start={17} end={22}><Scene5_SpecFile /></Sprite>
+      <Sprite start={22} end={24}><Scene6_Final /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

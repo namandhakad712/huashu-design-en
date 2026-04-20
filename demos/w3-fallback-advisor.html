@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Fallback 设计顾问</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0c0c0c;
+    font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef, useCallback } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+
+  function interpolate(t, input, output, easing) {
+    const [inStart, inEnd] = input;
+    const [outStart, outEnd] = output;
+    if (t <= inStart) return outStart;
+    if (t >= inEnd) return outEnd;
+    let progress = (t - inStart) / (inEnd - inStart);
+    if (easing) progress = easing(progress);
+    return outStart + (outEnd - outStart) * progress;
+  }
+
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() {
+    const sprite = useContext(SpriteContext);
+    return sprite || { t: 0, elapsed: 0, duration: 0 };
+  }
+
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+
+    useEffect(() => {
+      function updateScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight - 56;
+        const s = Math.min(vw / width, vh / height);
+        setScale(s);
+      }
+      updateScale();
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }, [width, height]);
+
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false;
+      let last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) {
+          last = now;
+          if (typeof window !== 'undefined') window.__ready = true;
+        }
+        const delta = (now - last) / 1000;
+        last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+
+    const canvasStyle = {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transformOrigin: 'center center',
+      width,
+      height,
+      background: bgColor,
+      overflow: 'hidden',
+      transform: `translate(-50%, -50%) scale(${scale})`,
+    };
+
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={canvasStyle}>{children}</div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(10px)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    const spriteValue = { t, elapsed, duration, start, end: actualEnd };
+    return (
+      <SpriteContext.Provider value={spriteValue}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+
+// ── 20 design philosophies ────────────────────────────────
+const PHILOSOPHIES = [
+  { n: 'Pentagram', school: '信息建筑', en: 'INFO-ARCH' },
+  { n: 'Massimo Vignelli', school: '信息建筑', en: 'INFO-ARCH' },
+  { n: 'Dieter Rams', school: '信息建筑', en: 'INFO-ARCH' },
+  { n: 'Otl Aicher', school: '信息建筑', en: 'INFO-ARCH' },
+  { n: 'Field.io', school: '运动诗学', en: 'KINETIC' },
+  { n: 'Active Theory', school: '运动诗学', en: 'KINETIC' },
+  { n: 'Locomotive', school: '运动诗学', en: 'KINETIC' },
+  { n: 'Joshua Davis', school: '运动诗学', en: 'KINETIC' },
+  { n: 'Kenya Hara', school: '东方哲学', en: 'EASTERN' },
+  { n: 'Naoto Fukasawa', school: '东方哲学', en: 'EASTERN' },
+  { n: 'Kashiwa Sato', school: '东方哲学', en: 'EASTERN' },
+  { n: 'John Maeda', school: '东方哲学', en: 'EASTERN' },
+  { n: 'Sagmeister', school: '实验先锋', en: 'AVANT' },
+  { n: 'David Carson', school: '实验先锋', en: 'AVANT' },
+  { n: 'Paula Scher', school: '实验先锋', en: 'AVANT' },
+  { n: 'Tomato', school: '实验先锋', en: 'AVANT' },
+  { n: 'Dan Flavin', school: '极简主义', en: 'MINIMAL' },
+  { n: 'Ryuichi Sakamoto', school: '极简主义', en: 'MINIMAL' },
+  { n: 'Agnes Martin', school: '极简主义', en: 'MINIMAL' },
+  { n: 'Donald Judd', school: '极简主义', en: 'MINIMAL' },
+];
+
+const SELECTED_INDICES = [0, 4, 8]; // Pentagram, Field.io, Kenya Hara
+
+// ── Shared typography helpers ─────────────────────────────
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Scene 1: Vague brief (0 – 3.5s) ───────────────────────
+function Scene1_VagueBrief() {
+  const { t, elapsed } = useSprite();
+  const charCount = Math.floor(interpolate(elapsed, [0.3, 1.8], [0, 9]));
+  const text = '做个好看的页面'.slice(0, charCount);
+  const cursorBlink = Math.floor(elapsed * 2.4) % 2 === 0;
+  const questionOpacity = interpolate(elapsed, [1.8, 2.4], [0, 1]);
+  const questionBob = Math.sin(elapsed * 4) * 6;
+  const fadeOut = interpolate(elapsed, [2.8, 3.5], [1, 0], Easing.easeIn);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: sans, fontSize:14, letterSpacing:'0.3em',
+        color: ASH, marginBottom: 40}}>
+        用户需求
+      </div>
+      <div style={{display:'flex', alignItems:'flex-start', gap: 36}}>
+        <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 120,
+          color: TERRA, lineHeight: 1, marginTop: -20}}>「</div>
+        <div style={{fontFamily: serif, fontSize: 96, fontWeight: 400,
+          color: INK, letterSpacing: '0.02em', position: 'relative'}}>
+          {text}
+          <span style={{opacity: cursorBlink ? 1 : 0, color: TERRA,
+            marginLeft: 4, fontWeight: 300}}>|</span>
+        </div>
+        <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 120,
+          color: TERRA, lineHeight: 1, marginTop: -20}}>」</div>
+      </div>
+      <div style={{fontFamily: sans, fontSize: 20, color: ASH, marginTop: 60,
+        opacity: questionOpacity, transform: `translateY(${questionBob}px)`,
+        letterSpacing: '0.05em'}}>
+        <span style={{color: TERRA, fontSize: 28, marginRight: 12}}>?</span>
+        风格、受众、情感基调—— 都没说
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: Advisor activates (3.5 – 6.5s) ───────────────
+function Scene2_AdvisorIntro() {
+  const { elapsed } = useSprite();
+  const mainY = interpolate(elapsed, [0, 1.2], [40, 0], Easing.easeOut);
+  const mainOpacity = interpolate(elapsed, [0, 0.8], [0, 1]);
+  const lineWidth = interpolate(elapsed, [0.8, 1.8], [0, 320]);
+  const subOpacity = interpolate(elapsed, [1.2, 2], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.5, 3], [1, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: sans, fontSize: 12, letterSpacing: '0.4em',
+        color: TERRA, marginBottom: 24, opacity: mainOpacity}}>
+        设计方向顾问 · Fallback
+      </div>
+      <div style={{fontFamily: serif, fontSize: 132, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing: '-0.01em',
+        opacity: mainOpacity, transform: `translateY(${mainY}px)`}}>
+        推荐 <span style={{fontStyle:'italic', color: TERRA}}>3</span> 个方向
+      </div>
+      <div style={{height: 1, background: INK, width: lineWidth, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 26,
+        color: ASH, marginTop: 28, opacity: subOpacity}}>
+        从 20 种设计哲学里，按 5 个不同流派差异化推荐
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: 20 philosophies grid scan (6.5 – 10.5s) ──────
+function Scene3_GridScan() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      padding: '80px 120px', display:'flex', flexDirection:'column'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', opacity: titleOp, marginBottom: 50}}>
+        <div style={{fontFamily: serif, fontSize: 52, fontWeight: 500, color: INK}}>
+          设计哲学库
+        </div>
+        <div style={{fontFamily: mono, fontSize: 14, color: ASH, letterSpacing:'0.1em'}}>
+          20 位设计师 · 5 个流派
+        </div>
+      </div>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap: 20, flex: 1}}>
+        {PHILOSOPHIES.map((p, i) => {
+          const stagger = i * 0.06;
+          const appearT = Math.max(0, Math.min(1, (elapsed - 0.5 - stagger) / 0.4));
+          const op = appearT;
+          const ty = (1 - appearT) * 24;
+
+          // Scanner highlight: sweeps through 20 cards from t=2.2 to t=3.2
+          const scannerStart = 2.2 + i * 0.04;
+          const scannerEnd = scannerStart + 0.25;
+          const scanHighlight = elapsed > scannerStart && elapsed < scannerEnd ? 1 : 0;
+
+          // Selected cards get circled at t=3.3+
+          const isSelected = SELECTED_INDICES.includes(i);
+          const selectT = Math.max(0, Math.min(1, (elapsed - 3.3) / 0.5));
+          const selectOp = isSelected ? selectT : 0;
+          const selectDim = !isSelected && elapsed > 3.4 ? interpolate(elapsed, [3.4, 3.8], [1, 0.28]) : 1;
+
+          return (
+            <div key={i} style={{
+              opacity: op * selectDim,
+              transform: `translateY(${ty}px)`,
+              background: scanHighlight ? '#fff' : 'transparent',
+              border: `1px solid ${isSelected && selectT > 0.3 ? TERRA : LINE}`,
+              borderWidth: isSelected && selectT > 0.3 ? 2 : 1,
+              padding: '20px 18px',
+              position: 'relative',
+              transition: 'none',
+            }}>
+              <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+                letterSpacing: '0.15em', marginBottom: 10}}>
+                {String(i+1).padStart(2,'0')} · {p.en}
+              </div>
+              <div style={{fontFamily: serif, fontSize: 22, fontWeight: 500,
+                color: INK, lineHeight: 1.15, marginBottom: 6}}>
+                {p.n}
+              </div>
+              <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 14,
+                color: ASH}}>
+                {p.school}
+              </div>
+              {isSelected && selectT > 0.4 && (
+                <div style={{position:'absolute', top: -10, right: -10,
+                  width: 26, height: 26, borderRadius: '50%', background: TERRA,
+                  color: '#fff', display:'flex', alignItems:'center',
+                  justifyContent:'center', fontFamily: serif, fontSize: 14,
+                  fontWeight: 600, opacity: selectOp}}>
+                  {SELECTED_INDICES.indexOf(i) + 1}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 4: Three-panel parallel demo generation (10.5 – 19s) ──
+function Scene4_ParallelDemos() {
+  const { elapsed } = useSprite();
+  const slideIn = interpolate(elapsed, [0, 1], [200, 0], Easing.easeOut);
+  const opacity = interpolate(elapsed, [0, 0.6], [0, 1]);
+
+  const panels = [
+    { name: 'Pentagram', school: '信息建筑派', en: 'Information Architecture',
+      delay: 0, render: 'pentagram' },
+    { name: 'Field.io', school: '运动诗学派', en: 'Kinetic Poetry',
+      delay: 0.3, render: 'field' },
+    { name: 'Kenya Hara', school: '东方哲学派', en: 'Eastern Minimalism',
+      delay: 0.6, render: 'hara' },
+  ];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      padding: '60px 60px 40px', display:'flex', flexDirection:'column',
+      opacity}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 28}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.3em', marginBottom: 4}}>步骤 3 / 4</div>
+          <div style={{fontFamily: serif, fontSize: 44, fontWeight: 500, color: INK}}>
+            并行生成视觉 Demo
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign: 'right'}}>
+          "看到比说到更有效"<br/>
+          <span style={{fontSize: 14}}>— 设计顾问模式 · Phase 5</span>
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap: 24,
+        flex: 1, transform: `translateY(${slideIn}px)`}}>
+        {panels.map((p, i) => (
+          <DemoPanel key={i} panel={p} localElapsed={elapsed - p.delay} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DemoPanel({ panel, localElapsed }) {
+  const progressT = Math.max(0, Math.min(1, localElapsed / 3.0));
+  const progressPct = progressT * 100;
+  const done = progressT >= 0.92;
+  // Content fades in during the last 0.7s of generation — overlaps with
+  // skeleton fade-out so there's no empty-canvas gap when "READY" appears.
+  const contentReveal = interpolate(localElapsed, [2.4, 3.2], [0, 1], Easing.easeOut);
+  const skeletonOp = interpolate(localElapsed, [2.4, 3.2], [1, 0], Easing.easeOut);
+
+  return (
+    <div style={{
+      background:'#fff',
+      border: `1px solid ${LINE}`,
+      display:'flex', flexDirection:'column',
+      position:'relative',
+    }}>
+      {/* Header */}
+      <div style={{padding: '18px 22px', borderBottom: `1px solid ${LINE}`,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: serif, fontSize: 28, fontWeight: 500, color: INK}}>
+            {panel.name}
+          </div>
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 13,
+            color: ASH, marginTop: 2}}>
+            {panel.en}
+          </div>
+        </div>
+        <div style={{fontFamily: mono, fontSize: 10, color: done ? TERRA : ASH,
+          letterSpacing: '0.15em'}}>
+          {done ? '✓ READY' : 'GENERATING'}
+        </div>
+      </div>
+
+      {/* Canvas */}
+      <div style={{flex: 1, position: 'relative', overflow: 'hidden'}}>
+        {skeletonOp > 0.02 && (
+          <div style={{position:'absolute', inset:0, opacity: skeletonOp}}>
+            <GenerationSkeleton progress={progressT} />
+          </div>
+        )}
+        <div style={{position:'absolute', inset:0, opacity: contentReveal}}>
+          {panel.render === 'pentagram' && <PentagramDemo />}
+          {panel.render === 'field' && <FieldDemo elapsed={localElapsed - 3.2} />}
+          {panel.render === 'hara' && <HaraDemo />}
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{height: 2, background: '#eee', position: 'relative'}}>
+        <div style={{position:'absolute', top:0, left:0, height:'100%',
+          width: `${progressPct}%`, background: TERRA,
+          transition:'none'}} />
+      </div>
+    </div>
+  );
+}
+
+function GenerationSkeleton({ progress }) {
+  const bars = [60, 85, 40, 72, 90, 55, 68];
+  return (
+    <div style={{padding: 24, display:'flex', flexDirection:'column', gap: 14}}>
+      {bars.map((w, i) => (
+        <div key={i} style={{height: 10, width: `${w}%`,
+          background: `linear-gradient(90deg, ${LINE} 0%, ${LINE} ${100-progress*80}%, #fff ${100-progress*80}%)`,
+          opacity: 0.6 + progress * 0.4}} />
+      ))}
+      <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+        marginTop: 20, letterSpacing:'0.1em'}}>
+        {progress < 0.3 && '▸ loading style tokens...'}
+        {progress >= 0.3 && progress < 0.6 && '▸ composing layout...'}
+        {progress >= 0.6 && progress < 0.9 && '▸ applying typography...'}
+        {progress >= 0.9 && '▸ finalizing...'}
+      </div>
+    </div>
+  );
+}
+
+// ── Pentagram demo: serif editorial, strict grid, monochrome ──
+function PentagramDemo() {
+  return (
+    <div style={{padding: '28px 28px 24px', background:'#fafafa', height:'100%',
+      display:'flex', flexDirection:'column', fontFamily: serif, color:'#111'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        borderBottom:'1px solid #111', paddingBottom: 10, marginBottom: 16,
+        fontFamily: mono, fontSize: 9, letterSpacing:'0.2em'}}>
+        <span>VOL. 01 · MMXXVI</span>
+        <span>NO. 043</span>
+      </div>
+      <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.3em',
+        color:'#888', marginBottom: 10}}>ESSAY</div>
+      <div style={{fontSize: 40, lineHeight: 1.05, fontWeight: 500,
+        letterSpacing: '-0.02em', marginBottom: 18}}>
+        A Pure<br/>
+        <span style={{fontStyle:'italic'}}>Information</span><br/>
+        Architecture
+      </div>
+      <div style={{height: 1, background:'#111', margin:'8px 0 14px'}} />
+      <div style={{fontSize: 13, lineHeight: 1.55, color:'#333', flex: 1}}>
+        Designed not to impress, but to inform. The grid carries meaning; typography does the work.
+      </div>
+      <div style={{borderTop:'1px solid #111', paddingTop: 10, marginTop: 14,
+        display:'flex', justifyContent:'space-between', fontFamily: mono,
+        fontSize: 9, letterSpacing:'0.2em', color:'#888'}}>
+        <span>NEW YORK</span>
+        <span>PENTAGRAM</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Field.io demo: dark, kinetic geometric shapes ──
+function FieldDemo({ elapsed }) {
+  const e = Math.max(0, elapsed || 0);
+  return (
+    <div style={{padding: 0, background:'#0e1016', height:'100%',
+      position:'relative', overflow:'hidden'}}>
+      <svg viewBox="0 0 400 500" width="100%" height="100%"
+        style={{position:'absolute', inset:0}} preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="fg1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ff6a3d" />
+            <stop offset="100%" stopColor="#c04a1a" />
+          </linearGradient>
+          <linearGradient id="fg2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#4a9eff" />
+            <stop offset="100%" stopColor="#1a4fc0" />
+          </linearGradient>
+        </defs>
+        {/* Concentric circles breathing */}
+        {[0, 1, 2, 3].map(i => (
+          <circle key={i} cx="200" cy="280"
+            r={40 + i * 50 + Math.sin(e * 1.2 + i) * 10}
+            fill="none" stroke="url(#fg1)" strokeWidth={1.5}
+            opacity={0.4 - i * 0.08} />
+        ))}
+        {/* Rotating triangle */}
+        <g transform={`translate(200 280) rotate(${e * 20})`}>
+          <polygon points="0,-70 60,35 -60,35" fill="url(#fg2)" opacity="0.7" />
+        </g>
+        {/* Orbiting dots */}
+        {[0, 1, 2, 3, 4, 5].map(i => {
+          const angle = (e * 0.8 + i * Math.PI / 3);
+          return <circle key={i} cx={200 + Math.cos(angle) * 150}
+            cy={280 + Math.sin(angle) * 150} r={4} fill="#ff6a3d" opacity={0.9}/>;
+        })}
+      </svg>
+      <div style={{position:'absolute', top: 24, left: 24, right: 24,
+        display:'flex', justifyContent:'space-between',
+        fontFamily: mono, fontSize: 10, letterSpacing:'0.3em', color:'#fff', opacity: 0.7}}>
+        <span>FIELD.IO</span>
+        <span>LIVE · RECORDING</span>
+      </div>
+      <div style={{position:'absolute', bottom: 24, left: 24, right: 24,
+        fontFamily: serif, fontStyle:'italic', fontSize: 20, color:'#fff',
+        letterSpacing:'0.02em'}}>
+        kinetic identity<br/>
+        <span style={{fontFamily: mono, fontSize: 10, fontStyle:'normal',
+          letterSpacing:'0.2em', color:'#ff6a3d', opacity: 0.8}}>
+          / motion is the brand
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Kenya Hara demo: vast white space, tiny dot, haiku ──
+function HaraDemo() {
+  return (
+    <div style={{padding: 0, background:'#fdfbf6', height:'100%',
+      position:'relative'}}>
+      <div style={{position:'absolute', top: 28, left: 32,
+        fontFamily: mono, fontSize: 10, letterSpacing:'0.3em', color:'#aaa'}}>
+        HARA · MMXXVI
+      </div>
+      <div style={{position:'absolute', top: '42%', left:'50%',
+        transform:'translate(-50%, -50%)', width: 14, height: 14,
+        borderRadius:'50%', background:'#1a1a1a'}} />
+      <div style={{position:'absolute', top:'58%', left:'50%',
+        transform:'translateX(-50%)', fontFamily: serif, fontStyle:'italic',
+        fontSize: 14, color:'#1a1a1a', letterSpacing:'0.1em'}}>
+        white.
+      </div>
+      <div style={{position:'absolute', bottom: 32, right: 32,
+        writingMode:'vertical-rl', fontFamily: "'Noto Serif SC', serif",
+        fontSize: 16, color:'#888', letterSpacing:'0.2em'}}>
+        原 研 哉
+      </div>
+      <div style={{position:'absolute', bottom: 28, left: 32,
+        fontFamily: serif, fontStyle:'italic', fontSize: 11, color:'#999',
+        maxWidth: 200, lineHeight: 1.6}}>
+        "Emptiness is not nothing—<br/>it is everything that could be."
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 5: User selects Kenya Hara (19 – 22s) ───────────
+function Scene5_Select() {
+  const { elapsed } = useSprite();
+  // Cursor travels from right edge toward middle panel
+  const cursorX = interpolate(elapsed, [0, 1.2], [1750, 960], Easing.easeInOut);
+  const cursorY = interpolate(elapsed, [0, 1.2], [240, 540], Easing.easeInOut);
+  const cursorOp = interpolate(elapsed, [0, 0.2], [0, 1]);
+
+  // Middle panel selection lock-in
+  const selectLock = Math.max(0, Math.min(1, (elapsed - 1.2) / 0.4));
+
+  // Left + right panels dim + shrink
+  const sideDim = interpolate(elapsed, [1.2, 1.8], [1, 0.2]);
+  const sideScale = interpolate(elapsed, [1.2, 1.8], [1, 0.92], Easing.easeOut);
+
+  // Middle scales up
+  const midScale = interpolate(elapsed, [1.2, 1.8], [1, 1.06], Easing.easeOut);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      padding: '60px 60px 40px', display:'flex', flexDirection:'column'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 28}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.3em', marginBottom: 4}}>步骤 4 / 4</div>
+          <div style={{fontFamily: serif, fontSize: 44, fontWeight: 500, color: INK}}>
+            用户选定方向
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH}}>
+          ——或混合："A 的配色 + C 的布局"
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap: 24,
+        flex: 1}}>
+        <StaticPanel which="pentagram" opacity={sideDim} scale={sideScale} />
+        <StaticPanel which="hara" opacity={1} scale={midScale} selected={selectLock > 0.5}/>
+        <StaticPanel which="field" opacity={sideDim} scale={sideScale} />
+      </div>
+
+      {/* Cursor */}
+      <div style={{position:'absolute', left: cursorX, top: cursorY,
+        opacity: cursorOp, pointerEvents:'none', zIndex: 50,
+        filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'}}>
+        <svg width="36" height="44" viewBox="0 0 36 44">
+          <path d="M 2 2 L 2 38 L 11 30 L 16 42 L 22 40 L 17 28 L 28 28 Z"
+            fill="#fff" stroke="#1a1a1a" strokeWidth="2" strokeLinejoin="round"/>
+        </svg>
+      </div>
+
+      {/* "Selected" callout */}
+      {selectLock > 0.5 && (
+        <div style={{position:'absolute', left:'50%', top: 140,
+          transform:'translateX(-50%)', background: TERRA, color:'#fff',
+          padding:'10px 24px', fontFamily: mono, fontSize: 12,
+          letterSpacing:'0.25em', opacity: selectLock, zIndex: 40}}>
+          ✓ SELECTED
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StaticPanel({ which, opacity, scale, selected }) {
+  const titles = {
+    pentagram: { n: 'Pentagram', en: 'Information Architecture' },
+    hara: { n: 'Kenya Hara', en: 'Eastern Minimalism' },
+    field: { n: 'Field.io', en: 'Kinetic Poetry' },
+  };
+  const t = titles[which];
+  return (
+    <div style={{
+      background:'#fff',
+      border: selected ? `3px solid ${TERRA}` : `1px solid ${LINE}`,
+      opacity, transform: `scale(${scale})`, transformOrigin:'center center',
+      display:'flex', flexDirection:'column',
+    }}>
+      <div style={{padding: '18px 22px', borderBottom: `1px solid ${LINE}`,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: serif, fontSize: 28, fontWeight: 500, color: INK}}>
+            {t.n}
+          </div>
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 13,
+            color: ASH, marginTop: 2}}>
+            {t.en}
+          </div>
+        </div>
+        <div style={{fontFamily: mono, fontSize: 10,
+          color: selected ? TERRA : '#999',
+          letterSpacing: '0.15em'}}>
+          {selected ? '✓ SELECTED' : 'READY'}
+        </div>
+      </div>
+      <div style={{flex: 1, position:'relative', overflow:'hidden'}}>
+        {which === 'pentagram' && <PentagramDemo />}
+        {which === 'field' && <FieldDemo elapsed={10} />}
+        {which === 'hara' && <HaraDemo />}
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 6: Ready to execute (22 – 24s) ──────────────────
+function Scene6_Final() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.6], [0, 1], Easing.easeOut);
+  const lineW = interpolate(elapsed, [0.6, 1.4], [0, 600]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeIn,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 20}}>
+        NEXT · JUNIOR DESIGNER PASS
+      </div>
+      <div style={{fontFamily: serif, fontSize: 104, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing:'-0.01em'}}>
+        开始 <span style={{fontStyle:'italic', color: TERRA}}>Kenya Hara</span> 风格
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22,
+        color: ASH, marginTop: 28, maxWidth: 700, textAlign:'center', lineHeight: 1.5}}>
+        "方向确认 → 回到 Junior Designer 主干流程<br/>
+        这时已有明确的 design context，不再是凭空做"
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark (always visible) ────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+// ── Main composition ──────────────────────────────────────
+function App() {
+  return (
+    <Stage duration={24} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3.5}><Scene1_VagueBrief /></Sprite>
+      <Sprite start={3.5} end={6.5}><Scene2_AdvisorIntro /></Sprite>
+      <Sprite start={6.5} end={10.5}><Scene3_GridScan /></Sprite>
+      <Sprite start={10.5} end={19}><Scene4_ParallelDemos /></Sprite>
+      <Sprite start={19} end={22}><Scene5_Select /></Sprite>
+      <Sprite start={22} end={24}><Scene6_Final /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

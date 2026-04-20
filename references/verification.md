@@ -21,7 +21,7 @@ open -a "Google Chrome" "/path/to/your/design.html"
 HTML文件里最常见的问题是JS报错导致白屏。用Playwright跑一遍：
 
 ```bash
-python "$SKILL/scripts/verify.py" path/to/design.html
+python ~/.claude/skills/claude-design/scripts/verify.py path/to/design.html
 ```
 
 这个脚本会：
@@ -120,7 +120,13 @@ open screenshot.png
 
 ### 上传图床分享链接
 
-如果需要给远程协作者看（比如 Slack/飞书/微信），让用户用自己的图床工具或 MCP 上传。任何返回永久链接的图床都行（ImgBB / Cloudflare R2 / 七牛 / 自建等），粘贴到任何地方。
+如果需要给远程协作者看（比如 Slack/飞书/微信），让用户用自己的图床工具或 MCP 上传：
+
+```bash
+python ~/Documents/写作/tools/upload_image.py screenshot.png
+```
+
+返回ImgBB的永久链接，可以粘贴到任何地方。
 
 ## 验证出错时
 

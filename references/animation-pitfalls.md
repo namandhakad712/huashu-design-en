@@ -201,35 +201,164 @@
 
 **反例**：底部画 `00:42 ──── PROJECT NAME`、画面右下角画"CH 03 / 06"章节计数、画面边缘画版本号"v0.3.1"——都是伪 chrome filler。
 
-## 12. 录屏前置空白 —— 用 `window.__ready` 同步动画 t=0
+## 12. 录屏前置空白 + 录屏起点偏移 —— `__ready` × tick × lastTick 三联陷阱
 
-**踩的坑**：60 秒动画导出 MP4，前 2-3 秒是空白页面。`ffmpeg --trim=0.3` 剪不掉。
+**踩的坑（A · 前置空白）**：60 秒动画导出 MP4，前 2-3 秒是空白页面。`ffmpeg --trim=0.3` 剪不掉。
 
-**根因**：Playwright `recordVideo` 从 `newContext()` 那一刻就开始写 WebM。但此时 Babel Standalone 还在编译 inline JSX、React 还没 mount、`document.fonts.ready.then(root.render)` 还没触发。`page.goto(url, { waitUntil: 'networkidle' })` 只等网络空闲，检测不到 JS 执行阶段——所以 WebM 前 1.5-3s 是空白页。
+**踩的坑（B · 起点偏移，2026-04-20 真实事故）**：导出 24 秒视频，用户观感「视频 19 秒才开始播第一帧」。实际上动画从 t=5 开始录，录到 t=24 后 loop 回 t=0，再录 5 秒到 end——所以视频最后 5 秒才是动画真正的开头。
+
+**根因**（两个坑共享一个根因）：
+
+Playwright `recordVideo` 从 `newContext()` 那一刻就开始写 WebM，此时 Babel/React/字体加载共耗时 L 秒（2-6s）。录屏脚本等 `window.__ready = true` 作为「动画从这里开始」的锚点——它和动画 `time = 0` 必须严格 pair。有两种常见错法：
+
+| 错法 | 症状 |
+|------|------|
+| `__ready` 在 `useEffect` 或同步 setup 阶段设（在 tick 第一帧之前） | 录屏脚本以为动画开始了，实际 WebM 还在录空白页 → **前置空白** |
+| tick 的 `lastTick = performance.now()` 在**脚本顶层**初始化 | 字体加载 L 秒被算进首帧 `dt`，`time` 瞬间跳到 L → 录屏全程滞后 L 秒 → **起点偏移** |
+
+**✅ 正确的完整 starter tick 模板**（手写动画必须用这个骨架）：
+
+```js
+// ━━━━━━ state ━━━━━━
+let time = 0;
+let playing = false;   // ❗ 默认不播，等字体 ready 再启动
+let lastTick = null;   // ❗ sentinel——tick 首帧时 dt 强制为 0（别用 performance.now()）
+const fired = new Set();
+
+// ━━━━━━ tick ━━━━━━
+function tick(now) {
+  if (lastTick === null) {
+    lastTick = now;
+    window.__ready = true;   // ✅ pair：「录屏起点」与「动画 t=0」同一帧
+    render(0);               // 再渲一次确保 DOM 就绪（此时字体已 ready）
+    requestAnimationFrame(tick);
+    return;
+  }
+  const dt = (now - lastTick) / 1000;   // 首帧之后 dt 才开始推进
+  lastTick = now;
+
+  if (playing) {
+    let t = time + dt;
+    if (t >= DURATION) {
+      t = window.__recording ? DURATION - 0.001 : 0;  // 录制时不 loop，留 0.001s 保留末帧
+      if (!window.__recording) fired.clear();
+    }
+    time = t;
+    render(time);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ━━━━━━ boot ━━━━━━
+// 不要在顶层立即 rAF——等字体加载完才启动
+document.fonts.ready.then(() => {
+  render(0);                 // 先把初始画面画出来（字体已就绪）
+  playing = true;
+  requestAnimationFrame(tick);  // 首次 tick 会 pair __ready + t=0
+});
+
+// ━━━━━━ seek 接口（供 render-video 防御性矫正用）━━━━━━
+window.__seek = (t) => { fired.clear(); time = t; lastTick = null; render(t); };
+```
+
+**为什么这个模板对**：
+
+| 环节 | 为什么必须这样 |
+|------|-------------|
+| `lastTick = null` + 首帧 `return` | 避免「脚本加载到 tick 首次执行」的 L 秒被算进动画时间 |
+| `playing = false` 默认 | 字体加载期间 `tick` 即使运行也不推进 time，避免渲染错位 |
+| `__ready` 在 tick 首帧设 | 录屏脚本此刻开始计时，对应的画面是动画真正的 t=0 |
+| `document.fonts.ready.then(...)` 里才启动 tick | 规避字体 fallback 宽度测量、避免首帧字体跳变 |
+| `window.__seek` 存在 | 让 `render-video.js` 可以主动矫正——第二道防线 |
+
+**录屏脚本端的对应防御**：
+1. `addInitScript` 注入 `window.__recording = true`（先于 page goto）
+2. `waitForFunction(() => window.__ready === true)`，记录此刻偏移作为 ffmpeg trim
+3. **额外**：`__ready` 之后主动 `page.evaluate(() => window.__seek && window.__seek(0))`，把 HTML 可能的 time 偏差强制归零——这是第二道防线，对付不严格遵守 starter 模板的 HTML
+
+**验证方法**：导出 MP4 后
+```bash
+ffmpeg -i video.mp4 -ss 0 -vframes 1 frame-0.png
+ffmpeg -i video.mp4 -ss $DURATION-0.1 -vframes 1 frame-end.png
+```
+首帧必须是动画 t=0 的初始状态（不是中段，不是黑），末帧必须是动画终态（不是第二轮 loop 的某个时刻）。
+
+**参考实现**：`assets/animations.jsx` 的 Stage 组件、`scripts/render-video.js` 都已按此协议实现。手写 HTML 必须套 starter tick 模板——每一行都是防过具体 bug。
+
+## 13. 录制时禁止 loop —— `window.__recording` 信号
+
+**踩的坑**：动画 Stage 默认 `loop=true`（浏览器里方便看效果）。`render-video.js` 录完 duration 秒还多等 300ms 缓冲才停止，这 300ms 让 Stage 进入下一循环。ffmpeg `-t DURATION` 截取时，最后 0.5-1s 落入下一循环——视频结尾突然回到第一帧（Scene 1），观众以为视频出 bug。
+
+**根因**：录制脚本和 HTML 之间没有"我在录制"的握手协议。HTML 不知道自己被录，依然按浏览器交互场景循环。
 
 **规则**：
 
-1. **动画代码**在 tick 第一帧发 `window.__ready = true`，和动画 t=0 同步：
+1. **录制脚本**：在 `addInitScript` 里注入 `window.__recording = true`（先于 page goto）：
    ```js
-   function tick(now) {
-     if (last === null) {
-       last = now;
-       window.__ready = true;  // 必须在这里，不是 useEffect
-     }
-     // ... 动画推进
-   }
+   await recordCtx.addInitScript(() => { window.__recording = true; });
    ```
-   为什么同步？如果 `__ready` 在 tick 之前设（如 `useEffect` 或 rAF 排队），触发时 WebM 光标还在空白页；如果在 tick 之后设（rAF 嵌套），则动画已经跑了几帧被 trim 掉。**pair 起来**才是对的。
 
-2. **录屏脚本**`page.goto` 之后 `waitForFunction(() => window.__ready === true)`，记录此时相对 WebM 起点的秒数作为 ffmpeg trim 偏移。完全不靠猜。
+2. **Stage 组件**：识别这个信号，强制 loop=false：
+   ```js
+   const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+   // ...
+   if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+   //                                                       ↑ 留 0.001 防止 Sprite end=duration 被关掉
+   ```
 
-3. **字体等待**放在 tick 启动条件里：`document.fonts.ready.then(() => rAF(tick))`。这样 tick 第一帧就是字体已就绪的画面——`__ready` 信号 = WebM 捕到的第一个"用户会看到"的动画帧。
+3. **结尾 Sprite 的 fadeOut**：录制场景下应设 `fadeOut={0}`，否则视频末尾会渐变到透明/暗色——用户期望停在清晰的最后一帧，不是淡出。手写 HTML 时建议结尾 Sprite 都用 `fadeOut={0}`。
 
-**不这么做的代价**：固定 trim 靠猜。机器快慢、字体缓存状态、网速每次不同——某台机器上的 3s trim 换到另一台可能不够或截掉开头。动态测量从根本解决。
+**参考实现**：`assets/animations.jsx` 的 Stage / `scripts/render-video.js` 都已内置握手。手写 Stage 必须实现 `__recording` 检测——否则录制必踩这个坑。
 
-**参考实现**：`assets/animations.jsx` 的 Stage 组件已内置。`scripts/render-video.js` 已内置 auto-trim 逻辑。非 animations.jsx 的手写 HTML，自行在 tick/渲染循环的第一帧设信号。
+**验证**：导出 MP4 后 `ffmpeg -ss 19.8 -i video.mp4 -frames:v 1 end.png`，检查倒数 0.2 秒是否还是预期最后一帧，没有突然切换到另一个 scene。
 
-**验证方法**：导出后 `ffmpeg -i video.mp4 -ss 0 -vframes 1 frame-0.png`，检查第一帧是动画应有的初始状态（不是动画中段、不是黑屏）。
+## 14. 60fps 视频默认用帧复制 —— minterpolate 兼容性差
+
+**踩的坑**：`convert-formats.sh` 用 `minterpolate=fps=60:mi_mode=mci...` 生成的 60fps MP4，在 macOS QuickTime / Safari 部分版本下无法打开（一片黑或直接拒打）。VLC / Chrome 能打开。
+
+**根因**：minterpolate 输出的 H.264 elementary stream 包含某些播放器解析有问题的 SEI / SPS 字段。
+
+**规则**：
+
+- 默认 60fps 用简单 `fps=60` filter（帧复制），兼容性广（QuickTime/Safari/Chrome/VLC 都能开）
+- 高质量插帧用 `--minterpolate` flag 显式启用——但**必须本地测过**目标播放器再交付
+- 60fps 标签价值是**上传平台的算法识别**（Bilibili / YouTube 上 60fps 标记会优先推流），实际感知流畅度对 CSS 动画来说提升微弱
+- 加 `-profile:v high -level 4.0` 提升 H.264 通用兼容性
+
+**`convert-formats.sh` 已默认改成兼容模式**。如果你需要插帧高质量，加 `--minterpolate` flag：
+```bash
+bash convert-formats.sh input.mp4 --minterpolate
+```
+
+## 15. `file://` + 外部 `.jsx` 的 CORS 陷阱 —— 单文件交付必须内联引擎
+
+**踩的坑**：动画 HTML 里用 `<script type="text/babel" src="animations.jsx"></script>` 外部加载引擎。本机双击打开（`file://` 协议）→ Babel Standalone 走 XHR 拉 `.jsx` → Chrome 报 `Cross origin requests are only supported for protocol schemes: http, https, chrome, chrome-extension...` → 整页黑屏，不报 `pageerror` 只报 console error，很容易当"动画没触发"误诊。
+
+启 HTTP server 也未必救得了——本机有全局代理时 `localhost` 也会走代理，返回 502 / 连接失败。
+
+**规则**：
+
+- **单文件交付（双击打开即用的 HTML）** → `animations.jsx` 必须**内联**到 `<script type="text/babel">...</script>` 标签内，不要用 `src="animations.jsx"`
+- **多文件项目（起 HTTP server 演示）** → 可以外部加载，但交付时明确写清 `python3 -m http.server 8000` 命令
+- 判断标准：交付给用户的是"HTML 文件"还是"带 server 的项目目录"？前者用内联
+- Stage 组件 / animations.jsx 经常 200+ 行——贴进 HTML `<script>` 块完全可接受，别怕体积
+
+**最小验证**：双击你生成的 HTML，**不要**通过任何 server 打开。如果 Stage 正常显示动画首帧，才算通过。
+
+## 16. 跨 scene 反色上下文 —— 画面内元素不要硬编码颜色
+
+**踩的坑**：做多场景动画时，`ChapterLabel` / `SceneNumber` / `Watermark` 等**跨 scene 都出现**的元素，在组件里写死 `color: '#1A1A1A'`（深色文字）。前 4 个 scene 浅底 OK，到第 5 个黑底 scene 时"05"和水印直接消失——不报错、不触发任何检查、关键信息隐形。
+
+**规则**：
+
+- **跨多 scene 复用的画面内元素**（chapter 标签 / scene 编号 / 时间码 / 水印 / 版权条）**禁止硬编码颜色值**
+- 改用三种方式之一：
+  1. **`currentColor` 继承**：元素只写 `color: currentColor`，父 scene 容器设 `color: 计算值`
+  2. **invert prop**：组件接受 `<ChapterLabel invert />` 手动切换深浅
+  3. **基于底色自动计算**：`color: contrast-color(var(--scene-bg))`（CSS 4 新 API，或 JS 判断）
+- 交付前用 Playwright 抽**每个 scene 的代表帧**，人眼过一遍"跨 scene 元素"是否都可见
+
+这条坑的隐蔽性在于——**没有 bug 报警**。只有人眼或 OCR 能发现。
 
 ## 快速自查清单（开工前 5 秒）
 
@@ -242,4 +371,10 @@
 - [ ] 第 0 帧是完整初始状态，不是空白？
 - [ ] 画面内没有「伪 chrome」装饰（进度条/时间码/底部署名条与 Stage scrubber 撞车）？
 - [ ] 动画 tick 第一帧同步设 `window.__ready = true`？（用 animations.jsx 自带；手写 HTML 自己加）
-- [ ] 导出后抽第 0 帧验证是动画初始状态？
+- [ ] Stage 检测 `window.__recording` 强制 loop=false？（手写 HTML 必加）
+- [ ] 结尾 Sprite 的 `fadeOut` 设为 0（视频末尾停清晰帧）？
+- [ ] 60fps MP4 默认用帧复制模式（兼容性），高质量插帧才加 `--minterpolate`？
+- [ ] 导出后抽第 0 帧 + 末帧验证是动画初始/最终状态？
+- [ ] 涉及具体品牌（Stripe/Anthropic/Lovart/...）：走完了「品牌资产协议」（SKILL.md §1.a 五步）？有没有写 `brand-spec.md`？
+- [ ] 单文件交付的 HTML：`animations.jsx` 是内联的，不是 `src="..."`？（file:// 下 external .jsx 会 CORS 黑屏）
+- [ ] 跨 scene 出现的元素（chapter 标签/水印/scene 编号）没有硬编码颜色？在每个 scene 底色下都可见？

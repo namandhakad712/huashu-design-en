@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · iOS App Prototype</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400&family=Noto+Serif+SC:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body { background: #0c0c0c; font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif; color: #1a1a1a; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+  function interpolate(t, input, output, easing) {
+    const [a, b] = input, [x, y] = output;
+    if (t <= a) return x; if (t >= b) return y;
+    let p = (t - a) / (b - a); if (easing) p = easing(p);
+    return x + (y - x) * p;
+  }
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() { return useContext(SpriteContext) || { t: 0, elapsed: 0, duration: 0 }; }
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+    useEffect(() => {
+      const update = () => {
+        const s = Math.min(window.innerWidth / width, (window.innerHeight - 56) / height);
+        setScale(s);
+      };
+      update(); window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, [width, height]);
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false, last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) { last = now; if (typeof window !== 'undefined') window.__ready = true; }
+        const delta = (now - last) / 1000; last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={{position:'absolute', top:'50%', left:'50%', transformOrigin:'center center', width, height, background: bgColor, overflow:'hidden', transform:`translate(-50%, -50%) scale(${scale})`}}>
+              {children}
+            </div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    return (
+      <SpriteContext.Provider value={{ t, elapsed, duration, start, end: actualEnd }}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const PAPER = '#FDFBF5';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const OLIVE = '#6a6b4e';
+const ASH = '#6b6b6b';
+const LINE = '#e5ddcd';
+const LINE2 = '#d9d2c5';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Art image: CSS-rendered "oil painting" hero ──────────
+function ArtBlock({ mood = 'warm', height = 200 }) {
+  // Three curated palettes for variety (no Unsplash dep, stable offline)
+  const palettes = {
+    warm: ['#8b4a2b', '#c67b4a', '#e3a876', '#f2d4a7'], // Turner sunset
+    quiet: ['#3d4a3a', '#6a8066', '#a8b89c', '#e0d8b8'], // Corot pastoral
+    study: ['#2a3552', '#5e6b8a', '#8b98b5', '#d4c9a5'], // Vermeer indoor
+  };
+  const p = palettes[mood];
+  return (
+    <div style={{
+      width: '100%', height, position: 'relative', overflow: 'hidden',
+      background: `linear-gradient(135deg, ${p[0]} 0%, ${p[1]} 35%, ${p[2]} 70%, ${p[3]} 100%)`,
+    }}>
+      {/* Impressionist brush texture */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `
+          radial-gradient(ellipse 80px 30px at 30% 40%, ${p[3]}44, transparent 70%),
+          radial-gradient(ellipse 60px 20px at 70% 60%, ${p[0]}33, transparent 70%),
+          radial-gradient(ellipse 100px 40px at 50% 80%, ${p[2]}44, transparent 70%),
+          radial-gradient(ellipse 50px 25px at 20% 70%, ${p[1]}55, transparent 70%)
+        `,
+        filter: 'blur(1px)',
+      }} />
+      {/* Subtle scratch noise */}
+      <svg width="100%" height="100%" style={{position:'absolute', inset:0, opacity: 0.18}}>
+        <filter id="paint-noise">
+          <feTurbulence baseFrequency="0.9" numOctaves="2" />
+          <feColorMatrix values="0 0 0 0 0.3   0 0 0 0 0.2   0 0 0 0 0.1   0 0 0 1 0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paint-noise)" />
+      </svg>
+    </div>
+  );
+}
+
+// ── iOS Frame (simplified from ios_frame.jsx, positioned for demo) ──
+function IosFrame({ children, time = '9:41', scale = 1, style = {} }) {
+  const W = 420, H = 900;
+  return (
+    <div style={{
+      display: 'inline-block',
+      padding: 13,
+      background: '#0a0a0a',
+      borderRadius: 62,
+      boxShadow: '0 0 0 2px #2a2a2a, 0 30px 80px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.2)',
+      position: 'relative',
+      transform: `scale(${scale})`,
+      transformOrigin: 'center center',
+      ...style,
+    }}>
+      <div style={{
+        position: 'relative', width: W, height: H,
+        borderRadius: 50, overflow: 'hidden', background: PAPER,
+      }}>
+        {/* Status bar */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 54,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 34px', fontSize: 17, fontWeight: 600,
+          fontFamily: '-apple-system, "SF Pro Text", sans-serif',
+          color: '#000', zIndex: 20, pointerEvents: 'none',
+        }}>
+          <span>{time}</span>
+          <div style={{display:'flex', alignItems:'center', gap: 6}}>
+            <div style={{display:'flex', alignItems:'flex-end', gap: 2, height: 12}}>
+              {[4, 6, 9, 11].map((h, i) => <div key={i} style={{width:3, height:h, background:'#000', borderRadius:1}} />)}
+            </div>
+            <svg width="16" height="12" viewBox="0 0 16 12">
+              <path d="M8 11.5a1 1 0 100-2 1 1 0 000 2z" fill="#000" />
+              <path d="M3 7.5a7 7 0 0110 0" stroke="#000" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+              <path d="M1 4.5a11 11 0 0114 0" stroke="#000" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.7" />
+            </svg>
+            <div style={{width:26, height:12, border:'1.5px solid #000', borderRadius:3, padding:1, position:'relative'}}>
+              <div style={{width:'85%', height:'100%', background:'#000', borderRadius:1}} />
+              <div style={{position:'absolute', top:3, right:-3, width:2, height:6, background:'#000', borderRadius:'0 1px 1px 0'}} />
+            </div>
+          </div>
+        </div>
+        {/* Dynamic island */}
+        <div style={{
+          position: 'absolute', top: 12, left: '50%',
+          transform: 'translateX(-50%)', width: 124, height: 36,
+          background: '#000', borderRadius: 999, zIndex: 30,
+        }} />
+        {/* Content */}
+        <div style={{position:'absolute', top: 54, left: 0, right: 0, bottom: 34, overflow: 'hidden'}}>
+          {children}
+        </div>
+        {/* Home indicator */}
+        <div style={{
+          position: 'absolute', bottom: 10, left: '50%',
+          transform: 'translateX(-50%)', width: 140, height: 5,
+          background: 'rgba(0,0,0,0.28)', borderRadius: 999, zIndex: 10,
+        }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Screen: Today ────────────────────────────────────────
+function TodayScreen({ animateT = 1 }) {
+  const headerOp = interpolate(animateT, [0, 0.25], [0, 1]);
+  const headerY = interpolate(animateT, [0, 0.35], [20, 0], Easing.easeOut);
+  const heroOp = interpolate(animateT, [0.15, 0.5], [0, 1]);
+  const heroY = interpolate(animateT, [0.15, 0.5], [30, 0], Easing.easeOut);
+  const memoriesOp = interpolate(animateT, [0.4, 0.8], [0, 1]);
+
+  return (
+    <div style={{padding: '24px 22px 0', height: '100%', display:'flex', flexDirection:'column', background: PAPER}}>
+      {/* Header */}
+      <div style={{opacity: headerOp, transform: `translateY(${headerY}px)`, marginBottom: 18}}>
+        <div style={{fontFamily: mono, fontSize: 10, color: ASH, letterSpacing:'0.25em', marginBottom: 4}}>
+          周二 · 4月20日
+        </div>
+        <div style={{fontFamily: serif, fontSize: 34, fontWeight: 500, color: INK, lineHeight: 1, letterSpacing:'-0.01em'}}>
+          今日
+        </div>
+      </div>
+
+      {/* Hero card */}
+      <div style={{opacity: heroOp, transform: `translateY(${heroY}px)`, border: `1px solid ${LINE}`, background:'#fff', marginBottom: 14}}>
+        <ArtBlock mood="warm" height={180} />
+        <div style={{padding: '14px 16px 16px'}}>
+          <div style={{fontFamily: mono, fontSize: 9, color: TERRA, letterSpacing:'0.2em', marginBottom: 6}}>
+            继续阅读 · 剩 12 分钟
+          </div>
+          <div style={{fontFamily: serif, fontSize: 20, fontWeight: 500, color: INK, lineHeight: 1.2, marginBottom: 4, letterSpacing:'-0.005em'}}>
+            《<span style={{fontStyle:'italic'}}>沉思录</span>》
+          </div>
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 13, color: ASH}}>
+            马可·奥勒留 · 第四卷
+          </div>
+          {/* AI insight */}
+          <div style={{marginTop: 14, paddingTop: 12, borderTop: `1px solid ${LINE}`,
+            display:'flex', gap: 10, alignItems: 'flex-start'}}>
+            <div style={{width: 6, height: 6, borderRadius:'50%', background: TERRA, marginTop: 6, flexShrink: 0}} />
+            <div>
+              <div style={{fontFamily: mono, fontSize: 9, color: TERRA, letterSpacing:'0.2em', marginBottom: 2}}>
+                流明 · 已关联
+              </div>
+              <div style={{fontFamily: serif, fontSize: 13, color: INK, lineHeight: 1.4}}>
+                呼应你 3 周前读的《<span style={{fontStyle:'italic'}}>塞涅卡书简·28</span>》——同在谈<span style={{fontStyle:'italic'}}>内心堡垒</span>。
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Memory bubbles list */}
+      <div style={{opacity: memoriesOp, flex: 1}}>
+        <div style={{fontFamily: mono, fontSize: 9, color: ASH, letterSpacing:'0.25em', marginBottom: 10}}>
+          来自你的记忆
+        </div>
+        {[
+          { title: '"Amor fati"——一个说法', sub: '尼采 · 2 个月前', dot: OLIVE },
+          { title: '论「注意力即爱」', sub: '薇依 · 5 个月前', dot: TERRA },
+        ].map((m, i) => (
+          <div key={i} style={{padding: '11px 0', borderTop: i === 0 ? `1px solid ${LINE}` : 'none', borderBottom: `1px solid ${LINE}`, display:'flex', alignItems:'center', gap: 12}}>
+            <div style={{width: 8, height: 8, borderRadius: '50%', background: m.dot}} />
+            <div style={{flex: 1}}>
+              <div style={{fontFamily: serif, fontSize: 14, color: INK, lineHeight: 1.3}}>{m.title}</div>
+              <div style={{fontFamily: mono, fontSize: 9, color: ASH, marginTop: 2, letterSpacing:'0.1em'}}>{m.sub}</div>
+            </div>
+            <div style={{fontFamily: serif, fontSize: 18, color: ASH, fontStyle:'italic'}}>→</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Screen: Memory (graph view) ───────────────────────────
+function MemoryScreen({ animateT = 1 }) {
+  const headerOp = interpolate(animateT, [0, 0.3], [0, 1]);
+  const graphOp = interpolate(animateT, [0.15, 0.6], [0, 1]);
+  const listOp = interpolate(animateT, [0.5, 0.9], [0, 1]);
+
+  // Nodes for graph
+  const nodes = [
+    { x: 210, y: 100, r: 22, label: '斯多葛', emph: true },
+    { x: 110, y: 180, r: 14, label: '伦理' },
+    { x: 310, y: 170, r: 16, label: '美德', emph: true },
+    { x: 90, y: 260, r: 10, label: '' },
+    { x: 200, y: 240, r: 12, label: '' },
+    { x: 320, y: 270, r: 18, label: '自我' },
+    { x: 150, y: 330, r: 11, label: '' },
+    { x: 280, y: 340, r: 13, label: '心流' },
+  ];
+  const edges = [
+    [0, 1], [0, 2], [0, 4], [1, 3], [2, 5], [4, 5], [4, 6], [5, 7], [6, 7], [1, 4],
+  ];
+
+  return (
+    <div style={{padding: '24px 22px 0', height: '100%', background: PAPER, display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headerOp, marginBottom: 14}}>
+        <div style={{fontFamily: mono, fontSize: 10, color: ASH, letterSpacing:'0.25em', marginBottom: 4}}>
+          287 条 · 4 个聚类
+        </div>
+        <div style={{fontFamily: serif, fontSize: 34, fontWeight: 500, color: INK, lineHeight: 1, letterSpacing:'-0.01em'}}>
+          记忆
+        </div>
+      </div>
+
+      {/* Graph visualization */}
+      <div style={{
+        opacity: graphOp, border:`1px solid ${LINE}`, background:'#fff',
+        height: 400, position:'relative', overflow:'hidden', marginBottom: 14,
+      }}>
+        <svg viewBox="0 0 420 400" width="100%" height="100%" style={{display:'block'}}>
+          {/* edges */}
+          {edges.map(([a, b], i) => {
+            const na = nodes[a], nb = nodes[b];
+            return <line key={i} x1={na.x} y1={na.y} x2={nb.x} y2={nb.y}
+              stroke="#c8beb0" strokeWidth={0.8} opacity={0.7} />;
+          })}
+          {/* nodes */}
+          {nodes.map((n, i) => {
+            const appear = interpolate(animateT, [0.2 + i * 0.04, 0.4 + i * 0.04], [0, 1], Easing.easeOut);
+            return (
+              <g key={i} opacity={appear}>
+                <circle cx={n.x} cy={n.y} r={n.r}
+                  fill={n.emph ? TERRA : '#ede5d3'}
+                  stroke={n.emph ? TERRA : '#b8ac94'}
+                  strokeWidth={1} />
+                {n.label && (
+                  <text x={n.x} y={n.y + n.r + 14} textAnchor="middle"
+                    fontFamily={serif} fontStyle="italic" fontSize={11}
+                    fill={n.emph ? TERRA : '#666'}>
+                    {n.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+        {/* corner label */}
+        <div style={{position:'absolute', top: 12, left: 14,
+          fontFamily: mono, fontSize: 9, color: ASH, letterSpacing:'0.2em'}}>
+          · 图谱视图
+        </div>
+        <div style={{position:'absolute', bottom: 12, right: 14,
+          fontFamily: mono, fontSize: 9, color: TERRA, letterSpacing:'0.2em'}}>
+          斯多葛派 · 47 条
+        </div>
+      </div>
+
+      {/* Top clusters */}
+      <div style={{opacity: listOp}}>
+        <div style={{fontFamily: mono, fontSize: 9, color: ASH, letterSpacing:'0.25em', marginBottom: 8}}>
+          主要聚类
+        </div>
+        {[
+          { name: '斯多葛', count: 47, swatch: TERRA },
+          { name: '注意力', count: 32, swatch: OLIVE },
+        ].map((c, i) => (
+          <div key={i} style={{padding: '9px 0', borderTop: i === 0 ? `1px solid ${LINE}` : 'none', borderBottom: `1px solid ${LINE}`, display:'flex', alignItems:'center', gap: 10}}>
+            <div style={{width: 14, height: 14, background: c.swatch, borderRadius: 2}} />
+            <div style={{flex: 1, fontFamily: serif, fontSize: 14, color: INK}}>{c.name}</div>
+            <div style={{fontFamily: mono, fontSize: 10, color: ASH}}>{c.count}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Screen: Chat ─────────────────────────────────────────
+function ChatScreen({ animateT = 1 }) {
+  const headerOp = interpolate(animateT, [0, 0.2], [0, 1]);
+  const msg1Op = interpolate(animateT, [0.15, 0.35], [0, 1]);
+  const msg2Op = interpolate(animateT, [0.4, 0.65], [0, 1]);
+  const ctxCardOp = interpolate(animateT, [0.55, 0.75], [0, 1]);
+  const msg3Op = interpolate(animateT, [0.7, 0.92], [0, 1]);
+  const inputOp = interpolate(animateT, [0.5, 0.8], [0, 1]);
+
+  // Typewriter for AI reply (msg2)
+  const aiText = '两处呼应——马可谈的「内心堡垒」和塞涅卡第 28 封信中的独处。';
+  const charCount = Math.floor(interpolate(animateT, [0.4, 0.7], [0, aiText.length]));
+  const typed = aiText.slice(0, charCount);
+
+  return (
+    <div style={{padding: '24px 22px 0', height: '100%', background: PAPER, display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headerOp, marginBottom: 16}}>
+        <div style={{fontFamily: mono, fontSize: 10, color: ASH, letterSpacing:'0.25em', marginBottom: 4}}>
+          流明 · 已关联
+        </div>
+        <div style={{fontFamily: serif, fontSize: 30, fontWeight: 500, color: INK, lineHeight: 1, letterSpacing:'-0.01em'}}>
+          问你的记忆
+        </div>
+      </div>
+
+      <div style={{flex: 1, display:'flex', flexDirection:'column', gap: 12}}>
+        {/* User msg */}
+        <div style={{opacity: msg1Op, alignSelf:'flex-end', maxWidth: '85%',
+          background:'#f0e8d5', padding: '10px 14px', borderRadius: '18px 18px 4px 18px'}}>
+          <div style={{fontFamily: serif, fontSize: 14, color: INK, lineHeight: 1.4}}>
+            我最近关于<span style={{fontStyle:'italic'}}>「独处」</span>在想什么？
+          </div>
+        </div>
+
+        {/* AI reply (typewriter) */}
+        <div style={{opacity: msg2Op, alignSelf:'flex-start', maxWidth: '90%',
+          paddingLeft: 14, borderLeft: `2px solid ${TERRA}`}}>
+          <div style={{fontFamily: mono, fontSize: 9, color: TERRA, letterSpacing:'0.2em', marginBottom: 4}}>
+            流明
+          </div>
+          <div style={{fontFamily: serif, fontSize: 14, color: INK, lineHeight: 1.45, minHeight: 60}}>
+            {typed}
+            {charCount < aiText.length && charCount > 0 && (
+              <span style={{color: TERRA, marginLeft: 2}}>|</span>
+            )}
+          </div>
+        </div>
+
+        {/* Context card */}
+        <div style={{opacity: ctxCardOp, alignSelf:'flex-start', maxWidth: '88%',
+          background:'#fff', border: `1px solid ${LINE}`, padding: '10px 12px',
+          marginLeft: 14, display:'flex', gap: 10, alignItems:'center'}}>
+          <div style={{width: 40, height: 40, flexShrink: 0, overflow:'hidden'}}>
+            <ArtBlock mood="study" height={40} />
+          </div>
+          <div style={{flex: 1}}>
+            <div style={{fontFamily: serif, fontSize: 12, fontWeight: 500, color: INK, lineHeight: 1.2}}>
+              塞涅卡 · 第 28 封信
+            </div>
+            <div style={{fontFamily: mono, fontSize: 8, color: ASH, marginTop: 2, letterSpacing:'0.15em'}}>
+              3 周前阅读 · 4 分钟
+            </div>
+          </div>
+          <div style={{fontFamily: serif, fontSize: 16, color: ASH, fontStyle:'italic'}}>↗</div>
+        </div>
+
+        {/* User follow-up */}
+        <div style={{opacity: msg3Op, alignSelf:'flex-end', maxWidth: '70%',
+          background:'#f0e8d5', padding: '10px 14px', borderRadius: '18px 18px 4px 18px'}}>
+          <div style={{fontFamily: serif, fontSize: 14, color: INK}}>
+            给我看原文段落。
+          </div>
+        </div>
+      </div>
+
+      {/* Input bar */}
+      <div style={{opacity: inputOp, padding: '10px 0 16px',
+        borderTop: `1px solid ${LINE}`, marginTop: 12,
+        display:'flex', alignItems:'center', gap: 10}}>
+        <div style={{flex: 1, fontFamily: serif, fontStyle:'italic',
+          fontSize: 13, color: ASH}}>
+          从你的阅读里问我任何事…
+        </div>
+        <div style={{width: 28, height: 28, background: TERRA, borderRadius: '50%',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          color:'#fff', fontFamily: sans, fontSize: 16}}>↑</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Tab bar ───────────────────────────────────────────────
+function TabBar({ active = 'today', tapping = null }) {
+  const tabs = [
+    { id: 'today', label: '今日' },
+    { id: 'memory', label: '记忆' },
+    { id: 'chat', label: '对话' },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      height: 72, background: 'rgba(253,251,245,0.95)',
+      backdropFilter: 'blur(12px)',
+      borderTop: `1px solid ${LINE}`,
+      display: 'flex', alignItems: 'center',
+      fontFamily: serif,
+    }}>
+      {tabs.map((t) => {
+        const isActive = active === t.id;
+        const isTapping = tapping === t.id;
+        return (
+          <div key={t.id} style={{
+            flex: 1, textAlign:'center', position:'relative',
+            padding: '12px 0 18px',
+          }}>
+            {/* Ripple */}
+            {isTapping !== null && isTapping > 0 && isTapping < 1 && (
+              <div style={{
+                position:'absolute', top:'50%', left:'50%',
+                transform: `translate(-50%, -50%) scale(${1 + isTapping * 2})`,
+                width: 44, height: 44, borderRadius:'50%',
+                background: TERRA, opacity: 0.25 * (1 - isTapping),
+                pointerEvents:'none',
+              }} />
+            )}
+            <div style={{
+              fontSize: 15, fontWeight: isActive ? 600 : 400,
+              fontStyle: isActive ? 'normal' : 'italic',
+              color: isActive ? TERRA : ASH,
+              letterSpacing: '0.02em',
+            }}>
+              {t.label}
+            </div>
+            {isActive && (
+              <div style={{
+                position:'absolute', bottom: 8, left:'50%',
+                transform: 'translateX(-50%)',
+                width: 18, height: 2, background: TERRA,
+              }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Scene composition ─────────────────────────────────────
+// Timeline:
+//   0.0 – 1.8  iPhone fade+bounce in
+//   1.8 – 7.5  Today screen (fills in)
+//   7.5 – 8.5  Tap on Memory tab (ripple)
+//   8.5 – 13.5 Memory screen
+//   13.5 – 14.5 Tap on Chat tab
+//   14.5 – 19.5 Chat screen
+//   19.5 – 21.5 Pan: phone shrinks + capability labels appear
+//   21.5 – 24.0 Hold final frame with labels
+function App() {
+  return (
+    <Stage duration={24} width={1920} height={1080} bgColor={CREAM}>
+      <MainComposition />
+    </Stage>
+  );
+}
+
+function MainComposition() {
+  const time = useTime();
+
+  // Phone entrance
+  const entranceT = Math.min(1, Math.max(0, time / 1.8));
+  const phoneOp = interpolate(entranceT, [0, 0.5], [0, 1]);
+  const phoneScale = interpolate(entranceT, [0, 1], [0.82, 0.88], Easing.spring);
+
+  // Pan-out in final scene (19.5 – 21.5)
+  const panT = Math.min(1, Math.max(0, (time - 19.5) / 2));
+  const finalScale = interpolate(panT, [0, 1], [0.88, 0.68], Easing.easeInOut);
+  const finalX = interpolate(panT, [0, 1], [0, -200], Easing.easeInOut);
+
+  const currentScale = panT > 0 ? finalScale : phoneScale;
+  const currentX = panT > 0 ? finalX : 0;
+
+  // Screen determination
+  let activeScreen = 'today';
+  let tapping = null; // { id: 'memory', t: 0..1 }
+  let screenAnimateT = 1;
+  let transitionProgress = 0;
+
+  if (time < 7.5) {
+    activeScreen = 'today';
+    screenAnimateT = Math.min(1, Math.max(0, (time - 1.8) / 2.5));
+  } else if (time < 8.5) {
+    activeScreen = 'today';
+    tapping = { id: 'memory', t: (time - 7.5) / 1.0 };
+    transitionProgress = (time - 8.0) / 0.5; // slide starts at 8.0
+  } else if (time < 13.5) {
+    activeScreen = 'memory';
+    screenAnimateT = Math.min(1, Math.max(0, (time - 8.5) / 2.5));
+  } else if (time < 14.5) {
+    activeScreen = 'memory';
+    tapping = { id: 'chat', t: (time - 13.5) / 1.0 };
+    transitionProgress = (time - 14.0) / 0.5;
+  } else if (time < 19.5) {
+    activeScreen = 'chat';
+    screenAnimateT = Math.min(1, Math.max(0, (time - 14.5) / 2.5));
+  } else {
+    activeScreen = 'chat';
+    screenAnimateT = 1;
+  }
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM}}>
+      {/* Phone */}
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%',
+        transform: `translate(calc(-50% + ${currentX}px), -50%) scale(${currentScale})`,
+        opacity: phoneOp, transformOrigin: 'center center',
+      }}>
+        <IosFrame>
+          <div style={{position:'relative', width:'100%', height:'100%'}}>
+            {activeScreen === 'today' && <TodayScreen animateT={screenAnimateT} />}
+            {activeScreen === 'memory' && <MemoryScreen animateT={screenAnimateT} />}
+            {activeScreen === 'chat' && <ChatScreen animateT={screenAnimateT} />}
+            <TabBar active={activeScreen} tapping={tapping ? tapping.t : null} />
+          </div>
+        </IosFrame>
+      </div>
+
+      {/* Capability labels (appear during pan-out 19.5+) */}
+      {panT > 0.05 && <CapabilityLabels t={panT} />}
+
+      {/* Masthead (tucked corner, always visible from ~2s) */}
+      {time > 2 && time < 19.5 && (
+        <div style={{
+          position: 'absolute', top: 60, left: 80,
+          opacity: Math.min(1, (time - 2) / 0.6),
+          maxWidth: 420,
+        }}>
+          <div style={{fontFamily: mono, fontSize: 12, color: TERRA, letterSpacing:'0.3em', marginBottom: 10}}>
+            iOS APP 原型
+          </div>
+          <div style={{fontFamily: serif, fontSize: 70, fontWeight: 500, color: INK, lineHeight: 1.05, letterSpacing:'-0.015em'}}>
+            真机。<br/>
+            <span style={{fontStyle:'italic', color: TERRA}}>真</span>交互。
+          </div>
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 20, color: ASH, marginTop: 22, lineHeight: 1.55}}>
+            iPhone 15 Pro 机身 · 灵动岛 · 状态驱动多屏<br/>
+            AI 密度信息 · CSS 艺术 · Playwright 点击测试
+          </div>
+        </div>
+      )}
+
+      {/* Screen label (bottom) */}
+      {time > 2 && time < 19.5 && (
+        <ScreenLabel active={activeScreen} time={time} />
+      )}
+
+      {/* Watermark */}
+      <div style={{position:'absolute', bottom: 24, right: 32,
+        fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+        fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+        Created by Huashu-Design
+      </div>
+    </div>
+  );
+}
+
+function ScreenLabel({ active, time }) {
+  const label = { today: '屏幕 1 · 今日', memory: '屏幕 2 · 记忆', chat: '屏幕 3 · 对话' }[active];
+  const idx = { today: 1, memory: 2, chat: 3 }[active];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 80, left: 80,
+      fontFamily: mono, fontSize: 11, color: ASH, letterSpacing:'0.25em',
+      opacity: 0.9,
+    }}>
+      <span style={{color: TERRA, marginRight: 12}}>0{idx}</span>
+      <span>{label.toUpperCase()}</span>
+    </div>
+  );
+}
+
+function CapabilityLabels({ t }) {
+  const labels = [
+    { text: '真图 · Wikimedia / Met / Unsplash', y: 220, delay: 0.0 },
+    { text: 'Inline React · 双击就开', y: 380, delay: 0.15 },
+    { text: 'AppPhone · 状态驱动多屏切换', y: 540, delay: 0.30 },
+    { text: '信息密度型 · 每屏 ≥ 3 处差异化', y: 700, delay: 0.45 },
+    { text: 'Playwright · 交付前点击测试', y: 860, delay: 0.60 },
+  ];
+  return (
+    <>
+      {labels.map((l, i) => {
+        const localT = Math.max(0, Math.min(1, (t - l.delay) / 0.35));
+        const op = localT;
+        const x = interpolate(localT, [0, 1], [1400, 1280], Easing.easeOut);
+        return (
+          <div key={i} style={{
+            position: 'absolute', left: x, top: l.y,
+            opacity: op, display:'flex', alignItems:'center', gap: 14,
+          }}>
+            <div style={{width: 60, height: 1, background: TERRA}} />
+            <div>
+              <div style={{fontFamily: mono, fontSize: 10, color: TERRA, letterSpacing:'0.25em', marginBottom: 3}}>
+                0{i + 1}
+              </div>
+              <div style={{fontFamily: serif, fontSize: 20, color: INK, lineHeight: 1.25, letterSpacing:'-0.005em'}}>
+                {l.text}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

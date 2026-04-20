@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Motion Design</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body { background: #0c0c0c; font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif; color: #1a1a1a; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+  function interpolate(t, input, output, easing) {
+    const [a, b] = input, [x, y] = output;
+    if (t <= a) return x; if (t >= b) return y;
+    let p = (t - a) / (b - a); if (easing) p = easing(p);
+    return x + (y - x) * p;
+  }
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() { return useContext(SpriteContext) || { t: 0, elapsed: 0, duration: 0 }; }
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+    useEffect(() => {
+      const update = () => {
+        const s = Math.min(window.innerWidth / width, (window.innerHeight - 56) / height);
+        setScale(s);
+      };
+      update(); window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, [width, height]);
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false, last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) { last = now; if (typeof window !== 'undefined') window.__ready = true; }
+        const delta = (now - last) / 1000; last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={{position:'absolute', top:'50%', left:'50%', transformOrigin:'center center', width, height, background: bgColor, overflow:'hidden', transform:`translate(-50%, -50%) scale(${scale})`}}>
+              {children}
+            </div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    return (
+      <SpriteContext.Provider value={{ t, elapsed, duration, start, end: actualEnd }}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const OLIVE = '#6a6b4e';
+const DEEP_BLUE = '#2a3552';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Scene 1: Title (0 – 3s) ────────────────────────────
+function Scene1_Title() {
+  const { elapsed } = useSprite();
+  const titleY = interpolate(elapsed, [0, 1.2], [60, 0], Easing.easeOut);
+  const titleOp = interpolate(elapsed, [0, 0.8], [0, 1]);
+  const subOp = interpolate(elapsed, [0.6, 1.4], [0, 1]);
+  const lineW = interpolate(elapsed, [0.9, 1.6], [0, 520]);
+  const apiOp = interpolate(elapsed, [1.4, 2.2], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.6, 3.0], [1, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 24, opacity: titleOp}}>
+        动画引擎 · Stage + Sprite
+      </div>
+      <div style={{fontFamily: serif, fontSize: 148, fontWeight: 500, color: INK,
+        lineHeight: 1, letterSpacing:'-0.02em', opacity: titleOp,
+        transform: `translateY(${titleY}px)`}}>
+        <span style={{fontStyle:'italic', color: TERRA}}>Motion</span> Design
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 24, color: ASH,
+        marginTop: 28, opacity: subOp}}>
+        时间驱动 · 可编排 · 60fps 导出
+      </div>
+      <div style={{fontFamily: mono, fontSize: 14, color: ASH,
+        marginTop: 40, opacity: apiOp, letterSpacing:'0.1em'}}>
+        &lt;Stage&gt; · &lt;Sprite&gt; · useTime() · useSprite() · interpolate() · Easing
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: Easing functions comparison (3 – 8s) ────────
+function Scene2_Easing() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.6, 5.0], [1, 0]);
+
+  // Lane sweep cycle every 2s
+  const cycle = (elapsed % 2.2) / 2.0;
+  const sweepT = Math.min(1, Math.max(0, cycle));
+
+  const curves = [
+    { name: 'linear', label: 'linear', fn: Easing.linear, color: ASH },
+    { name: 'easeOut', label: 'easeOut', fn: Easing.easeOut, color: OLIVE },
+    { name: 'spring', label: 'spring', fn: Easing.spring, color: TERRA },
+    { name: 'easeInOut', label: 'easeInOut', fn: Easing.easeInOut, color: DEEP_BLUE },
+  ];
+
+  const trackLeft = 320;
+  const trackRight = 1480;
+  const trackLen = trackRight - trackLeft;
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '80px 100px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: titleOp, marginBottom: 50,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>场景 1 · EASING</div>
+          <div style={{fontFamily: serif, fontSize: 56, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            四种缓动曲线同跑
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH,
+          textAlign:'right'}}>
+          同样的 2 秒，<br/>
+          走出四种不同的「节奏感」
+        </div>
+      </div>
+
+      <div style={{flex: 1, position:'relative'}}>
+        {curves.map((c, i) => {
+          const y = 80 + i * 140;
+          const t = c.fn(sweepT);
+          const x = trackLeft + trackLen * t;
+          // Draw the curve as a mini sparkline right of track
+          const sparkW = 160, sparkH = 50;
+          const sparkPts = Array.from({length: 30}, (_, k) => {
+            const tx = k / 29;
+            const ty = 1 - c.fn(tx);
+            return `${tx * sparkW},${ty * sparkH}`;
+          }).join(' ');
+          return (
+            <div key={i}>
+              {/* Label (left) */}
+              <div style={{position:'absolute', left: 0, top: y - 22, width: 280,
+                fontFamily: mono, fontSize: 14, color: INK, letterSpacing:'0.05em'}}>
+                <span style={{color: c.color, marginRight: 12}}>●</span>
+                Easing.<span style={{color: c.color}}>{c.label}</span>
+              </div>
+              {/* Track */}
+              <div style={{position:'absolute', left: trackLeft, top: y,
+                width: trackLen, height: 2, background: LINE}} />
+              {/* Dot */}
+              <div style={{position:'absolute', left: x - 14, top: y - 14,
+                width: 28, height: 28, borderRadius: '50%',
+                background: c.color,
+                boxShadow: `0 4px 12px ${c.color}55`}} />
+              {/* Sparkline */}
+              <svg style={{position:'absolute', left: trackRight + 60, top: y - sparkH/2 - 5,
+                width: sparkW, height: sparkH}}>
+                <polyline points={sparkPts} stroke={c.color} strokeWidth="1.5" fill="none" />
+                <circle cx={sweepT * sparkW} cy={(1 - c.fn(sweepT)) * sparkH}
+                  r="3.5" fill={c.color} />
+              </svg>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Timeline at bottom */}
+      <div style={{marginTop: 10, position:'relative', height: 30}}>
+        <div style={{fontFamily: mono, fontSize: 10, color: ASH, letterSpacing:'0.15em'}}>
+          t = <span style={{color: INK}}>{sweepT.toFixed(2)}</span> &nbsp; · &nbsp; 周期 2.0s
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: interpolate() function demo (8 – 14s) ───────
+function Scene3_Interpolate() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [5.6, 6.0], [1, 0]);
+
+  // Animated t value: 0→1 cycle over ~3s
+  const cycle = (elapsed % 3.2) / 3.0;
+  const t = Math.min(1, Math.max(0, cycle));
+
+  // Three mapped outputs from same t:
+  const opacity = interpolate(t, [0, 1], [0, 1]);
+  const scale = interpolate(t, [0, 1], [0.4, 1.2], Easing.spring);
+  const rotation = interpolate(t, [0, 1], [-30, 30], Easing.easeInOut);
+  const translateX = interpolate(t, [0, 0.5, 1], [-80, 40, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '80px 100px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: titleOp, marginBottom: 40,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>场景 2 · INTERPOLATE</div>
+          <div style={{fontFamily: serif, fontSize: 56, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            一个 <span style={{fontStyle:'italic', color: TERRA}}>t</span>，四种变化
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH,
+          textAlign:'right'}}>
+          用同一条时间轴，<br/>
+          映射出透明度、尺寸、旋转、位移
+        </div>
+      </div>
+
+      {/* t value progress bar */}
+      <div style={{background:'#fff', border: `1px solid ${LINE}`,
+        padding: '20px 32px', marginBottom: 30}}>
+        <div style={{display:'flex', justifyContent:'space-between',
+          alignItems:'baseline', marginBottom: 14}}>
+          <div style={{fontFamily: mono, fontSize: 13, color: INK}}>
+            <span style={{color: ASH}}>const</span> t = <span style={{color: TERRA}}>{t.toFixed(3)}</span>
+          </div>
+          <div style={{fontFamily: mono, fontSize: 11, color: ASH, letterSpacing:'0.15em'}}>
+            时间 → 0 到 1
+          </div>
+        </div>
+        <div style={{height: 4, background: LINE, position:'relative'}}>
+          <div style={{position:'absolute', top:0, left:0, height:'100%',
+            width: `${t * 100}%`, background: TERRA}} />
+        </div>
+      </div>
+
+      {/* Four demos */}
+      <div style={{flex: 1, display:'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 24}}>
+        {[
+          { name: 'opacity', code: 'interpolate(t, [0,1], [0,1])', val: opacity, render:
+            <div style={{width: 120, height: 120, background: TERRA, opacity}} /> },
+          { name: 'scale + spring', code: 'interpolate(t, [0,1], [0.4,1.2], spring)', val: scale, render:
+            <div style={{width: 120, height: 120, background: OLIVE,
+              transform: `scale(${scale})`}} /> },
+          { name: 'rotate', code: 'interpolate(t, [0,1], [-30,30], easeInOut)', val: rotation, render:
+            <div style={{width: 120, height: 120, background: DEEP_BLUE,
+              transform: `rotate(${rotation}deg)`}} /> },
+          { name: 'translateX (3 stops)', code: 'interpolate(t, [0,.5,1], [-80,40,0])', val: translateX, render:
+            <div style={{width: 120, height: 120, background: INK,
+              transform: `translateX(${translateX}px)`}} /> },
+        ].map((d, i) => (
+          <div key={i} style={{background:'#fff', border:`1px solid ${LINE}`,
+            padding: '18px 18px 14px', display:'flex', flexDirection:'column'}}>
+            <div style={{fontFamily: mono, fontSize: 9, color: TERRA,
+              letterSpacing:'0.2em', marginBottom: 6}}>0{i+1}</div>
+            <div style={{fontFamily: serif, fontSize: 18, fontWeight: 500, color: INK,
+              marginBottom: 6}}>{d.name}</div>
+            <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+              marginBottom: 20, minHeight: 32, wordBreak:'break-all', lineHeight: 1.5}}>
+              {d.code}
+            </div>
+            <div style={{flex: 1, display:'flex', alignItems:'center',
+              justifyContent:'center', overflow:'hidden'}}>
+              {d.render}
+            </div>
+            <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+              marginTop: 12, textAlign:'right'}}>
+              = <span style={{color: TERRA}}>{d.val.toFixed(2)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 4: Sprite sequencing on timeline (14 – 20s) ───
+function Scene4_Sprite() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [5.6, 6.0], [1, 0]);
+
+  // Timeline plays 6s
+  const localTime = Math.min(elapsed, 5.6);
+
+  const sprites = [
+    { name: 'Title',  start: 0.0, end: 2.5, color: TERRA,   y: 0, label: '标题' },
+    { name: 'Image',  start: 0.8, end: 3.5, color: OLIVE,   y: 1, label: '图像淡入' },
+    { name: 'Text',   start: 1.8, end: 4.5, color: DEEP_BLUE, y: 2, label: '正文' },
+    { name: 'Outro',  start: 4.0, end: 5.5, color: '#8b4a2b', y: 3, label: '结尾' },
+  ];
+
+  const timelineLeft = 100;
+  const timelineRight = 1820;
+  const timelineW = timelineRight - timelineLeft;
+  const totalDur = 5.6;
+  const cursorX = timelineLeft + (localTime / totalDur) * timelineW;
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '80px 100px 60px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: titleOp, marginBottom: 30,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>场景 3 · SPRITE 编排</div>
+          <div style={{fontFamily: serif, fontSize: 56, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            时间片段 · <span style={{fontStyle:'italic'}}>同台起舞</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH,
+          textAlign:'right'}}>
+          每个 &lt;Sprite start=... end=...&gt;<br/>
+          在自己的时间窗口出场、退场
+        </div>
+      </div>
+
+      {/* Live visualization area */}
+      <div style={{background:'#fff', border:`1px solid ${LINE}`, flex: 1,
+        position:'relative', overflow:'hidden', marginBottom: 30}}>
+        {sprites.map((s, i) => {
+          const active = localTime >= s.start && localTime < s.end;
+          if (!active) return null;
+          const localT = (localTime - s.start) / (s.end - s.start);
+          const op = interpolate(localT, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
+          const ty = interpolate(localT, [0, 0.2], [30, 0], Easing.easeOut);
+
+          if (s.name === 'Title') {
+            return (
+              <div key={i} style={{position:'absolute', top: 60, left: 80, right: 80,
+                opacity: op, transform: `translateY(${ty}px)`}}>
+                <div style={{fontFamily: mono, fontSize: 10, color: s.color,
+                  letterSpacing:'0.3em', marginBottom: 10}}>CHAPTER 01</div>
+                <div style={{fontFamily: serif, fontSize: 64, fontWeight: 500,
+                  color: INK, lineHeight: 1.05, letterSpacing:'-0.01em'}}>
+                  如何让动画 <span style={{fontStyle:'italic', color: s.color}}>好看</span>
+                </div>
+              </div>
+            );
+          }
+          if (s.name === 'Image') {
+            return (
+              <div key={i} style={{position:'absolute', top: 60, right: 80,
+                width: 380, height: 240, opacity: op,
+                transform: `translateY(${ty}px)`,
+                background: `linear-gradient(135deg, ${s.color}, ${s.color}88 50%, ${s.color}33)`,
+                overflow: 'hidden'}}>
+                <div style={{position:'absolute', inset: 0,
+                  background: `radial-gradient(circle at 30% 30%, ${s.color}aa, transparent 50%)`}} />
+                <div style={{position:'absolute', bottom: 14, left: 16,
+                  fontFamily: mono, fontSize: 9, color: '#fff',
+                  letterSpacing:'0.2em', opacity: 0.8}}>
+                  IMAGE · FADE-IN
+                </div>
+              </div>
+            );
+          }
+          if (s.name === 'Text') {
+            return (
+              <div key={i} style={{position:'absolute', bottom: 80, left: 80, right: 80,
+                opacity: op, transform: `translateY(${ty}px)`}}>
+                <div style={{fontFamily: mono, fontSize: 10, color: s.color,
+                  letterSpacing:'0.3em', marginBottom: 10}}>BODY</div>
+                <div style={{fontFamily: serif, fontSize: 20, color: INK,
+                  lineHeight: 1.55, maxWidth: 720}}>
+                  好的 motion 不是每个元素都在抢戏——是<span style={{fontStyle:'italic'}}>一个
+                  </span>进、<span style={{fontStyle:'italic'}}>一个</span>退、留足呼吸，
+                  最后合奏收尾。
+                </div>
+              </div>
+            );
+          }
+          if (s.name === 'Outro') {
+            return (
+              <div key={i} style={{position:'absolute', inset: 0,
+                opacity: op, display:'flex', alignItems:'center',
+                justifyContent:'center', flexDirection:'column'}}>
+                <div style={{fontFamily: serif, fontSize: 88, fontWeight: 500,
+                  color: s.color, fontStyle:'italic', letterSpacing:'-0.01em'}}>
+                  — fin —
+                </div>
+                <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+                  letterSpacing:'0.3em', marginTop: 14}}>
+                  4 SPRITES · 5.5 SECONDS · 1 STAGE
+                </div>
+              </div>
+            );
+          }
+        })}
+      </div>
+
+      {/* Timeline viz (showing sprite spans) */}
+      <div style={{position:'relative', height: 110}}>
+        {/* Labels */}
+        {sprites.map((s, i) => (
+          <div key={i} style={{position:'absolute', left: 0, top: i * 22,
+            fontFamily: mono, fontSize: 10, color: ASH, letterSpacing:'0.05em'}}>
+            <span style={{color: s.color, marginRight: 8}}>●</span>{s.label}
+          </div>
+        ))}
+        {/* Tracks */}
+        {sprites.map((s, i) => {
+          const x0 = timelineLeft + (s.start / totalDur) * timelineW;
+          const x1 = timelineLeft + (s.end / totalDur) * timelineW;
+          const active = localTime >= s.start && localTime < s.end;
+          return (
+            <div key={i} style={{position:'absolute',
+              left: x0, top: i * 22 - 2, width: x1 - x0, height: 16,
+              background: active ? s.color : `${s.color}55`,
+              borderLeft: `2px solid ${s.color}`}} />
+          );
+        })}
+        {/* Playhead cursor */}
+        <div style={{position:'absolute', left: cursorX - 1, top: -6,
+          width: 2, height: 110, background: INK, zIndex: 5}} />
+        <div style={{position:'absolute', left: cursorX - 20, top: -20,
+          fontFamily: mono, fontSize: 10, color: INK,
+          letterSpacing:'0.1em'}}>
+          {localTime.toFixed(2)}s
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 5: Outro (20 – 22s) ─────────────────────────
+function Scene5_Outro() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.6], [0, 1], Easing.easeOut);
+  const lineW = interpolate(elapsed, [0.5, 1.3], [0, 620]);
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeIn,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 20}}>
+        导出 · MP4 / GIF / 60FPS / BGM
+      </div>
+      <div style={{fontFamily: serif, fontSize: 108, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing:'-0.015em'}}>
+        从 <span style={{fontStyle:'italic', color: TERRA}}>时间</span>，到成片
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22, color: ASH,
+        marginTop: 26, maxWidth: 800, textAlign:'center', lineHeight: 1.55}}>
+        render-video.js · convert-formats.sh · add-music.sh<br/>
+        一条命令跑完，产出社交媒体可直接用的素材
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ──────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Stage duration={22} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3}><Scene1_Title /></Sprite>
+      <Sprite start={3} end={8}><Scene2_Easing /></Sprite>
+      <Sprite start={8} end={14}><Scene3_Interpolate /></Sprite>
+      <Sprite start={14} end={20}><Scene4_Sprite /></Sprite>
+      <Sprite start={20} end={22}><Scene5_Outro /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

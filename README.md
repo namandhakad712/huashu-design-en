@@ -1,153 +1,254 @@
-# 花叔Design · Huashu-Design
+<div align="center">
 
-![花叔Design Brand Film](./demo/huashu-design-brand.gif)
+# Huashu Design
 
-> 20 秒品牌片由本 skill 自己完成：ASK → PROPOSE → PICK → CRITIQUE → EXPORT → BRAND，六幕演一次 Junior Designer 的完整工作流。
-> **[下载 MP4（60fps, 1.0MB）](./demo/huashu-design-brand.mp4)** · [25fps 版](./demo/huashu-design-brand-25fps.mp4)
+> *「你要做的下一个设计，何必打开图形界面」*
 
-把「AI 当设计师」落到实处的 Skill。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
+[![Skills](https://img.shields.io/badge/skills.sh-Compatible-green)](https://skills.sh)
 
-不是让 AI 生成一张图，而是让 AI 进入「资深 Junior Designer」的工作模式：先给假设 + 占位 + 理由，show 给 manager 看，得到方向反馈，再做 variation，再迭代细节。最后还能请一位「严苛评审」打分。
+<br>
 
-适用于任何支持 Skill 规范的 AI agent：Claude Code、Codex、Cursor、Trae、OpenClaw、Hermes Agent 等。
+**Claude Design 把设计师塞进了浏览器。Huashu Design 让图形工具这一层消失。**
 
----
+<br>
 
-## 它能做什么
+PPT、App 原型、时间轴动画、信息图、设计变体——在 Claude Code 里说一句话，agent 自己搭 design spec、自己抓品牌色、自己生成 HTML、自己跑 Playwright 验证。<br>
+没有画布，没有图层，没有插件。只剩下一个能直接复制到 Keynote、贴进飞书、发进 issue 的交付物。
 
-一条 skill 同时覆盖四件事：
+```
+npx skills add alchaincyf/huashu-design
+```
 
-1. **高保真 HTML 视觉产出**
-   交互原型、App / iOS mockup、幻灯片、动画 Demo、设计变体探索、信息图 —— 用 HTML 做，而不是用 Figma 截图或 placeholder 拼贴。
+[看效果](#demo-画廊) · [安装](#装上就能用) · [能做什么](#能做什么) · [核心机制](#核心机制) · [和 Claude Design 的关系](#和-claude-design-的关系)
 
-2. **设计方向顾问（Fallback）**
-   当你的需求只是「给我做个好看的页面」时，skill 会从 5 个流派、20 种设计哲学里推荐 3 个差异化方向（信息建筑派 / 运动诗学派 / 极简主义派 / 实验先锋派 / 东方哲学派），再并行生成 3 个视觉 Demo 让你挑。
+<br>
 
-3. **Junior Designer 工作流**
-   不直接闷头做大招。先写 assumptions + reasoning + placeholder，尽早 show；方向错了，晚改比早改贵 100 倍。
+[![Star History Chart](https://api.star-history.com/svg?repos=alchaincyf/huashu-design&type=Date)](https://star-history.com/#alchaincyf/huashu-design&Date)
 
-4. **专家级评审**
-   交付后可选一轮 5 维度评分（哲学一致性 / 视觉层级 / 细节执行 / 功能性 / 创新性），外加具体的 Quick Fixes 清单。
-
----
-
-## 附带的工程工具链
-
-- **Starter Components**：iOS / Android / macOS / Browser 的设备边框，design_canvas（变体画布），animations.jsx（Stage + Sprite 时间轴引擎），deck_stage.js（幻灯片外壳）。
-- **视频导出**：HTML 动画一键导出 25fps MP4 → 60fps 插帧 MP4 → palette 优化 GIF，配 6 首场景化 BGM（科技 / 广告 / 教育 / 教程）自动 fade。
-- **幻灯片导出**：HTML → PDF（矢量）/ PPTX（图片铺底）。
-- **Playwright 验证**：截图 + 控制台错误检查，交付前跑一遍。
+</div>
 
 ---
 
-## 安装
+<p align="center">
+  <img src="demos/w3-fallback-advisor.gif" alt="Fallback 设计顾问 · 从 20 种设计哲学推荐 3 个差异化方向" width="100%">
+</p>
 
-把整个目录放到你 agent 读取 skills 的位置即可。
+---
 
-**Claude Code**：
+## 装上就能用
 
 ```bash
-git clone https://github.com/alchaincyf/huashu-design-skill.git ~/.claude/skills/huashu-design
+npx skills add alchaincyf/huashu-design
 ```
 
-**其他 agent**（Codex / Cursor / Trae / OpenClaw / Hermes Agent 等）：按各自的 skills 约定放置，SKILL.md 的 frontmatter + markdown 结构是通用的。
-
-安装完成后，用任意包含触发词的话开启：
-
-> 「做个 iOS App 原型」「帮我做 pitch deck」「导出 MP4」「评审这个设计」「做个好看的页面（我没想法）」
-
-触发词完整清单见 `SKILL.md` frontmatter 的 description 字段。
-
----
-
-## 使用前需要自己配置的东西
-
-大部分能力开箱即用，下面几项在需要时再弄：
-
-| 能力 | 需要 |
-|------|------|
-| 视频导出 | `npm i -g playwright` + `brew install ffmpeg`（或等价方案） |
-| 幻灯片导出 PDF | `npm i -g playwright pdf-lib` |
-| 幻灯片导出 PPTX | `npm i -g playwright pptxgenjs` |
-| Playwright 截图验证 | `npm i -g playwright` |
-| 个人品牌锚定（可选） | 复制 `assets/personal-asset-index.example.json` 到你的 agent 私有 memory 目录并填真实信息 |
-
----
-
-## 目录结构
+然后在 Claude Code 里直接说话：
 
 ```
-huashu-design-skill/
-├── SKILL.md                       # 主干文件：哲学 + 工作流 + 路由表
-├── references/                    # 深度参考：按需加载
-│   ├── workflow.md                # 开工问什么问题
-│   ├── content-guidelines.md      # 反 AI slop 完整清单
-│   ├── react-setup.md             # React + Babel 最佳实践
-│   ├── slide-decks.md             # 幻灯片架构
-│   ├── animations.md              # 动画引擎用法
-│   ├── animation-pitfalls.md      # 动画踩坑 + T0 黑屏修复
-│   ├── tweaks-system.md           # 实时调参 UI
-│   ├── design-context.md          # 没有 design system 怎么办
-│   ├── design-styles.md           # 20 种设计哲学
-│   ├── scene-templates.md         # 按输出类型的场景模板
-│   ├── critique-guide.md          # 评审打分标准
-│   ├── verification.md            # 产出验证流程
-│   └── video-export.md            # 视频导出命令链
-├── scripts/                       # 可执行脚本
-│   ├── render-video.js            # HTML → 25fps MP4
-│   ├── convert-formats.sh         # 25fps MP4 → 60fps MP4 + GIF
-│   ├── add-music.sh               # BGM 叠加 + 自动 fade
-│   ├── export_deck_pdf.mjs        # HTML → PDF
-│   ├── export_deck_pptx.mjs       # HTML → PPTX
-│   └── verify.py                  # Playwright 截图 + 控制台检查
-└── assets/                        # 起手组件 + BGM + 示例
-    ├── deck_stage.js              # 幻灯片外壳（单文件架构）
-    ├── deck_index.html            # 幻灯片拼接器（多文件架构）
-    ├── animations.jsx             # Stage + Sprite 时间轴引擎
-    ├── design_canvas.jsx          # 变体画布
-    ├── ios_frame.jsx              # iPhone 设备边框
-    ├── android_frame.jsx          # Android 设备边框
-    ├── macos_window.jsx           # macOS 窗口 chrome
-    ├── browser_window.jsx         # 浏览器 chrome
-    ├── bgm-{tech,ad,educational,tutorial,*-alt}.mp3
-    ├── personal-asset-index.example.json
-    └── showcases/                 # 24 个预制 showcase（8 场景 × 3 风格）
+「做一份 AI 心理学的演讲 PPT，推荐 3 个风格方向让我选」
+「做个 AI 番茄钟 iOS 原型，4 个核心屏幕要真能点击」
+「把这段逻辑做成 60 秒动画，导出 MP4 和 GIF」
+「帮我对这个设计做一个 5 维度评审」
+```
+
+没有按钮、没有面板、没有 Figma 插件。跨 agent 通用 —— Claude Code / Cursor / Trae / Hermes / OpenClaw 任一都能装。
+
+---
+
+## 能做什么
+
+| 能力 | 交付物 | 典型耗时 |
+|------|--------|----------|
+| 交互原型（App / Web） | 单文件 HTML · 真 iPhone bezel · 可点击 · Playwright 验证 | 10–15 min |
+| 演讲幻灯片 | HTML deck（浏览器演讲）+ 可编辑 PPTX（文本框保留） | 15–25 min |
+| 时间轴动画 | MP4（25fps / 60fps 插帧）+ GIF（palette 优化）+ BGM | 8–12 min |
+| 设计变体 | 3+ 并排对比 · Tweaks 实时调参 · 跨维度探索 | 10 min |
+| 信息图 / 可视化 | 印刷级排版 · 可导 PDF/PNG/SVG | 10 min |
+| 设计方向顾问 | 5 流派 × 20 种设计哲学 · 推荐 3 方向 · 并行生成 Demo | 5 min |
+| 5 维度专家评审 | 雷达图 + Keep/Fix/Quick Wins · 可操作修复清单 | 3 min |
+
+**跨 agent 通用**：Claude Code、Cursor、Trae、Hermes、OpenClaw 任一都能装。
+
+---
+
+## Demo 画廊
+
+### 设计方向顾问
+
+模糊需求时的 fallback：从 5 流派 × 20 种设计哲学里挑 3 个差异化方向，并行生成 3 个 Demo 让你选。
+
+<p align="center"><img src="demos/w3-fallback-advisor.gif" width="100%"></p>
+
+### iOS App 原型
+
+iPhone 15 Pro 精确机身（灵动岛 / 状态栏 / Home Indicator）· 状态驱动多屏切换 · 真图从 Wikimedia/Met/Unsplash 取 · Playwright 自动点击测试。
+
+<p align="center"><img src="demos/c1-ios-prototype.gif" width="100%"></p>
+
+### Motion Design 引擎
+
+Stage + Sprite 时间片段模型 · `useTime` / `useSprite` / `interpolate` / `Easing` 四 API 覆盖所有动画需求 · 一条命令导出 MP4 / GIF / 60fps 插帧 / 带 BGM 的成片。
+
+<p align="center"><img src="demos/c3-motion-design.gif" width="100%"></p>
+
+### HTML Slides → 可编辑 PPTX
+
+HTML deck 浏览器演讲 · `html2pptx.js` 读 DOM 的 computedStyle 逐元素翻译成 PowerPoint 对象 · 导出的是**真文本框**，不是图片铺底。
+
+<p align="center"><img src="demos/c2-slides-pptx.gif" width="100%"></p>
+
+### Tweaks · 实时变体切换
+
+配色 / 字型 / 信息密度等参数化 · 侧边面板切换 · 纯前端 + `localStorage` 持久化 · 刷新不丢。
+
+<p align="center"><img src="demos/c4-tweaks.gif" width="100%"></p>
+
+### 信息图 / 数据可视化
+
+杂志级排版 · CSS Grid 精准分栏 · `text-wrap: pretty` 排印细节 · 真数据驱动 · 可导 PDF 矢量 / PNG 300dpi / SVG。
+
+<p align="center"><img src="demos/c5-infographic.gif" width="100%"></p>
+
+### 5 维度专家评审
+
+哲学一致性 · 视觉层级 · 细节执行 · 功能性 · 创新性 各 0–10 分 · 雷达图可视化 · 输出 Keep / Fix / Quick Wins 清单。
+
+<p align="center"><img src="demos/c6-expert-review.gif" width="100%"></p>
+
+### Junior Designer 工作流
+
+不闷头做大招：先写 assumptions + placeholders + reasoning，尽早 show 给你，再迭代。理解错了早改比晚改便宜 100 倍。
+
+<p align="center"><img src="demos/w2-junior-designer.gif" width="100%"></p>
+
+### 品牌资产协议 5 步硬流程
+
+涉及具体品牌时强制执行：问 → 搜 → 下载（三条兜底）→ grep 色值 → 写 `brand-spec.md`。
+
+<p align="center"><img src="demos/w1-brand-protocol.gif" width="100%"></p>
+
+---
+
+## 核心机制
+
+### 品牌资产协议
+
+skill 里最硬的一段规则。涉及具体品牌（Stripe、Linear、Anthropic、自家公司等）时强制执行 5 步：
+
+| 步骤 | 动作 | 目的 |
+|------|------|------|
+| 1 · 问 | 用户有 brand guidelines 吗？ | 尊重已有资源 |
+| 2 · 搜官方品牌页 | `<brand>.com/brand` · `brand.<brand>.com` · `<brand>.com/press` | 抓权威色值 |
+| 3 · 下载资产 | SVG 文件 → 官网 HTML 全文 → 产品截图取色 | 三条兜底，前一条失败立刻走下一条 |
+| 4 · grep 提取色值 | 从资产里抓所有 `#xxxxxx`，按频率排序，过滤黑白灰 | **绝不从记忆猜品牌色** |
+| 5 · 固化 spec | 写 `brand-spec.md` + CSS 变量，所有 HTML 引用 `var(--brand-*)` | 不固化就会忘 |
+
+A/B 测试（v1 vs v2，各跑 6 agent）：**v2 的稳定性方差比 v1 低 5 倍**。稳定性的稳定性，这是 skill 真正的护城河。
+
+### 设计方向顾问（Fallback）
+
+当用户需求模糊到无法着手时触发：
+
+- 不凭通用直觉硬做，进入 Fallback 模式
+- 从 5 流派 × 20 种设计哲学里推荐 3 个**必须来自不同流派**的差异化方向
+- 每个方向配代表作、气质关键词、代表设计师
+- 并行生成 3 个视觉 Demo 让用户选
+- 选定后进入主干 Junior Designer 流程
+
+### Junior Designer 工作流
+
+默认工作模式，贯穿所有任务：
+
+- 开工前 show 问题清单一次性发给用户，等批量答完再动手
+- HTML 里先写 assumptions + placeholders + reasoning comments
+- 尽早 show 给用户（哪怕只是灰色方块）
+- 填充实际内容 → variations → Tweaks 这三步分别再 show 一次
+- 交付前用 Playwright 肉眼过一遍浏览器
+
+### 反 AI slop 规则
+
+避免一眼 AI 的视觉最大公约数（紫渐变 / emoji 图标 / 圆角+左 border accent / SVG 画人脸 / Inter 做 display）。用 `text-wrap: pretty` + CSS Grid + 精心选择的 serif display 和 oklch 色彩。
+
+---
+
+## 和 Claude Design 的关系
+
+我大方承认：品牌资产协议的哲学是从 Claude Design 流传出来的提示词里偷师的。那份提示词反复强调**好的高保真设计不是从白纸开始，而是从已有的设计上下文长出来**。这个原则是 65 分作品和 90 分作品的分水岭。
+
+定位差异：
+
+| | Claude Design | huashu-design |
+|---|---|---|
+| 形态 | 网页产品（浏览器里用） | skill（Claude Code 里用） |
+| 配额 | 订阅 quota | API 消耗 · 并行跑 agent 不受 quota 限 |
+| 交付物 | 画布内 + 可导 Figma | HTML / MP4 / GIF / 可编辑 PPTX / PDF |
+| 操作方式 | GUI（点、拖、改） | 对话（说话、等 agent 做完） |
+| 复杂动画 | 有限 | Stage + Sprite 时间轴 · 60fps 导出 |
+| 跨 agent | 专属 Claude.ai | Claude Code / Cursor / Trae / Hermes / OpenClaw 任一 |
+
+Claude Design 是**更好的图形工具**，huashu-design 是**让图形工具这层消失**。两条路，不同受众。
+
+---
+
+## Limitations
+
+- **不支持图层级可编辑的 PPTX 到 Figma**。产出 HTML，可截图、录屏、导图，但不能拖进 Keynote 改文字位置。
+- **Framer Motion 级别的复杂动画不行**。3D、物理模拟、粒子系统超出 skill 边界。
+- **完全空白的品牌从零设计质量会掉到 60–65 分**。凭空画 hi-fi 本来就是 last resort。
+
+这是一个 80 分的 skill，不是 100 分的产品。对不愿意打开图形界面的人，80 分的 skill 比 100 分的产品好用。
+
+---
+
+## 仓库结构
+
+```
+huashu-design/
+├── SKILL.md                 # 主文档（给 agent 读）
+├── README.md                # 本文件（给用户读）
+├── assets/                  # Starter Components
+│   ├── animations.jsx       # Stage + Sprite + Easing + interpolate
+│   ├── ios_frame.jsx        # iPhone 15 Pro bezel
+│   ├── android_frame.jsx
+│   ├── macos_window.jsx
+│   ├── browser_window.jsx
+│   ├── deck_stage.js        # HTML 幻灯片引擎
+│   ├── deck_index.html      # 多文件 deck 拼接器
+│   ├── design_canvas.jsx    # 并排变体展示
+│   ├── showcases/           # 24 个预制样例（8 场景 × 3 风格）
+│   └── bgm-*.mp3            # 6 首场景化背景音乐
+├── references/              # 按任务深入读的子文档
+│   ├── animation-pitfalls.md
+│   ├── design-styles.md     # 20 种设计哲学详细库
+│   ├── slide-decks.md
+│   ├── editable-pptx.md
+│   ├── critique-guide.md
+│   ├── video-export.md
+│   └── ...
+├── scripts/                 # 导出工具链
+│   ├── render-video.js      # HTML → MP4
+│   ├── convert-formats.sh   # MP4 → 60fps + GIF
+│   ├── add-music.sh         # MP4 + BGM
+│   ├── export_deck_pdf.mjs
+│   ├── export_deck_pptx.mjs
+│   ├── html2pptx.js
+│   └── verify.py
+└── demos/                   # 9 个能力演示（本 README 引用的 GIF 都来自这里）
 ```
 
 ---
 
-## 设计原则（写进 DNA 的五条）
+## 起源
 
-1. **从 existing context 出发**，不凭空画 hi-fi。没有 design system / brand / Figma 就先找，真没有就明确告知「我会基于通用直觉做」。
-2. **Junior Designer 模式**：先 show 假设，再执行。不要一头扎进去闷头做大招。
-3. **给 variations，不给最终答案**。3+ 个变体，跨视觉 / 交互 / 色彩 / 布局 / 动画维度递进，让用户 mix and match。
-4. **Placeholder > 烂实现**。没图标就留灰色方块 + 文字标签，不画烂 SVG；没数据不编造假数据。
-5. **反 AI slop**：激进渐变、满屏 emoji、圆角卡片 + 左 accent border、SVG 画人画物、Inter / Roboto 填所有文字 —— 每一条都是默认避开项（用户可按品牌 override）。
+Anthropic 发布 Claude Design 那天我玩到凌晨四点。几天之后发现自己再也没点开过它，不是它不好——它是这个赛道目前最成熟的产品——是我宁愿让 agent 在终端里帮我干活，也不愿意打开任何图形界面。
 
-完整哲学和工作流见 `SKILL.md`。
+于是让 agent 拆解 Claude Design 本身（包括社区流传的系统提示词、品牌资产协议、组件机制），蒸馏成结构化 spec，再写成 skill 装进自己的 Claude Code。
 
----
-
-## BGM 版权说明
-
-`assets/bgm-*.mp3` 为原创 / 授权音乐，仅限配合本 skill 生成的演示 / 宣传视频使用。商业投放前请确认你的素材来源许可；若替换成自己的 BGM，只需保留相同文件名或改脚本参数。
+感谢 Anthropic 把 Claude Design 的提示词写得清晰。这种基于其他产品灵感的二次创作，是开源文化在 AI 时代的新形态。
 
 ---
 
 ## License
 
-MIT。自由 fork、魔改、开分支。PR 欢迎，尤其欢迎：
-
-- 新的设计哲学流派（在 `references/design-styles.md` 里）
-- 新的 scene template（在 `references/scene-templates.md` 里）
-- 新的 showcase（在 `assets/showcases/` 里）
-- 其他 agent 环境的适配笔记（尤其欢迎 Codex / Cursor / Trae 的使用报告）
-
----
-
-## 致谢
-
-- Skill 规范：Anthropic Claude Code
-- 设计哲学蒸馏：Pentagram、Field.io、Kenya Hara、Stefan Sagmeister、Dieter Rams、Massimo Vignelli 等 20 位设计师 / 机构
-- 工程实践：Remotion / After Effects（Stage + Sprite 思路）、Playwright（验证 + 录制）、ffmpeg（视频后处理）
-- 灵感来源：AI Artifacts 原生设计能力 → 搬到 Skill 架构 → 跨 agent 可用
+MIT. Skill 和 demo 都开源，随便用。issue 里欢迎延伸讨论。

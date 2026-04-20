@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Infographic Demo</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0c0c0c;
+    font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+  function interpolate(t, input, output, easing) {
+    const [a, b] = input, [x, y] = output;
+    if (t <= a) return x; if (t >= b) return y;
+    let p = (t - a) / (b - a); if (easing) p = easing(p);
+    return x + (y - x) * p;
+  }
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() { return useContext(SpriteContext) || { t: 0, elapsed: 0, duration: 0 }; }
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+    useEffect(() => {
+      const update = () => {
+        const s = Math.min(window.innerWidth / width, (window.innerHeight - 56) / height);
+        setScale(s);
+      };
+      update(); window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, [width, height]);
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false, last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) { last = now; if (typeof window !== 'undefined') window.__ready = true; }
+        const delta = (now - last) / 1000; last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={{position:'absolute', top:'50%', left:'50%', transformOrigin:'center center', width, height, background: bgColor, overflow:'hidden', transform:`translate(-50%, -50%) scale(${scale})`}}>
+              {children}
+            </div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    return (
+      <SpriteContext.Provider value={{ t, elapsed, duration, start, end: actualEnd }}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+const OLIVE = '#6a6b4e';
+const DEEP_BLUE = '#2a3552';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Scene 1: Title (0 – 3s) ───────────────────────────────
+function Scene1_Title() {
+  const { elapsed } = useSprite();
+  const topOp = interpolate(elapsed, [0.0, 0.6], [0, 1]);
+  const topLineW = interpolate(elapsed, [0.3, 1.0], [0, 220]);
+  const mainOp = interpolate(elapsed, [0.5, 1.2], [0, 1]);
+  const mainY = interpolate(elapsed, [0.5, 1.3], [32, 0], Easing.easeOut);
+  const italicOp = interpolate(elapsed, [1.0, 1.6], [0, 1]);
+  const subOp = interpolate(elapsed, [1.5, 2.1], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.6, 3.0], [1, 0], Easing.easeIn);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{display:'flex', alignItems:'center', gap: 18, opacity: topOp, marginBottom: 48}}>
+        <div style={{height: 1, background: TERRA, width: topLineW}}/>
+        <div style={{fontFamily: mono, fontSize: 12, color: TERRA,
+          letterSpacing:'0.35em'}}>
+          信息图 · 数据驱动 · 印刷级
+        </div>
+        <div style={{height: 1, background: TERRA, width: topLineW}}/>
+      </div>
+      <div style={{fontFamily: serif, fontSize: 160, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing: '-0.02em',
+        opacity: mainOp, transform: `translateY(${mainY}px)`}}>
+        让数据<span style={{fontStyle:'italic', color: TERRA, opacity: italicOp}}>说话</span>
+      </div>
+      <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 24,
+        color: ASH, marginTop: 44, opacity: subOp, letterSpacing: '0.02em'}}>
+        精确排版 · 一眼看懂 · 可印刷
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: Full infographic layout (3 – 10s) ────────────
+// Uses a magazine spread style: headline, three columns (big numbers / bars / pie), trend line footer
+function Scene2_Spread() {
+  const { elapsed } = useSprite();
+  const headerOp = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const ruleW = interpolate(elapsed, [0.3, 1.0], [0, 1800]);
+  const colDelay = [0.6, 1.0, 1.4];
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM,
+      padding: '60px 80px 50px', display:'flex', flexDirection:'column'}}>
+      {/* Masthead */}
+      <div style={{opacity: headerOp, display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 14, fontFamily: mono, fontSize: 11,
+        letterSpacing: '0.3em', color: ASH}}>
+        <span>HUASHU · INFOGRAPHIC REPORT</span>
+        <span>VOL. 01 · 2026.04</span>
+      </div>
+      {/* Headline */}
+      <div style={{opacity: headerOp, fontFamily: serif, fontSize: 72,
+        fontWeight: 500, color: INK, lineHeight: 1.05, letterSpacing: '-0.01em',
+        marginBottom: 8}}>
+        2026 AI 写作工具
+        <span style={{fontStyle:'italic', color: TERRA, marginLeft: 20}}>年度观察</span>
+      </div>
+      <div style={{opacity: headerOp, fontFamily: serif, fontStyle:'italic',
+        fontSize: 20, color: ASH, marginBottom: 22}}>
+        156 位创作者匿名问卷 · 3 月 15 日 – 4 月 10 日
+      </div>
+      {/* Top rule */}
+      <div style={{width: ruleW, height: 1, background: INK, marginBottom: 28}}/>
+
+      {/* Three-column grid */}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1px 1.15fr 1px 0.95fr',
+        gap: 36, flex: 1}}>
+        <ColumnLeft elapsed={elapsed - colDelay[0]} />
+        <div style={{background: LINE}}/>
+        <ColumnMid elapsed={elapsed - colDelay[1]} />
+        <div style={{background: LINE}}/>
+        <ColumnRight elapsed={elapsed - colDelay[2]} />
+      </div>
+
+      {/* Footer trend line */}
+      <FooterTrend elapsed={elapsed - 3.5} />
+    </div>
+  );
+}
+
+function ColumnLeft({ elapsed }) {
+  const e = Math.max(0, elapsed);
+  const labelOp = interpolate(e, [0, 0.4], [0, 1]);
+  // 87%
+  const n1 = Math.round(interpolate(e, [0.3, 1.8], [0, 87], Easing.easeOut));
+  const bar1 = interpolate(e, [0.3, 1.8], [0, 87], Easing.easeOut);
+  // 3.2x
+  const n2 = interpolate(e, [1.3, 2.8], [1.0, 3.2], Easing.easeOut);
+  const bar2 = interpolate(e, [1.3, 2.8], [0, 3.2/5*100], Easing.easeOut);
+  // 156
+  const n3 = Math.round(interpolate(e, [2.3, 3.6], [0, 156], Easing.easeOut));
+  const bar3 = interpolate(e, [2.3, 3.6], [0, 100], Easing.easeOut);
+
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap: 30}}>
+      <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.3em',
+        color: TERRA, opacity: labelOp}}>
+        COLUMN / 01 · 核心指标
+      </div>
+      <MetricRow
+        value={`${n1}%`}
+        width={`${bar1}%`}
+        label="用户每周使用 AI 辅助写作"
+        note="¹ 每周 ≥ 3 次"
+        color={TERRA}
+      />
+      <MetricRow
+        value={`${n2.toFixed(1)}×`}
+        width={`${bar2}%`}
+        label="平均产出效率提升"
+        note="² 自述周稿字数"
+        color={OLIVE}
+      />
+      <MetricRow
+        value={String(n3)}
+        width={`${bar3}%`}
+        label="有效样本数"
+        note="³ 剔除 AI 默认答卷"
+        color={DEEP_BLUE}
+      />
+    </div>
+  );
+}
+
+function MetricRow({ value, width, label, note, color }) {
+  return (
+    <div>
+      <div style={{display:'flex', alignItems:'baseline', gap: 10, marginBottom: 8}}>
+        <div style={{fontFamily: serif, fontSize: 72, fontWeight: 500,
+          color: INK, lineHeight: 0.95, letterSpacing:'-0.02em',
+          fontVariantNumeric:'tabular-nums'}}>
+          {value}
+        </div>
+      </div>
+      <div style={{height: 6, background: '#eee7d7', width:'100%',
+        marginBottom: 10, position:'relative'}}>
+        <div style={{position:'absolute', top:0, left:0, height:'100%',
+          width, background: color}}/>
+      </div>
+      <div style={{fontFamily: serif, fontSize: 15, color: INK, lineHeight: 1.4}}>
+        {label}
+        <span style={{fontFamily: mono, fontSize: 9, color: ASH,
+          verticalAlign:'super', marginLeft: 4}}>{note}</span>
+      </div>
+    </div>
+  );
+}
+
+function ColumnMid({ elapsed }) {
+  const e = Math.max(0, elapsed);
+  const labelOp = interpolate(e, [0, 0.4], [0, 1]);
+  // 5 bars, staggered 0.15s
+  const bars = [
+    { name:'长文创作', pct: 78, color: TERRA },
+    { name:'短内容', pct: 64, color: OLIVE },
+    { name:'标题/文案', pct: 52, color: DEEP_BLUE },
+    { name:'润色校对', pct: 41, color: ASH },
+    { name:'翻译', pct: 29, color: ASH },
+  ];
+  const chartH = 320;
+  const maxPct = 100;
+
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap: 18}}>
+      <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.3em',
+        color: TERRA, opacity: labelOp}}>
+        COLUMN / 02 · 用途分布
+      </div>
+      <div style={{fontFamily: serif, fontSize: 28, fontWeight: 500,
+        color: INK, lineHeight: 1.2, opacity: labelOp,
+        letterSpacing: '-0.01em'}}>
+        你最常用 AI 做什么？
+      </div>
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 13,
+        color: ASH, opacity: labelOp}}>
+        多选题 · 百分比占全样本
+      </div>
+      {/* chart */}
+      <div style={{position:'relative', height: chartH, display:'flex',
+        alignItems:'flex-end', gap: 18, padding: '0 8px', marginTop: 4,
+        borderBottom:`1px solid ${INK}`}}>
+        {/* y-axis gridlines */}
+        {[25, 50, 75, 100].map(v => (
+          <div key={v} style={{position:'absolute', left: 0, right: 0,
+            bottom: (v/maxPct)*chartH, height: 1,
+            borderTop:`1px dashed ${LINE}`, pointerEvents:'none'}}>
+            <div style={{position:'absolute', left: -36, top: -8,
+              fontFamily: mono, fontSize: 9, color: ASH,
+              letterSpacing:'0.05em'}}>
+              {v}%
+            </div>
+          </div>
+        ))}
+        {bars.map((b, i) => {
+          const delay = 0.8 + i * 0.15;
+          const growT = Math.max(0, Math.min(1, (e - delay) / 0.55));
+          const h = growT * (b.pct / maxPct) * chartH;
+          const labelOpB = Math.max(0, Math.min(1, (e - delay - 0.35) / 0.3));
+          return (
+            <div key={i} style={{flex: 1, position:'relative',
+              display:'flex', flexDirection:'column', alignItems:'center',
+              justifyContent:'flex-end', height:'100%'}}>
+              <div style={{position:'absolute', top: -22,
+                fontFamily: mono, fontSize: 11, color: INK,
+                letterSpacing:'0.02em', fontVariantNumeric:'tabular-nums',
+                opacity: labelOpB}}>
+                {b.pct}%
+              </div>
+              <div style={{width: '100%', height: h, background: b.color,
+                transition:'none'}}/>
+            </div>
+          );
+        })}
+      </div>
+      {/* x-axis labels */}
+      <div style={{display:'flex', gap: 18, padding: '0 8px', marginTop: -8}}>
+        {bars.map((b, i) => (
+          <div key={i} style={{flex: 1, textAlign:'center',
+            fontFamily: serif, fontSize: 12, color: INK,
+            letterSpacing:'0.02em', opacity: labelOp}}>
+            {b.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColumnRight({ elapsed }) {
+  const e = Math.max(0, elapsed);
+  const labelOp = interpolate(e, [0, 0.4], [0, 1]);
+  // Three pie slices sweep in
+  const slices = [
+    { label:'Claude', pct: 46, color: TERRA },
+    { label:'GPT', pct: 31, color: DEEP_BLUE },
+    { label:'GLM/国产', pct: 23, color: OLIVE },
+  ];
+  const cx = 130, cy = 130, r = 104;
+  const C = 2 * Math.PI * r;
+
+  // cumulative pct as fractions
+  let acc = 0;
+  const slicesCalc = slices.map((s, i) => {
+    const delay = 0.6 + i * 0.45;
+    const sweepT = Math.max(0, Math.min(1, (e - delay) / 0.7));
+    const start = acc;
+    const end = acc + s.pct / 100;
+    acc = end;
+    return { ...s, start, end, sweepT, delay };
+  });
+
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap: 14}}>
+      <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.3em',
+        color: TERRA, opacity: labelOp}}>
+        COLUMN / 03 · 模型占有率
+      </div>
+      <div style={{fontFamily: serif, fontSize: 24, fontWeight: 500,
+        color: INK, lineHeight: 1.2, opacity: labelOp,
+        letterSpacing:'-0.01em'}}>
+        主力模型分布
+      </div>
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 12,
+        color: ASH, opacity: labelOp, marginBottom: 6}}>
+        单选题 · 日常首选
+      </div>
+
+      <div style={{display:'flex', alignItems:'center', gap: 18}}>
+        <svg width="260" height="260" viewBox="0 0 260 260">
+          {/* Background ring */}
+          <circle cx={cx} cy={cy} r={r} fill="none"
+            stroke={LINE} strokeWidth={1}/>
+          {slicesCalc.map((s, i) => {
+            // Draw partial arc with stroke-dasharray
+            const sweepLen = (s.end - s.start) * s.sweepT;
+            const dash = sweepLen * C;
+            const gap = C - dash;
+            const rot = s.start * 360 - 90;
+            return (
+              <circle key={i} cx={cx} cy={cy} r={r}
+                fill="none" stroke={s.color} strokeWidth={28}
+                strokeDasharray={`${dash} ${gap}`}
+                strokeDashoffset={0}
+                transform={`rotate(${rot} ${cx} ${cy})`}
+                opacity={0.95}/>
+            );
+          })}
+          {/* Inner text */}
+          <text x={cx} y={cy - 4} textAnchor="middle"
+            fontFamily={serif} fontSize={34} fill={INK}
+            fontWeight={500} letterSpacing="-0.5">
+            n=156
+          </text>
+          <text x={cx} y={cy + 22} textAnchor="middle"
+            fontFamily={mono} fontSize={10} fill={ASH}
+            letterSpacing="0.2em">
+            TOTAL
+          </text>
+        </svg>
+        <div style={{display:'flex', flexDirection:'column', gap: 14, flex: 1}}>
+          {slicesCalc.map((s, i) => {
+            const txtOp = Math.max(0, Math.min(1, (e - s.delay - 0.3) / 0.4));
+            return (
+              <div key={i} style={{display:'flex', alignItems:'baseline',
+                gap: 10, opacity: txtOp}}>
+                <div style={{width: 10, height: 10, background: s.color,
+                  marginTop: 4, flexShrink: 0}}/>
+                <div style={{flex: 1}}>
+                  <div style={{fontFamily: serif, fontSize: 18,
+                    fontWeight: 500, color: INK, letterSpacing:'0.01em'}}>
+                    {s.label}
+                  </div>
+                </div>
+                <div style={{fontFamily: serif, fontSize: 22,
+                  fontWeight: 500, color: INK,
+                  fontVariantNumeric:'tabular-nums'}}>
+                  {s.pct}%
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FooterTrend({ elapsed }) {
+  const e = Math.max(0, elapsed);
+  const op = interpolate(e, [0, 0.5], [0, 1]);
+  const data = [12, 18, 24, 31, 38, 48, 57, 64, 71, 78, 84, 87];
+  const months = ['05','06','07','08','09','10','11','12','01','02','03','04'];
+  const W = 1760, H = 86, PAD = 8;
+  const maxV = 100;
+  // progressive reveal of line
+  const revealT = Math.max(0, Math.min(1, (e - 0.3) / 1.4));
+  const nPoints = Math.max(1, Math.floor(revealT * data.length));
+  const pts = [];
+  for (let i = 0; i < data.length; i++) {
+    const x = (i / (data.length - 1)) * W;
+    const y = H - (data[i] / maxV) * (H - PAD * 2) - PAD;
+    pts.push([x, y]);
+  }
+  const visiblePts = pts.slice(0, nPoints);
+  const d = visiblePts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = visiblePts.length > 1
+    ? d + ` L ${visiblePts[visiblePts.length-1][0].toFixed(1)} ${H} L 0 ${H} Z`
+    : '';
+
+  return (
+    <div style={{marginTop: 26, opacity: op}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 8}}>
+        <div style={{fontFamily: mono, fontSize: 10, color: TERRA,
+          letterSpacing:'0.3em'}}>TREND · 过去 12 个月 AI 周使用率（%）</div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 13,
+          color: ASH}}>
+          从 12% 到 87% · 增长 7.25×
+        </div>
+      </div>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+        style={{display:'block', width:'100%', height: H}}>
+        {area && <path d={area} fill={TERRA} opacity={0.08}/>}
+        {d && <path d={d} fill="none" stroke={TERRA} strokeWidth={1.6}/>}
+        {visiblePts.map((p, i) => (
+          <circle key={i} cx={p[0]} cy={p[1]} r={2.4} fill={TERRA}/>
+        ))}
+        {/* Axis labels */}
+        {pts.map((p, i) => (
+          <text key={i} x={p[0]} y={H - 0}
+            textAnchor="middle" fontFamily={mono} fontSize={9} fill={ASH}
+            opacity={0.6}>
+            {months[i]}
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// ── Scene 3: Typography close-up (10 – 17s) ───────────────
+function Scene3_Typography() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.6], [0, 1]);
+  const fadeOut = interpolate(elapsed, [6.5, 7.0], [1, 0], Easing.easeIn);
+  const opacity = Math.min(fadeIn, fadeOut);
+  const labelOp = interpolate(elapsed, [0.2, 0.8], [0, 1]);
+  const leftOp = interpolate(elapsed, [0.4, 1.2], [0, 1]);
+  const compareOp = interpolate(elapsed, [1.8, 2.6], [0, 1]);
+  const captionOp = interpolate(elapsed, [3.6, 4.4], [0, 1]);
+
+  // Pulsing scale on "87"
+  const pulse = 1 + Math.sin(elapsed * 1.6) * 0.008;
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity,
+      padding: '60px 80px', display:'flex', flexDirection:'column'}}>
+      {/* Top label */}
+      <div style={{display:'flex', alignItems:'baseline',
+        justifyContent:'space-between', marginBottom: 32, opacity: labelOp}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>DETAIL · ZOOM 1.5×</div>
+          <div style={{fontFamily: serif, fontSize: 46, fontWeight: 500,
+            color: INK, letterSpacing:'-0.01em'}}>
+            排版细节：<span style={{fontStyle:'italic', color: TERRA}}>品味税</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign:'right', maxWidth: 400, lineHeight: 1.5}}>
+          "AI 能写中文，但分不清什么是好的中文排版"
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1.25fr 1fr',
+        gap: 56, flex: 1}}>
+        {/* Left: Number gradient showcase */}
+        <div style={{opacity: leftOp, display:'flex', flexDirection:'column',
+          gap: 28}}>
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.3em'}}>01 · 字号梯度 · HIERARCHY</div>
+          <div style={{display:'flex', alignItems:'baseline', gap: 36,
+            borderBottom:`1px solid ${LINE}`, paddingBottom: 28}}>
+            <div style={{fontFamily: serif, fontSize: 220, fontWeight: 500,
+              color: INK, lineHeight: 0.88, letterSpacing:'-0.04em',
+              fontVariantNumeric:'tabular-nums', display:'inline-block',
+              transform:`scale(${pulse})`, transformOrigin:'left bottom'}}>
+              87<span style={{fontSize: 80, color: TERRA,
+                verticalAlign:'super', marginLeft: 4, fontStyle:'italic'}}>%</span>
+            </div>
+            <div style={{fontFamily: serif, fontSize: 110, fontWeight: 400,
+              color: OLIVE, lineHeight: 0.88, letterSpacing:'-0.02em',
+              fontVariantNumeric:'tabular-nums'}}>
+              3.2<span style={{fontSize: 44, fontStyle:'italic',
+                color: ASH, marginLeft: 2}}>×</span>
+            </div>
+            <div style={{fontFamily: serif, fontSize: 56, fontWeight: 400,
+              color: DEEP_BLUE, lineHeight: 0.88,
+              fontVariantNumeric:'tabular-nums'}}>
+              156
+            </div>
+          </div>
+          <div style={{fontFamily: serif, fontSize: 15, color: ASH,
+            lineHeight: 1.55, maxWidth: 580}}>
+            主数据 <span style={{color: INK, fontWeight: 500}}>220pt</span>、
+            次级 <span style={{color: INK, fontWeight: 500}}>110pt</span>、
+            辅助 <span style={{color: INK, fontWeight: 500}}>56pt</span>——
+            梯度 2× 不是工程师拍脑袋，是几百年印刷品的视觉惯性。
+          </div>
+
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.3em', marginTop: 10}}>02 · 换行 · TEXT-WRAP: PRETTY</div>
+          <div style={{fontFamily: serif, fontSize: 34, fontWeight: 500,
+            color: INK, lineHeight: 1.25, letterSpacing:'-0.01em',
+            maxWidth: 620, textWrap:'pretty'}}>
+            标题在该断的地方断开<br/>
+            避免孤字和单字成行
+          </div>
+
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.3em', marginTop: 4}}>03 · 上标辅注 · MONO FOOTNOTE</div>
+          <div style={{fontFamily: serif, fontSize: 20, color: INK,
+            lineHeight: 1.6, maxWidth: 620}}>
+            87%
+            <span style={{fontFamily: mono, fontSize: 11, color: TERRA,
+              verticalAlign:'super', marginLeft: 4}}>¹</span>
+            用户每周用 AI 辅助写作
+            <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+              marginTop: 10, letterSpacing:'0.05em'}}>
+              ¹ 基于 156 位创作者调研，每周 ≥ 3 次
+            </div>
+          </div>
+        </div>
+
+        {/* Right: AI slop vs 精致 */}
+        <div style={{opacity: compareOp, display:'flex', flexDirection:'column',
+          gap: 20}}>
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.3em'}}>04 · AI SLOP vs 精致版</div>
+          {/* Slop version */}
+          <div style={{position:'relative', border: `1.5px dashed #c06060`,
+            padding: '22px 22px', borderRadius: 16,
+            background: 'linear-gradient(135deg, #6a47d4 0%, #3a1a7a 100%)'}}>
+            <div style={{position:'absolute', top: -10, left: 14,
+              background: '#c06060', color:'#fff', fontFamily: mono,
+              fontSize: 9, padding:'2px 10px', letterSpacing:'0.2em'}}>
+              ✕ 反例 · 不要这样做
+            </div>
+            <div style={{fontFamily: sans, fontSize: 28, fontWeight: 700,
+              color:'#fff', marginBottom: 6, letterSpacing:'-0.01em'}}>
+              🚀 AI 写作工具爆发增长！
+            </div>
+            <div style={{fontFamily: sans, fontSize: 13, color:'rgba(255,255,255,0.85)',
+              lineHeight: 1.5}}>
+              ✨ 87% 用户都在用！💡 效率提升 3.2 倍！🎯 赶紧加入！
+            </div>
+            <div style={{marginTop: 14, display:'flex', gap: 8}}>
+              <div style={{background:'rgba(255,255,255,0.2)',
+                padding:'6px 12px', borderRadius: 999,
+                fontFamily: sans, fontSize: 11, color:'#fff'}}>
+                #AI写作
+              </div>
+              <div style={{background:'rgba(255,255,255,0.2)',
+                padding:'6px 12px', borderRadius: 999,
+                fontFamily: sans, fontSize: 11, color:'#fff'}}>
+                #爆款
+              </div>
+            </div>
+          </div>
+
+          {/* Good version */}
+          <div style={{position:'relative', background:'#fff',
+            border: `1px solid ${LINE}`, padding: '22px 22px'}}>
+            <div style={{position:'absolute', top: -10, left: 14,
+              background: TERRA, color:'#fff', fontFamily: mono,
+              fontSize: 9, padding:'2px 10px', letterSpacing:'0.2em'}}>
+              ✓ 精致版 · DO THIS
+            </div>
+            <div style={{fontFamily: mono, fontSize: 9, color: TERRA,
+              letterSpacing:'0.3em', marginBottom: 4}}>ESSAY · 2026.04</div>
+            <div style={{fontFamily: serif, fontSize: 26, fontWeight: 500,
+              color: INK, lineHeight: 1.2, letterSpacing:'-0.01em',
+              marginBottom: 8}}>
+              AI 写作<br/>
+              <span style={{fontStyle:'italic'}}>悄然</span>改变创作者
+            </div>
+            <div style={{height: 1, background: INK, width: 70, marginBottom: 10}}/>
+            <div style={{fontFamily: serif, fontSize: 13, color:'#444',
+              lineHeight: 1.6}}>
+              87% 的创作者已经把 AI 纳入日常工作流；
+              效率提升 3.2×，但人味不减反增——
+              工具不定义内容，品味才定义。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Caption */}
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 20,
+        color: ASH, textAlign:'center', marginTop: 22, opacity: captionOp,
+        letterSpacing:'0.02em'}}>
+        排版细节是 AI 分不清的 <span style={{color: TERRA, fontWeight: 500,
+          fontStyle:'normal'}}>品味税</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 4: Outro (17 – 22s) ─────────────────────────────
+function Scene4_Outro() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.6], [0, 1]);
+  const mainY = interpolate(elapsed, [0, 1.2], [28, 0], Easing.easeOut);
+  const italicOp = interpolate(elapsed, [0.8, 1.4], [0, 1]);
+  const lineW = interpolate(elapsed, [1.0, 1.8], [0, 680]);
+  const subOp = interpolate(elapsed, [1.6, 2.2], [0, 1]);
+  const monoOp = interpolate(elapsed, [2.4, 3.2], [0, 1]);
+  const monoLineW = interpolate(elapsed, [2.8, 3.8], [0, 520]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeIn,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 32, opacity: fadeIn}}>
+        HUASHU-DESIGN · INFOGRAPHIC CAPABILITY
+      </div>
+
+      <div style={{fontFamily: serif, fontSize: 148, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing:'-0.02em',
+        transform:`translateY(${mainY}px)`}}>
+        <span style={{fontStyle:'italic', opacity: italicOp}}>数据</span>
+        <span style={{opacity: fadeIn}}> 配得上 </span>
+        <span style={{color: TERRA, opacity: italicOp}}>好看</span>
+      </div>
+
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 44}}/>
+
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 24,
+        color: ASH, marginTop: 26, opacity: subOp, letterSpacing:'0.02em'}}>
+        印刷级 · 不因为缩放而失真
+      </div>
+
+      <div style={{marginTop: 60, opacity: monoOp,
+        display:'flex', alignItems:'center', flexDirection:'column', gap: 14}}>
+        <div style={{height: 1, background: LINE, width: monoLineW}}/>
+        <div style={{fontFamily: mono, fontSize: 14, color: INK,
+          letterSpacing:'0.18em'}}>
+          export → <span style={{color: TERRA}}>PDF 矢量</span> /
+          <span style={{color: OLIVE}}> PNG 300dpi</span> /
+          <span style={{color: DEEP_BLUE}}> SVG 原生</span>
+        </div>
+        <div style={{height: 1, background: LINE, width: monoLineW}}/>
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ─────────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+// ── Composition ───────────────────────────────────────────
+function App() {
+  return (
+    <Stage duration={22} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3}><Scene1_Title /></Sprite>
+      <Sprite start={3} end={10}><Scene2_Spread /></Sprite>
+      <Sprite start={10} end={17}><Scene3_Typography /></Sprite>
+      <Sprite start={17} end={22}><Scene4_Outro /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

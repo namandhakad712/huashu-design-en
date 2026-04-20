@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Expert Review</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body { background: #0c0c0c; font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif; color: #1a1a1a; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+  function interpolate(t, input, output, easing) {
+    const [a, b] = input, [x, y] = output;
+    if (t <= a) return x; if (t >= b) return y;
+    let p = (t - a) / (b - a); if (easing) p = easing(p);
+    return x + (y - x) * p;
+  }
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() { return useContext(SpriteContext) || { t: 0, elapsed: 0, duration: 0 }; }
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+    useEffect(() => {
+      const update = () => {
+        const s = Math.min(window.innerWidth / width, (window.innerHeight - 56) / height);
+        setScale(s);
+      };
+      update(); window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }, [width, height]);
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false, last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) { last = now; if (typeof window !== 'undefined') window.__ready = true; }
+        const delta = (now - last) / 1000; last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={{position:'absolute', top:'50%', left:'50%', transformOrigin:'center center', width, height, background: bgColor, overflow:'hidden', transform:`translate(-50%, -50%) scale(${scale})`}}>
+              {children}
+            </div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    return (
+      <SpriteContext.Provider value={{ t, elapsed, duration, start, end: actualEnd }}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+const OLIVE = '#6a6b4e';
+const DEEP_BLUE = '#2a3552';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── 5 dimensions ──────────────────────────────────────────
+const DIMENSIONS = [
+  { no: '01', name: '哲学一致性', desc: '是否遵循既定的设计风格', score: 9 },
+  { no: '02', name: '视觉层级',   desc: '信息优先级是否一目了然', score: 8 },
+  { no: '03', name: '细节执行',   desc: '排版、间距、字重是否到位', score: 7 },
+  { no: '04', name: '功能性',     desc: '交互是否顺畅、可用',       score: 6 },
+  { no: '05', name: '创新性',     desc: '是否超出了平均水准',       score: 8 },
+];
+
+const COMMENTS = [
+  '赤陶橙贯穿，serif + 留白很 Kenya Hara',
+  'Hero 和 body 强度接近，主次需再拉开',
+  '行距、字号梯度还差一点点克制',
+  'CTA 可达但色值和主色冲突',
+  '版面节奏有想法，避开了模板感',
+];
+
+// ── Scene 1: Title (0 – 3s) ────────────────────────────
+function Scene1_Title() {
+  const { elapsed } = useSprite();
+  const topOp = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const titleY = interpolate(elapsed, [0.2, 1.3], [50, 0], Easing.easeOut);
+  const titleOp = interpolate(elapsed, [0.2, 1.1], [0, 1]);
+  const lineW = interpolate(elapsed, [1.0, 1.8], [0, 540]);
+  const subOp = interpolate(elapsed, [1.4, 2.1], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.6, 3.0], [1, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 28, opacity: topOp}}>
+        设计评审 · 5 维度评分
+      </div>
+      <div style={{fontFamily: serif, fontSize: 120, fontWeight: 500, color: INK,
+        lineHeight: 1, letterSpacing:'-0.02em', opacity: titleOp,
+        transform: `translateY(${titleY}px)`}}>
+        <span style={{fontStyle:'italic', color: TERRA}}>评</span>设计 · 不评设计师
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22, color: ASH,
+        marginTop: 28, opacity: subOp, letterSpacing:'0.02em'}}>
+        做完之后 · 用 5 个刻度看清楚
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: 5 dimensions intro (3 – 8s) ───────────────
+function Scene2_Dimensions() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.5, 5.0], [1, 0]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '100px 100px 80px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: titleOp, marginBottom: 60,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>步骤 1 / 3 · 评审维度</div>
+          <div style={{fontFamily: serif, fontSize: 60, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            五把<span style={{fontStyle:'italic', color: TERRA}}>尺子</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 19, color: ASH,
+          textAlign:'right', lineHeight: 1.5}}>
+          主观审美变不可辩论，<br/>
+          客观维度变可打分
+        </div>
+      </div>
+
+      <div style={{flex: 1, display:'grid', gridTemplateColumns:'repeat(5, 1fr)',
+        gap: 22, alignItems:'stretch'}}>
+        {DIMENSIONS.map((d, i) => {
+          const appearStart = 0.6 + i * 0.4;
+          const appearEnd = appearStart + 0.7;
+          const op = interpolate(elapsed, [appearStart, appearEnd], [0, 1], Easing.easeOut);
+          const ty = interpolate(elapsed, [appearStart, appearEnd], [30, 0], Easing.easeOut);
+          return (
+            <div key={i} style={{
+              opacity: op,
+              transform: `translateY(${ty}px)`,
+              background: '#fff',
+              border: `1px solid ${LINE}`,
+              padding: '32px 26px 30px',
+              display:'flex', flexDirection:'column',
+              position:'relative',
+            }}>
+              <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 72,
+                fontWeight: 400, color: TERRA, lineHeight: 1,
+                letterSpacing:'-0.02em', marginBottom: 20}}>
+                {d.no}
+              </div>
+              <div style={{height: 1, background: INK, width: 40, marginBottom: 18}} />
+              <div style={{fontFamily: serif, fontSize: 26, fontWeight: 500,
+                color: INK, lineHeight: 1.15, marginBottom: 12}}>
+                {d.name}
+              </div>
+              <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 15,
+                color: ASH, lineHeight: 1.55, flex: 1}}>
+                {d.desc}
+              </div>
+              <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+                letterSpacing:'0.2em', marginTop: 22}}>
+                0 – 10 PT
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: Radar + scoring (8 – 14s) ────────────────
+function Scene3_Radar() {
+  const { elapsed } = useSprite();
+  const headerOp = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const fadeOut = interpolate(elapsed, [5.5, 6.0], [1, 0]);
+
+  // Radar reveal progress — polygon expands from center
+  const reveal = interpolate(elapsed, [0.8, 2.4], [0, 1], Easing.easeOut);
+
+  // Total score count-up
+  const totalT = interpolate(elapsed, [1.6, 2.8], [0, 1], Easing.easeOut);
+  const totalVal = Math.round(totalT * 38);
+
+  // Radar geometry
+  const cx = 340, cy = 440, R = 260;
+  const N = 5;
+  const maxScore = 10;
+  const angle = i => -Math.PI/2 + i * 2 * Math.PI / N;
+
+  // Axis endpoints
+  const axisPts = DIMENSIONS.map((_, i) => ({
+    x: cx + Math.cos(angle(i)) * R,
+    y: cy + Math.sin(angle(i)) * R,
+  }));
+
+  // Score polygon points (animated)
+  const scorePts = DIMENSIONS.map((d, i) => {
+    const r = (d.score / maxScore) * R * reveal;
+    return {
+      x: cx + Math.cos(angle(i)) * r,
+      y: cy + Math.sin(angle(i)) * r,
+    };
+  });
+  const scorePath = scorePts.map(p => `${p.x},${p.y}`).join(' ');
+
+  // Concentric rings
+  const rings = [2, 4, 6, 8, 10];
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '70px 90px 50px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headerOp, marginBottom: 24,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>步骤 2 / 3 · 打分</div>
+          <div style={{fontFamily: serif, fontSize: 54, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            五边形 · <span style={{fontStyle:'italic'}}>照见</span>每一维
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH,
+          textAlign:'right', lineHeight: 1.5}}>
+          不是给个评价，<br/>
+          是把问题「可视化」出来
+        </div>
+      </div>
+
+      <div style={{flex: 1, display:'grid', gridTemplateColumns: '720px 1fr', gap: 60}}>
+        {/* Radar */}
+        <div style={{position:'relative', background:'#fff', border:`1px solid ${LINE}`}}>
+          <svg viewBox="0 0 720 880" width="100%" height="100%" style={{display:'block'}}>
+            {/* Concentric rings */}
+            {rings.map((r, i) => {
+              const ringR = (r / maxScore) * R;
+              const pts = DIMENSIONS.map((_, k) => {
+                const x = cx + Math.cos(angle(k)) * ringR;
+                const y = cy + Math.sin(angle(k)) * ringR;
+                return `${x},${y}`;
+              }).join(' ');
+              return (
+                <g key={i}>
+                  <polygon points={pts} fill="none" stroke={LINE} strokeWidth="1" />
+                  <text x={cx + 6} y={cy - ringR + 4}
+                    fontFamily={mono} fontSize="10" fill={ASH}
+                    letterSpacing="0.1em">{r}</text>
+                </g>
+              );
+            })}
+            {/* Axes */}
+            {axisPts.map((p, i) => (
+              <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y}
+                stroke={LINE} strokeWidth="1" />
+            ))}
+            {/* Score polygon */}
+            <polygon points={scorePath}
+              fill={TERRA} fillOpacity="0.18"
+              stroke={TERRA} strokeWidth="2" />
+            {/* Score dots */}
+            {scorePts.map((p, i) => reveal > 0.6 && (
+              <circle key={i} cx={p.x} cy={p.y} r="5"
+                fill={TERRA} opacity={Math.min(1, (reveal - 0.6) / 0.4)} />
+            ))}
+            {/* Axis labels + score */}
+            {DIMENSIONS.map((d, i) => {
+              const labelR = R + 48;
+              const lx = cx + Math.cos(angle(i)) * labelR;
+              const ly = cy + Math.sin(angle(i)) * labelR;
+              const anchor = Math.abs(Math.cos(angle(i))) < 0.2 ? 'middle'
+                : Math.cos(angle(i)) > 0 ? 'start' : 'end';
+              const showScore = elapsed > 2.4 + i * 0.15;
+              return (
+                <g key={i}>
+                  <text x={lx} y={ly}
+                    fontFamily={mono} fontSize="13" fill={INK}
+                    fontWeight="500" textAnchor={anchor}
+                    letterSpacing="0.08em">
+                    {d.name}
+                  </text>
+                  {showScore && (
+                    <text x={lx} y={ly + 20}
+                      fontFamily={serif} fontSize="22" fill={TERRA}
+                      fontStyle="italic" fontWeight="500" textAnchor={anchor}>
+                      {d.score}
+                      <tspan fontSize="13" fill={ASH} fontStyle="normal"> / 10</tspan>
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+            {/* Center total score */}
+            <text x={cx} y={750}
+              fontFamily={mono} fontSize="11" fill={ASH}
+              letterSpacing="0.3em" textAnchor="middle">
+              总分
+            </text>
+            <text x={cx} y={820}
+              fontFamily={serif} fontSize="72" fill={INK}
+              fontWeight="500" textAnchor="middle"
+              letterSpacing="-0.02em">
+              <tspan fontStyle="italic" fill={TERRA}>{totalVal}</tspan>
+              <tspan fontSize="34" fill={ASH} letterSpacing="0"> / 50</tspan>
+            </text>
+          </svg>
+        </div>
+
+        {/* Right: breakdown list */}
+        <div style={{display:'flex', flexDirection:'column', gap: 18, paddingTop: 4}}>
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.25em', marginBottom: 4}}>
+            BREAKDOWN · 逐项
+          </div>
+          {DIMENSIONS.map((d, i) => {
+            const rowAppear = 2.2 + i * 0.25;
+            const op = interpolate(elapsed, [rowAppear, rowAppear + 0.6], [0, 1]);
+            const barT = interpolate(elapsed, [rowAppear + 0.2, rowAppear + 0.9],
+              [0, d.score / 10], Easing.easeOut);
+            const tx = interpolate(elapsed, [rowAppear, rowAppear + 0.5], [20, 0], Easing.easeOut);
+            return (
+              <div key={i} style={{opacity: op, transform:`translateX(${tx}px)`,
+                background:'#fff', border:`1px solid ${LINE}`, padding:'14px 20px'}}>
+                <div style={{display:'flex', justifyContent:'space-between',
+                  alignItems:'baseline', marginBottom: 8}}>
+                  <div style={{fontFamily: serif, fontSize: 22, fontWeight: 500, color: INK}}>
+                    <span style={{fontFamily: mono, fontSize: 11, color: TERRA,
+                      marginRight: 12, letterSpacing:'0.15em'}}>{d.no}</span>
+                    {d.name}
+                  </div>
+                  <div style={{fontFamily: serif, fontSize: 22, fontStyle:'italic',
+                    fontWeight: 500, color: TERRA}}>
+                    {d.score}<span style={{fontSize: 13, color: ASH, fontStyle:'normal'}}> / 10</span>
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div style={{height: 4, background: LINE, position:'relative', marginBottom: 8}}>
+                  <div style={{position:'absolute', top:0, left:0, height:'100%',
+                    width: `${barT * 100}%`, background: TERRA}} />
+                </div>
+                <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 14,
+                  color: ASH, lineHeight: 1.5}}>
+                  {COMMENTS[i]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 4: Keep / Fix / Quick Wins (14 – 20s) ──────
+function Scene4_Actions() {
+  const { elapsed } = useSprite();
+  const headerOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [5.5, 6.0], [1, 0]);
+
+  const keeps = [
+    '赤陶橙 accent 贯穿全文',
+    'serif display 给了文学气质',
+    '留白足够 · 信息不挤',
+  ];
+  const fixes = [
+    { tag: '致命', sev: TERRA,   text: 'Hero 图和 body 抢焦点 · 降低 hero 字号' },
+    { tag: '重要', sev: OLIVE,   text: '侧边 CTA 色和品牌主色冲突' },
+    { tag: '优化', sev: ASH,     text: 'Footer 字号可以再小 2px' },
+  ];
+  const wins = [
+    'Hero 字号 96 → 72',
+    'CTA 改成 terra 主色',
+    'Footer 字号 14 → 12',
+  ];
+
+  const col1T = interpolate(elapsed, [0.4, 1.2], [0, 1], Easing.easeOut);
+  const col2T = interpolate(elapsed, [0.8, 1.6], [0, 1], Easing.easeOut);
+  const col3T = interpolate(elapsed, [1.2, 2.0], [0, 1], Easing.easeOut);
+  const footerOp = interpolate(elapsed, [3.8, 4.6], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeOut,
+      padding: '70px 90px 60px', display:'flex', flexDirection:'column'}}>
+      <div style={{opacity: headerOp, marginBottom: 40,
+        display:'flex', justifyContent:'space-between', alignItems:'baseline'}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing:'0.3em', marginBottom: 6}}>步骤 3 / 3 · 行动清单</div>
+          <div style={{fontFamily: serif, fontSize: 56, fontWeight: 500, color: INK,
+            letterSpacing:'-0.01em'}}>
+            Keep · Fix · <span style={{fontStyle:'italic', color: TERRA}}>Quick Wins</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18, color: ASH,
+          textAlign:'right', lineHeight: 1.5}}>
+          打完分 · 不是扔下报告，<br/>
+          是给一张可执行的「修复清单」
+        </div>
+      </div>
+
+      <div style={{flex: 1, display:'grid', gridTemplateColumns:'1fr 1.15fr 1fr',
+        gap: 28}}>
+        {/* KEEP */}
+        <div style={{opacity: col1T, transform:`translateY(${(1-col1T)*20}px)`,
+          background:'#fff', border:`1px solid ${LINE}`,
+          borderTop: `4px solid ${OLIVE}`, padding: '30px 30px 28px',
+          display:'flex', flexDirection:'column'}}>
+          <div style={{display:'flex', justifyContent:'space-between',
+            alignItems:'baseline', marginBottom: 24}}>
+            <div>
+              <div style={{fontFamily: mono, fontSize: 11, color: OLIVE,
+                letterSpacing:'0.3em', marginBottom: 8}}>KEEP</div>
+              <div style={{fontFamily: serif, fontSize: 32, fontWeight: 500, color: INK}}>
+                保持这些
+              </div>
+            </div>
+            <div style={{fontFamily: serif, fontSize: 44, fontStyle:'italic',
+              fontWeight: 400, color: OLIVE, lineHeight: 1}}>
+              3
+            </div>
+          </div>
+          <div style={{display:'flex', flexDirection:'column', gap: 18, flex: 1}}>
+            {keeps.map((k, i) => (
+              <div key={i} style={{display:'flex', gap: 14, alignItems:'flex-start'}}>
+                <div style={{fontFamily: mono, fontSize: 16, color: OLIVE,
+                  fontWeight: 600, marginTop: 2}}>✓</div>
+                <div style={{fontFamily: serif, fontSize: 19, color: INK,
+                  lineHeight: 1.5, flex: 1}}>{k}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* FIX */}
+        <div style={{opacity: col2T, transform:`translateY(${(1-col2T)*20}px)`,
+          background:'#fff', border:`1px solid ${LINE}`,
+          borderTop: `4px solid ${TERRA}`, padding: '30px 30px 28px',
+          display:'flex', flexDirection:'column'}}>
+          <div style={{display:'flex', justifyContent:'space-between',
+            alignItems:'baseline', marginBottom: 24}}>
+            <div>
+              <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+                letterSpacing:'0.3em', marginBottom: 8}}>FIX</div>
+              <div style={{fontFamily: serif, fontSize: 32, fontWeight: 500, color: INK}}>
+                需修复 · 按严重度
+              </div>
+            </div>
+            <div style={{fontFamily: serif, fontSize: 44, fontStyle:'italic',
+              fontWeight: 400, color: TERRA, lineHeight: 1}}>
+              3
+            </div>
+          </div>
+          <div style={{display:'flex', flexDirection:'column', gap: 16, flex: 1}}>
+            {fixes.map((f, i) => (
+              <div key={i} style={{display:'flex', gap: 14, alignItems:'flex-start',
+                paddingBottom: 14, borderBottom: i < fixes.length - 1 ? `1px solid ${LINE}` : 'none'}}>
+                <div style={{
+                  background: f.sev, color: '#fff',
+                  fontFamily: mono, fontSize: 10, letterSpacing:'0.15em',
+                  padding: '4px 10px', marginTop: 4, minWidth: 58,
+                  textAlign: 'center', fontWeight: 600,
+                }}>
+                  {f.tag}
+                </div>
+                <div style={{fontFamily: serif, fontSize: 17, color: INK,
+                  lineHeight: 1.5, flex: 1}}>{f.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* QUICK WINS */}
+        <div style={{opacity: col3T, transform:`translateY(${(1-col3T)*20}px)`,
+          background:'#fff', border:`1px solid ${LINE}`,
+          borderTop: `4px solid ${DEEP_BLUE}`, padding: '30px 30px 28px',
+          display:'flex', flexDirection:'column'}}>
+          <div style={{display:'flex', justifyContent:'space-between',
+            alignItems:'baseline', marginBottom: 24}}>
+            <div>
+              <div style={{fontFamily: mono, fontSize: 11, color: DEEP_BLUE,
+                letterSpacing:'0.3em', marginBottom: 8}}>QUICK WINS</div>
+              <div style={{fontFamily: serif, fontSize: 32, fontWeight: 500, color: INK}}>
+                5 分钟能做的
+              </div>
+            </div>
+            <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+              letterSpacing:'0.2em', textAlign:'right', lineHeight: 1.6}}>
+              TOP<br/>3
+            </div>
+          </div>
+          <div style={{display:'flex', flexDirection:'column', gap: 18, flex: 1}}>
+            {wins.map((w, i) => (
+              <div key={i} style={{display:'flex', gap: 16, alignItems:'flex-start'}}>
+                <div style={{fontFamily: serif, fontSize: 32, fontStyle:'italic',
+                  color: DEEP_BLUE, fontWeight: 400, lineHeight: 1, minWidth: 32,
+                  marginTop: -4}}>
+                  {i+1}
+                </div>
+                <div style={{fontFamily: serif, fontSize: 19, color: INK,
+                  lineHeight: 1.5, flex: 1}}>{w}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer slogan */}
+      <div style={{marginTop: 36, textAlign:'center', opacity: footerOp}}>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 26,
+          color: TERRA, letterSpacing:'0.02em'}}>
+          不是给个评价 · 是给个修复清单
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 5: Outro (20 – 22s) ─────────────────────────
+function Scene5_Outro() {
+  const { elapsed } = useSprite();
+  const fadeIn = interpolate(elapsed, [0, 0.6], [0, 1], Easing.easeOut);
+  const titleY = interpolate(elapsed, [0, 1.0], [40, 0], Easing.easeOut);
+  const lineW = interpolate(elapsed, [0.5, 1.3], [0, 540]);
+  const subOp = interpolate(elapsed, [0.9, 1.6], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background: CREAM, opacity: fadeIn,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 22}}>
+        5 维度 · 客观 · 可操作
+      </div>
+      <div style={{fontFamily: serif, fontSize: 108, fontWeight: 500,
+        color: INK, lineHeight: 1, letterSpacing:'-0.015em',
+        transform: `translateY(${titleY}px)`}}>
+        先打分 · 再<span style={{fontStyle:'italic', color: TERRA}}>修</span>
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 36}} />
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22, color: ASH,
+        marginTop: 26, opacity: subOp, letterSpacing:'0.02em'}}>
+        Huashu-Design · Expert Review
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ──────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Stage duration={22} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3}><Scene1_Title /></Sprite>
+      <Sprite start={3} end={8}><Scene2_Dimensions /></Sprite>
+      <Sprite start={8} end={14}><Scene3_Radar /></Sprite>
+      <Sprite start={14} end={20}><Scene4_Actions /></Sprite>
+      <Sprite start={20} end={22}><Scene5_Outro /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

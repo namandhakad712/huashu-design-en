@@ -162,6 +162,12 @@
     const startTimeRef = useRef(performance.now());
     const canvasRef = useRef(null);
 
+    // Recording mode: render-video.js injects window.__recording = true before goto.
+    // When set, force loop=false so the export ends on the final frame instead of
+    // wrapping back to t=0 and capturing the start of the next cycle.
+    // (Browsers viewing manually still loop because __recording is undefined there.)
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+
     useEffect(() => {
       function updateScale() {
         const vw = window.innerWidth;
@@ -195,7 +201,10 @@
         setTime(prev => {
           const next = prev + delta;
           if (next >= duration) {
-            return loop ? 0 : duration;
+            // effectiveLoop honors window.__recording (forced non-loop during export).
+            // Stop just shy of duration so the final-frame state stays rendered
+            // (avoids exiting all Sprites that end exactly at `duration`).
+            return effectiveLoop ? 0 : duration - 0.001;
           }
           return next;
         });
@@ -218,7 +227,7 @@
         cancelled = true;
         cancelAnimationFrame(rafRef.current);
       };
-    }, [playing, duration, loop]);
+    }, [playing, duration, effectiveLoop]);
 
     const handleScrub = useCallback((e) => {
       const rect = e.currentTarget.getBoundingClientRect();

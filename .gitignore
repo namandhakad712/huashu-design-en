@@ -1,37 +1,22 @@
-# OS
+# macOS
 .DS_Store
-Thumbs.db
+**/.DS_Store
 
-# Editor
-.vscode/
-.idea/
-*.swp
-*~
+# Video render temp (render-video.js 产物)
+.video-tmp-*/
+**/.video-tmp-*/
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Python
-__pycache__/
-*.pyc
-.venv/
-venv/
-
-# Backups
-*.bak
-*.bak.*
-
-# Video render temp dirs
-.video-tmp-*
-*.tmp.mp4
-*.tmp.webm
-
-# Private overrides (never commit real personal data)
-personal-asset-index.json
+# Personal asset index（个人真实数据，只保留 .example.json 模板）
 assets/personal-asset-index.json
 
-# Logs
-*.log
+# Node / editor / OS
+node_modules/
+*.swp
+.idea/
+.vscode/
+Thumbs.db
+
+# Verification artifacts（截图、临时测试脚本）
+demos/_frames_*.png
+demos/_verify.js
+demos/_verify.mjs

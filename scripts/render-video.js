@@ -103,7 +103,10 @@ console.log(`  output: ${MP4_OUT}`);
     viewport: { width: WIDTH, height: HEIGHT },
   });
   const warmupPage = await warmupCtx.newPage();
-  await warmupPage.goto(url, { waitUntil: 'networkidle' });
+  // 'load' not 'networkidle' — unpkg/Google Fonts can keep connections alive
+  // past our 30s budget even after all critical resources are in. __ready
+  // flag + FONT_WAIT handle animation-readiness properly.
+  await warmupPage.goto(url, { waitUntil: 'load', timeout: 60000 });
   await warmupPage.waitForTimeout(FONT_WAIT * 1000);
   await warmupCtx.close();
 
@@ -117,6 +120,12 @@ console.log(`  output: ${MP4_OUT}`);
       size: { width: WIDTH, height: HEIGHT },
     },
   });
+
+  // Tell the page it's being recorded — animations.jsx Stage reads this
+  // and forces loop=false so the export ends on the final frame instead of
+  // capturing the start of the next cycle. Hand-written Stage components
+  // should also honor this signal (see animation-pitfalls.md §13).
+  await recordCtx.addInitScript(() => { window.__recording = true; });
 
   // Inject CSS + JS heuristic to hide "chrome" elements.
   // Two layers:
@@ -183,7 +192,7 @@ console.log(`  output: ${MP4_OUT}`);
   // mount + fonts.ready). That elapsed time = exact trim offset.
   const T0 = Date.now();
   const page = await recordCtx.newPage();
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
   // Wait for animation ready signal. Stage component (animations.jsx) sets
   // window.__ready = true on its first rAF after mount + fonts.ready.
@@ -195,14 +204,38 @@ console.log(`  output: ${MP4_OUT}`);
   ).then(() => true).catch(() => false);
 
   if (hasReady) {
+    // 第二道防线：主动把动画 time 归零——对付 HTML 不严格遵守 starter tick 模板
+    // 的情况（例如 lastTick 用 performance.now() 导致字体加载时间被算进首帧 dt）
+    // 详见 references/animation-pitfalls.md §12
+    const seekCorrected = await page.evaluate(() => {
+      if (typeof window.__seek === 'function') {
+        window.__seek(0);
+        return true;
+      }
+      return false;
+    });
+    if (seekCorrected) {
+      // 等两个 rAF 让 seek 生效并渲染出 t=0 的画面
+      await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    }
     animationStartSec = (Date.now() - T0) / 1000;
-    console.log(`▸ Ready at ${animationStartSec.toFixed(2)}s (from window.__ready)`);
+    console.log(`▸ Ready at ${animationStartSec.toFixed(2)}s (from window.__ready${seekCorrected ? ' + __seek(0) correction' : ''})`);
   } else {
     await page.waitForTimeout(FONT_WAIT * 1000);
     animationStartSec = (Date.now() - T0) / 1000;
-    console.log(`▸ No window.__ready signal; using fallback wait (${animationStartSec.toFixed(2)}s)`);
-    console.log(`  tip: in animations.jsx-based HTML this is automatic;`);
-    console.log(`       otherwise set window.__ready=true after your first paint.`);
+    // Fallback offset is unreliable: animation may have started in raf loop
+    // already, so trim could land mid-cycle. Add 0.5s safety margin (see
+    // animation-pitfalls.md §13). Loud warning so user knows to fix the HTML.
+    console.log('');
+    console.log(`  ⚠️  WARNING: window.__ready signal not detected within ${READY_TIMEOUT}s`);
+    console.log(`     Recording will use fallback trim of ${animationStartSec.toFixed(2)}s + 0.5s safety margin.`);
+    console.log(`     This is UNRELIABLE — your video may start mid-animation or skip frames.`);
+    console.log('');
+    console.log(`     FIX: in your HTML's animation tick (or rAF first frame), add:`);
+    console.log(`        window.__ready = true;`);
+    console.log(`     animations.jsx-based HTML does this automatically. If you wrote your`);
+    console.log(`     own Stage, see references/animation-pitfalls.md §12 for the pattern.`);
+    console.log('');
   }
 
   // Now let the animation play out its full duration
@@ -221,12 +254,14 @@ console.log(`  output: ${MP4_OUT}`);
   console.log(`▸ WebM: ${(fs.statSync(webmPath).size / 1024 / 1024).toFixed(1)} MB`);
 
   // Resolve final trim offset:
-  //   - manual --trim=X   → use X (explicit user override)
-  //   - otherwise          → use animationStartSec (measured), with a tiny
-  //                          +0.05s nudge to clear the first Babel-commit frame
+  //   - manual --trim=X       → use X (explicit user override)
+  //   - hasReady              → animationStartSec + 0.05s (Babel-commit nudge)
+  //   - fallback (no __ready) → animationStartSec + 0.5s safety margin (raf
+  //                             loop may have started running already; without
+  //                             this we'd capture mid-cycle frames)
   const resolvedTrim = TRIM_OVERRIDE !== null
     ? parseFloat(TRIM_OVERRIDE)
-    : animationStartSec + 0.05;
+    : animationStartSec + (hasReady ? 0.05 : 0.5);
 
   console.log(`▸ ffmpeg: trim=${resolvedTrim.toFixed(2)}s${TRIM_OVERRIDE !== null ? ' (manual)' : ' (auto)'}, encode H.264…`);
   const ffmpeg = spawnSync('ffmpeg', [

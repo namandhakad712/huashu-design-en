@@ -43,12 +43,27 @@
       this._width = parseInt(this.getAttribute('width')) || 1920;
       this._height = parseInt(this.getAttribute('height')) || 1080;
 
+      // Shadow DOM 先渲染（独立于子节点，不受 parser 时机影响）
       this._render();
-      this._collectSlides();
-      this._setupEventListeners();
-      this._restoreSlide();
-      this._updateDisplay();
-      this._setupPrintStyles();
+
+      // 防御：若 script 放在 <head> 里（而非 </deck-stage> 之后），
+      // parser 此刻可能还没处理完子 <section>，querySelectorAll 会返回空。
+      // 延迟到下一个事件循环，确保子节点都已 parse 完毕。
+      const init = () => {
+        this._collectSlides();
+        this._setupEventListeners();
+        this._restoreSlide();
+        this._updateDisplay();
+        this._setupPrintStyles();
+      };
+
+      if (this.ownerDocument.readyState === 'loading') {
+        // 文档还在 parse，等 DOMContentLoaded 一次搞定所有 section
+        this.ownerDocument.addEventListener('DOMContentLoaded', init, { once: true });
+      } else {
+        // 文档已 parse 完（script 在 body 底部或 defer），下一帧收集即可
+        requestAnimationFrame(init);
+      }
     }
 
     _render() {

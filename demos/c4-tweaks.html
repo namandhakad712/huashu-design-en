@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Tweaks 实时变体</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0c0c0c;
+    font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef, useCallback } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+
+  function interpolate(t, input, output, easing) {
+    const [inStart, inEnd] = input;
+    const [outStart, outEnd] = output;
+    if (t <= inStart) return outStart;
+    if (t >= inEnd) return outEnd;
+    let progress = (t - inStart) / (inEnd - inStart);
+    if (easing) progress = easing(progress);
+    return outStart + (outEnd - outStart) * progress;
+  }
+
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() {
+    const sprite = useContext(SpriteContext);
+    return sprite || { t: 0, elapsed: 0, duration: 0 };
+  }
+
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+
+    useEffect(() => {
+      function updateScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight - 56;
+        const s = Math.min(vw / width, vh / height);
+        setScale(s);
+      }
+      updateScale();
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }, [width, height]);
+
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false;
+      let last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) {
+          last = now;
+          if (typeof window !== 'undefined') window.__ready = true;
+        }
+        const delta = (now - last) / 1000;
+        last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+
+    const canvasStyle = {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transformOrigin: 'center center',
+      width,
+      height,
+      background: bgColor,
+      overflow: 'hidden',
+      transform: `translate(-50%, -50%) scale(${scale})`,
+    };
+
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={canvasStyle}>{children}</div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(10px)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    const spriteValue = { t, elapsed, duration, start, end: actualEnd };
+    return (
+      <SpriteContext.Provider value={spriteValue}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+const OLIVE = '#6a6b4e';
+const DEEP_BLUE = '#2a3552';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sansCN = "'Noto Sans SC', -apple-system, sans-serif";
+const playfair = "'Playfair Display', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// Palettes — the actual Tweak presets
+const PALETTES = {
+  warm:  { bg: CREAM,     accent: TERRA,       text: INK,    sub: ASH,    line: LINE,    name: '暖米 + 赤陶',  enName: 'WARM · TERRA' },
+  olive: { bg: '#f2efdf', accent: OLIVE,       text: '#2a2a1e', sub: '#7a7a5e', line: '#d4d1b8', name: '墨绿 + 鹅黄',  enName: 'OLIVE · CITRON' },
+  deep:  { bg: '#f4efe6', accent: DEEP_BLUE,   text: INK,    sub: '#5a6478', line: '#c9c3b3', name: '深蓝 + 沙金',  enName: 'DEEP · SAND' },
+};
+
+const FONTS = {
+  serif: { ui: serif, display: serif, name: 'Newsreader（衬线）' },
+  sans:  { ui: sansCN, display: sansCN, name: '思源黑体' },
+  play:  { ui: playfair, display: playfair, name: 'Playfair Display' },
+};
+
+// ── Scene 1: Title (0 – 3s) ────────────────────────────────
+function Scene1_Title() {
+  const { elapsed } = useSprite();
+  const labelOp = interpolate(elapsed, [0.2, 0.8], [0, 1]);
+  const mainY = interpolate(elapsed, [0.3, 1.3], [40, 0], Easing.easeOut);
+  const mainOp = interpolate(elapsed, [0.3, 1.1], [0, 1]);
+  const lineW = interpolate(elapsed, [1.1, 1.9], [0, 460]);
+  const subOp = interpolate(elapsed, [1.4, 2.1], [0, 1]);
+  const fadeOut = interpolate(elapsed, [2.6, 3.0], [1, 0], Easing.easeIn);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 14, letterSpacing:'0.35em',
+        color: TERRA, marginBottom: 30, opacity: labelOp}}>
+        实时变体 · TWEAKS
+      </div>
+      <div style={{fontFamily: serif, fontSize: 120, fontWeight: 500, color: INK,
+        lineHeight: 1.05, letterSpacing: '-0.01em',
+        opacity: mainOp, transform: `translateY(${mainY}px)`}}>
+        一个 HTML · <span style={{fontStyle:'italic', color: TERRA}}>多种</span>设计
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 40}} />
+      <div style={{fontFamily: serif, fontStyle: 'italic', fontSize: 22,
+        color: ASH, marginTop: 26, opacity: subOp, letterSpacing:'0.02em'}}>
+        不需要重新生成代码 · 只切参数
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: Main stage — control panel + live card (3 – 12s) ──
+function Scene2_MainStage() {
+  const { elapsed } = useSprite();
+
+  // Decide current Tweaks state based on elapsed time inside the scene.
+  // Scene2 elapsed: 0 – 9s
+  //   0 – 4s : warm + serif + 40
+  //   4 – 7s : olive + serif + 40   (palette change @ 4s)
+  //   7 – 9s : olive + sans + 40    (font change @ 7s)
+  let palette = 'warm';
+  let font = 'serif';
+  const density = 40;
+
+  if (elapsed >= 4) palette = 'olive';
+  if (elapsed >= 7) font = 'sans';
+
+  // Ripple trigger times
+  const rippleTimes = [4, 7];
+  const ripples = rippleTimes.map(t => {
+    const e = elapsed - t;
+    if (e < 0 || e > 1.2) return null;
+    return { t, progress: e / 1.2 };
+  }).filter(Boolean);
+
+  // Fade-in intro
+  const introOp = interpolate(elapsed, [0, 0.4], [0, 1]);
+  const fadeOut = interpolate(elapsed, [8.6, 9.0], [1, 0]);
+
+  const pal = PALETTES[palette];
+  const fnt = FONTS[font];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      display:'flex', opacity: introOp * fadeOut}}>
+      {/* Left: Control Panel (30%) */}
+      <ControlPanel palette={palette} font={font} density={density} elapsed={elapsed} />
+
+      {/* Right: Live Card (70%) */}
+      <div style={{flex: 1, position:'relative', padding: '60px 80px',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        transition: 'background 600ms ease-in-out',
+        background: pal.bg}}>
+        <LiveCard palette={palette} font={font} density={density} />
+
+        {/* Ripples */}
+        {ripples.map((r, i) => (
+          <Ripple key={r.t} progress={r.progress}
+            x={r.t === 4 ? 180 : 180}
+            y={r.t === 4 ? 340 : 490} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ControlPanel({ palette, font, density, elapsed }) {
+  return (
+    <div style={{width: '30%', background: '#f2ece0',
+      borderRight: `1px solid ${LINE}`, padding: '60px 44px 40px',
+      display:'flex', flexDirection:'column', gap: 38,
+      fontFamily: sans}}>
+      <div>
+        <div style={{fontFamily: mono, fontSize: 11, letterSpacing:'0.35em',
+          color: TERRA, marginBottom: 6}}>
+          TWEAKS
+        </div>
+        <div style={{fontFamily: serif, fontSize: 28, fontWeight: 500, color: INK,
+          letterSpacing:'-0.01em'}}>
+          设计调参面板
+        </div>
+      </div>
+
+      {/* Group 1: palette */}
+      <ControlGroup label="01 · 配色方案" en="PALETTE">
+        <Radio checked={palette==='warm'}  label="暖米 + 赤陶"   swatches={[CREAM, TERRA]} />
+        <Radio checked={palette==='olive'} label="墨绿 + 鹅黄"   swatches={['#f2efdf', OLIVE]} />
+        <Radio checked={palette==='deep'}  label="深蓝 + 沙金"   swatches={['#f4efe6', DEEP_BLUE]} />
+      </ControlGroup>
+
+      {/* Group 2: font */}
+      <ControlGroup label="02 · 字型" en="TYPEFACE">
+        <Radio checked={font==='serif'} label="Newsreader（衬线）" fontFamily={serif} />
+        <Radio checked={font==='sans'}  label="思源黑体"         fontFamily={sansCN} />
+        <Radio checked={font==='play'}  label="Playfair Display" fontFamily={playfair} />
+      </ControlGroup>
+
+      {/* Group 3: density */}
+      <ControlGroup label="03 · 信息密度" en="DENSITY">
+        <div style={{position:'relative', height: 4, background:'#e0dbcc',
+          marginTop: 16, marginBottom: 10}}>
+          <div style={{position:'absolute', left: 0, top: 0, height:'100%',
+            width: `${density}%`, background: TERRA}} />
+          <div style={{position:'absolute', left: `${density}%`, top: -6,
+            transform:'translateX(-50%)', width: 16, height: 16,
+            borderRadius:'50%', background: TERRA,
+            boxShadow:'0 2px 6px rgba(0,0,0,0.15)'}} />
+        </div>
+        <div style={{display:'flex', justifyContent:'space-between',
+          fontFamily: mono, fontSize: 9, letterSpacing:'0.2em', color: ASH}}>
+          <span>克制</span><span style={{color: TERRA}}>标准</span><span>密集</span>
+        </div>
+      </ControlGroup>
+
+      <div style={{flex: 1}} />
+
+      <div style={{fontFamily: mono, fontSize: 10, letterSpacing:'0.12em',
+        color: ASH, lineHeight: 1.6, borderTop: `1px solid ${LINE}`,
+        paddingTop: 16}}>
+        localStorage 持久化<br/>
+        <span style={{color: TERRA}}>→</span> 刷新不丢
+      </div>
+    </div>
+  );
+}
+
+function ControlGroup({ label, en, children }) {
+  return (
+    <div>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 14}}>
+        <div style={{fontFamily: serif, fontSize: 15, fontWeight: 500, color: INK}}>
+          {label}
+        </div>
+        <div style={{fontFamily: mono, fontSize: 9, letterSpacing:'0.25em',
+          color: ASH}}>{en}</div>
+      </div>
+      <div style={{display:'flex', flexDirection:'column', gap: 8}}>{children}</div>
+    </div>
+  );
+}
+
+function Radio({ checked, label, swatches, fontFamily }) {
+  return (
+    <div style={{display:'flex', alignItems:'center', gap: 12,
+      padding:'9px 12px', background: checked ? '#fff' : 'transparent',
+      border: `1px solid ${checked ? TERRA : 'transparent'}`,
+      transition:'all 240ms ease-out'}}>
+      <div style={{width: 14, height: 14, borderRadius:'50%',
+        border: `1.5px solid ${checked ? TERRA : '#b0a898'}`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        flexShrink: 0}}>
+        {checked && <div style={{width: 7, height: 7, borderRadius:'50%',
+          background: TERRA}} />}
+      </div>
+      <div style={{flex: 1, fontFamily: fontFamily || sans, fontSize: 13,
+        color: checked ? INK : '#4a4a4a'}}>{label}</div>
+      {swatches && (
+        <div style={{display:'flex', gap: 3}}>
+          {swatches.map((c, i) => (
+            <div key={i} style={{width: 12, height: 12, background: c,
+              border:'1px solid rgba(0,0,0,0.06)'}} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Ripple({ progress, x, y }) {
+  const size = progress * 420;
+  const op = 1 - progress;
+  return (
+    <div style={{position:'absolute', left: x, top: y,
+      width: size, height: size, borderRadius:'50%',
+      border: `2px solid ${TERRA}`, opacity: op,
+      transform: 'translate(-50%, -50%)',
+      pointerEvents:'none'}} />
+  );
+}
+
+function LiveCard({ palette, font, density }) {
+  const pal = PALETTES[palette];
+  const fnt = FONTS[font];
+
+  return (
+    <div style={{width: '100%', maxWidth: 880, background: '#fff',
+      border: `1px solid ${pal.line}`,
+      transition:'border-color 600ms ease-in-out',
+      position:'relative'}}>
+      {/* Header bar */}
+      <div style={{padding:'18px 32px', borderBottom:`1px solid ${pal.line}`,
+        display:'flex', justifyContent:'space-between', alignItems:'center',
+        transition:'border-color 600ms ease-in-out'}}>
+        <div style={{fontFamily: mono, fontSize: 11, letterSpacing:'0.3em',
+          color: pal.accent, transition:'color 600ms ease-in-out'}}>
+          LUMINA · v3.2
+        </div>
+        <div style={{fontFamily: mono, fontSize: 10, color: pal.sub,
+          letterSpacing:'0.15em', transition:'color 600ms ease-in-out'}}>
+          PALETTE · {pal.enName}
+        </div>
+      </div>
+
+      {/* Hero content */}
+      <div style={{padding:'56px 60px 48px', display:'grid',
+        gridTemplateColumns:'1.4fr 1fr', gap: 48}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11,
+            color: pal.accent, letterSpacing:'0.25em', marginBottom: 16,
+            transition:'color 600ms ease-in-out'}}>
+            READING · MEMORY
+          </div>
+          <div style={{fontFamily: fnt.display, fontSize: 68,
+            fontWeight: font === 'sans' ? 700 : 500, color: pal.text,
+            lineHeight: 1.05, letterSpacing:'-0.02em',
+            transition:'color 600ms ease-in-out',
+            marginBottom: 14}}>
+            Lumina
+          </div>
+          <div style={{fontFamily: fnt.ui,
+            fontStyle: font === 'play' ? 'italic' : 'normal',
+            fontSize: 22, color: pal.sub, lineHeight: 1.4,
+            letterSpacing: font === 'sans' ? 0 : '0.01em',
+            transition:'color 600ms ease-in-out',
+            marginBottom: 28}}>
+            阅读记忆 · 让每一次阅读被看见
+          </div>
+          <div style={{fontFamily: fnt.ui, fontSize: 14, color: pal.text,
+            lineHeight: 1.7, opacity: 0.78, marginBottom: 32,
+            transition:'color 600ms ease-in-out'}}>
+            把你读过的每一行、标注过的每一段，<br/>
+            汇成一条属于你的阅读河流。
+          </div>
+          <div style={{display:'flex', gap: 12, alignItems:'center'}}>
+            <div style={{padding:'12px 26px', background: pal.accent,
+              color:'#fff', fontFamily: fnt.ui, fontSize: 13,
+              letterSpacing: font === 'sans' ? '0.05em' : '0.12em',
+              transition:'background 600ms ease-in-out'}}>
+              {font === 'sans' ? '开始使用' : 'Start Reading'}
+            </div>
+            <div style={{fontFamily: mono, fontSize: 11, color: pal.sub,
+              letterSpacing:'0.2em',
+              transition:'color 600ms ease-in-out'}}>
+              FREE · BETA
+            </div>
+          </div>
+        </div>
+
+        {/* Right image block */}
+        <div style={{background: pal.bg,
+          border: `1px solid ${pal.line}`,
+          transition:'all 600ms ease-in-out',
+          aspectRatio: '3 / 4', position:'relative', overflow:'hidden'}}>
+          {/* Abstract book spine illustration */}
+          <svg width="100%" height="100%" viewBox="0 0 300 400"
+            preserveAspectRatio="xMidYMid slice">
+            {[0,1,2,3,4,5].map(i => (
+              <rect key={i} x={40 + i * 35} y={60 + (i % 2) * 20}
+                width={26} height={280 - (i % 3) * 30}
+                fill="none" stroke={pal.accent}
+                strokeWidth={i === 2 ? 2 : 1}
+                opacity={0.55 + (i === 2 ? 0.4 : 0)}
+                style={{transition:'stroke 600ms ease-in-out'}} />
+            ))}
+            <circle cx={150} cy={200} r={58} fill="none"
+              stroke={pal.accent} strokeWidth={1.5} opacity={0.5}
+              style={{transition:'stroke 600ms ease-in-out'}} />
+            <line x1={40} y1={350} x2={260} y2={350}
+              stroke={pal.text} strokeWidth={0.8} opacity={0.5}
+              style={{transition:'stroke 600ms ease-in-out'}} />
+          </svg>
+          <div style={{position:'absolute', bottom: 16, left: 18,
+            fontFamily: mono, fontSize: 9, letterSpacing:'0.2em',
+            color: pal.sub,
+            transition:'color 600ms ease-in-out'}}>
+            FIG. 01 — SHELF
+          </div>
+        </div>
+      </div>
+
+      {/* Footer meta */}
+      <div style={{padding:'14px 32px', borderTop:`1px solid ${pal.line}`,
+        display:'flex', justifyContent:'space-between',
+        fontFamily: mono, fontSize: 10, letterSpacing:'0.2em',
+        color: pal.sub,
+        transition:'all 600ms ease-in-out'}}>
+        <span>DENSITY · {density}</span>
+        <span>FONT · {font.toUpperCase()}</span>
+        <span>TWEAK ID · #{palette}-{font}-{density}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: Code view (12 – 17s) ─────────────────────────
+function Scene3_CodeView() {
+  const { elapsed } = useSprite();
+  const introOp = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.6, 5.0], [1, 0]);
+
+  // Code typing effect
+  const fullCode = `// Tweaks via localStorage + CSS vars
+const tweaks = {
+  palette: 'warm',   // ← user 选
+  font:    'serif',
+  density: 40,
+};
+
+document.documentElement.style
+  .setProperty(
+    '--accent',
+    PALETTES[tweaks.palette].accent
+  );
+
+localStorage.setItem(
+  'tweaks', JSON.stringify(tweaks)
+);`;
+
+  const typeProgress = Math.max(0, Math.min(1, (elapsed - 0.6) / 2.4));
+  const visibleChars = Math.floor(fullCode.length * typeProgress);
+  const visibleCode = fullCode.slice(0, visibleChars);
+  const cursorBlink = Math.floor(elapsed * 2.5) % 2 === 0 && typeProgress < 1;
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      display:'flex', flexDirection:'column', opacity: introOp * fadeOut,
+      padding:'60px 80px'}}>
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 36}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.35em',
+            color: TERRA, marginBottom: 6}}>
+            UNDER THE HOOD
+          </div>
+          <div style={{fontFamily: serif, fontSize: 52, fontWeight: 500,
+            color: INK, letterSpacing:'-0.01em'}}>
+            原理 · <span style={{fontStyle:'italic', color: TERRA}}>一行配置</span>，无限变体
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign:'right', lineHeight: 1.5}}>
+          纯前端 · 无后端依赖<br/>
+          <span style={{fontSize: 14}}>刷新保留状态</span>
+        </div>
+      </div>
+
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1.4fr', gap: 40,
+        flex: 1}}>
+        {/* Left: simplified tweak visualization */}
+        <div style={{background:'#fff', border:`1px solid ${LINE}`,
+          padding: 36, display:'flex', flexDirection:'column', gap: 28}}>
+          <div style={{fontFamily: mono, fontSize: 11, letterSpacing:'0.3em',
+            color: TERRA}}>TWEAK · STATE</div>
+
+          <MiniRow label="palette" value="warm" swatch={TERRA} />
+          <MiniRow label="font"    value="serif" />
+          <MiniRow label="density" value="40" />
+
+          <div style={{height: 1, background: LINE, margin:'8px 0'}} />
+
+          <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 16,
+            color: ASH, lineHeight: 1.55}}>
+            三个参数的组合空间：<br/>
+            <span style={{color: TERRA, fontFamily: mono, fontStyle:'normal',
+              fontSize: 14}}>3 × 3 × ∞ = 无限</span>
+          </div>
+
+          <div style={{flex: 1}} />
+
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.15em', lineHeight: 1.7}}>
+            → 改代码：不必要<br/>
+            → 重新生成：不必要<br/>
+            → 只改变量：30ms 生效
+          </div>
+        </div>
+
+        {/* Right: code block */}
+        <div style={{background:'#0e1016', padding:'28px 32px',
+          fontFamily: mono, fontSize: 15, color:'#d4c9b5',
+          lineHeight: 1.7, position:'relative', overflow:'hidden'}}>
+          <div style={{display:'flex', gap: 8, marginBottom: 20}}>
+            <div style={{width: 10, height: 10, borderRadius:'50%',
+              background:'#ff5f57'}} />
+            <div style={{width: 10, height: 10, borderRadius:'50%',
+              background:'#febc2e'}} />
+            <div style={{width: 10, height: 10, borderRadius:'50%',
+              background:'#28c840'}} />
+            <div style={{marginLeft: 14, fontSize: 10, color:'#888',
+              letterSpacing:'0.15em'}}>tweaks.js</div>
+          </div>
+          <pre style={{whiteSpace:'pre-wrap', margin: 0,
+            fontFamily: mono, fontSize: 15, lineHeight: 1.65}}>
+            <CodeColorize text={visibleCode} />
+            {cursorBlink && <span style={{color:'#ff6a3d'}}>▌</span>}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniRow({ label, value, swatch }) {
+  return (
+    <div style={{display:'flex', alignItems:'center', gap: 14}}>
+      <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+        letterSpacing:'0.2em', width: 80}}>{label}</div>
+      <div style={{flex: 1, fontFamily: mono, fontSize: 14, color: INK}}>
+        {value}
+      </div>
+      {swatch && (
+        <div style={{width: 14, height: 14, background: swatch}} />
+      )}
+    </div>
+  );
+}
+
+// Very light syntax coloring
+function CodeColorize({ text }) {
+  const lines = text.split('\n');
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {colorizeLine(line)}
+          {'\n'}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function colorizeLine(line) {
+  const parts = [];
+  let rest = line;
+
+  // comment
+  const cIdx = rest.indexOf('//');
+  if (cIdx >= 0) {
+    const before = rest.slice(0, cIdx);
+    const comment = rest.slice(cIdx);
+    return (
+      <>
+        {tokenize(before)}
+        <span style={{color:'#6a7d6a'}}>{comment}</span>
+      </>
+    );
+  }
+  return tokenize(line);
+}
+
+function tokenize(s) {
+  // keywords + strings
+  const kw = ['const', 'let', 'var', 'function', 'return'];
+  const words = s.split(/(\s+|[{}();,=.:'])/);
+  return words.map((w, i) => {
+    if (kw.includes(w)) return <span key={i} style={{color:'#c79cff'}}>{w}</span>;
+    if (/^'[^']*'$/.test(w)) return <span key={i} style={{color:'#ffb86c'}}>{w}</span>;
+    if (/^[0-9]+$/.test(w)) return <span key={i} style={{color:'#ff6a3d'}}>{w}</span>;
+    if (['palette', 'font', 'density', 'tweaks', 'PALETTES', 'accent'].includes(w)) {
+      return <span key={i} style={{color:'#8be9fd'}}>{w}</span>;
+    }
+    if (['document', 'localStorage'].includes(w)) {
+      return <span key={i} style={{color:'#ff79c6'}}>{w}</span>;
+    }
+    return <span key={i}>{w}</span>;
+  });
+}
+
+// ── Scene 4: Finale (17 – 20s) ────────────────────────────
+function Scene4_Final() {
+  const { elapsed } = useSprite();
+  const labelOp = interpolate(elapsed, [0.1, 0.7], [0, 1]);
+  const mainY = interpolate(elapsed, [0.2, 1.2], [30, 0], Easing.easeOut);
+  const mainOp = interpolate(elapsed, [0.2, 1.0], [0, 1]);
+  const lineW = interpolate(elapsed, [1.0, 1.8], [0, 540]);
+  const dimsOp = interpolate(elapsed, [1.3, 2.1], [0, 1]);
+
+  const dimensions = ['配色', '字型', '密度', '布局', '动画速度'];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column'}}>
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 26, opacity: labelOp}}>
+        TWEAKS · EVERYTHING IS A VARIABLE
+      </div>
+      <div style={{fontFamily: serif, fontSize: 108, fontWeight: 500,
+        color: INK, lineHeight: 1.05, letterSpacing:'-0.01em',
+        opacity: mainOp, transform: `translateY(${mainY}px)`,
+        textAlign:'center'}}>
+        一个源文件 · <span style={{fontStyle:'italic', color: TERRA}}>无限</span>变体
+      </div>
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 38}} />
+
+      <div style={{marginTop: 36, display:'flex', gap: 10,
+        opacity: dimsOp, alignItems:'center'}}>
+        {dimensions.map((d, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <span style={{fontFamily: mono, fontSize: 14,
+                color: LINE, margin:'0 2px'}}>·</span>
+            )}
+            <span style={{fontFamily: mono, fontSize: 14,
+              letterSpacing:'0.2em',
+              color: i === 0 ? TERRA : ASH,
+              padding:'6px 14px',
+              border: `1px solid ${i === 0 ? TERRA : LINE}`}}>
+              {d}
+            </span>
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 20,
+        color: ASH, marginTop: 36, opacity: dimsOp,
+        maxWidth: 720, textAlign:'center', lineHeight: 1.5}}>
+        设计不是一次性的结果 ——<br/>
+        而是一组可以随时拨动的旋钮
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ─────────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+// ── Main composition ──────────────────────────────────────
+function App() {
+  return (
+    <Stage duration={20} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0}  end={3}><Scene1_Title /></Sprite>
+      <Sprite start={3}  end={12}><Scene2_MainStage /></Sprite>
+      <Sprite start={12} end={17}><Scene3_CodeView /></Sprite>
+      <Sprite start={17} end={20}><Scene4_Final /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

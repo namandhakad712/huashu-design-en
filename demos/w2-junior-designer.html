@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Huashu-Design · Junior Designer 模式</title>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #0c0c0c;
+    font-family: 'Newsreader', 'Noto Serif SC', Georgia, serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- animations.jsx inlined -->
+<script type="text/babel">
+(function() {
+  const { createContext, useContext, useState, useEffect, useRef, useCallback } = React;
+  const TimeContext = createContext({ time: 0, duration: 10, playing: false });
+  const SpriteContext = createContext(null);
+
+  const Easing = {
+    linear: t => t,
+    easeIn: t => t * t,
+    easeOut: t => 1 - (1 - t) * (1 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    spring: t => {
+      const c = (2 * Math.PI) / 3;
+      return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c) + 1;
+    },
+  };
+
+  function interpolate(t, input, output, easing) {
+    const [inStart, inEnd] = input;
+    const [outStart, outEnd] = output;
+    if (t <= inStart) return outStart;
+    if (t >= inEnd) return outEnd;
+    let progress = (t - inStart) / (inEnd - inStart);
+    if (easing) progress = easing(progress);
+    return outStart + (outEnd - outStart) * progress;
+  }
+
+  function useTime() { return useContext(TimeContext).time; }
+  function useSprite() {
+    const sprite = useContext(SpriteContext);
+    return sprite || { t: 0, elapsed: 0, duration: 0 };
+  }
+
+  function Stage({ duration = 10, width = 1920, height = 1080, loop = true, children, bgColor = '#fff' }) {
+    const [time, setTime] = useState(0);
+    const [playing, setPlaying] = useState(true);
+    const [scale, setScale] = useState(1);
+    const rafRef = useRef(null);
+    const effectiveLoop = (typeof window !== 'undefined' && window.__recording) ? false : loop;
+
+    useEffect(() => {
+      function updateScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight - 56;
+        const s = Math.min(vw / width, vh / height);
+        setScale(s);
+      }
+      updateScale();
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }, [width, height]);
+
+    useEffect(() => {
+      if (!playing) return;
+      let cancelled = false;
+      let last = null;
+      function tick(now) {
+        if (cancelled) return;
+        if (last === null) {
+          last = now;
+          if (typeof window !== 'undefined') window.__ready = true;
+        }
+        const delta = (now - last) / 1000;
+        last = now;
+        setTime(prev => {
+          const next = prev + delta;
+          if (next >= duration) return effectiveLoop ? 0 : duration - 0.001;
+          return next;
+        });
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      const start = () => { if (!cancelled) rafRef.current = requestAnimationFrame(tick); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+      return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+    }, [playing, duration, effectiveLoop]);
+
+    const progress = time / duration;
+    const ctx = { time, duration, playing, setPlaying, setTime };
+
+    const canvasStyle = {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transformOrigin: 'center center',
+      width,
+      height,
+      background: bgColor,
+      overflow: 'hidden',
+      transform: `translate(-50%, -50%) scale(${scale})`,
+    };
+
+    return (
+      <TimeContext.Provider value={ctx}>
+        <div style={{position:'fixed', inset:0, background:'#0c0c0c', display:'flex', flexDirection:'column'}}>
+          <div style={{flex:1, position:'relative', overflow:'hidden'}}>
+            <div style={canvasStyle}>{children}</div>
+          </div>
+          <div className="no-record" style={{position:'fixed', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(10px)', padding:'12px 20px', display:'flex', alignItems:'center', gap:16, color:'#fff', fontSize:12, zIndex:100}}>
+            <button onClick={()=>setPlaying(p=>!p)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>{playing?'⏸ 暂停':'▶ 播放'}</button>
+            <button onClick={()=>setTime(0)} style={{background:'none', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', padding:'6px 14px', borderRadius:4, cursor:'pointer', fontSize:12}}>⏮ 开始</button>
+            <div style={{fontFamily:'ui-monospace, monospace', fontVariantNumeric:'tabular-nums', minWidth:90}}>{time.toFixed(2)}s / {duration.toFixed(2)}s</div>
+            <div style={{flex:1, height:4, background:'rgba(255,255,255,0.2)', borderRadius:2, position:'relative'}}>
+              <div style={{position:'absolute', top:0, left:0, height:'100%', width:`${progress*100}%`, background:'#fff', borderRadius:2}} />
+            </div>
+          </div>
+        </div>
+      </TimeContext.Provider>
+    );
+  }
+
+  function Sprite({ start = 0, end, children, style }) {
+    const { time } = useContext(TimeContext);
+    const actualEnd = end == null ? Infinity : end;
+    if (time < start || time >= actualEnd) return null;
+    const duration = actualEnd - start;
+    const elapsed = time - start;
+    const t = duration === 0 ? 1 : Math.max(0, Math.min(1, elapsed / duration));
+    const spriteValue = { t, elapsed, duration, start, end: actualEnd };
+    return (
+      <SpriteContext.Provider value={spriteValue}>
+        <div style={{position:'absolute', inset:0, ...style}}>{children}</div>
+      </SpriteContext.Provider>
+    );
+  }
+
+  window.Animations = { Stage, Sprite, useTime, useSprite, Easing, interpolate };
+})();
+</script>
+
+<!-- Demo scene -->
+<script type="text/babel">
+const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
+
+// ── Design tokens ─────────────────────────────────────────
+const CREAM = '#FAF6EF';
+const INK = '#1a1a1a';
+const TERRA = '#C04A1A';
+const ASH = '#6b6b6b';
+const LINE = '#d9d2c5';
+const OLIVE = '#6a6b4e';
+
+const serif = "'Newsreader', 'Noto Serif SC', Georgia, serif";
+const sans = "'Inter', -apple-system, sans-serif";
+const mono = "'JetBrains Mono', ui-monospace, monospace";
+
+// ── Scene 1: Two working modes contrast (0 – 3s) ──────────
+function Scene1_Contrast() {
+  const { elapsed } = useSprite();
+  const titleOp = interpolate(elapsed, [0, 0.6], [0, 1]);
+  const leftOp = interpolate(elapsed, [0.3, 1], [0, 1]);
+  const rightOp = interpolate(elapsed, [0.5, 1.2], [0, 1]);
+
+  // Left: long bar filling slowly, then user frown at end
+  const badBar = Math.min(1, Math.max(0, (elapsed - 1.0) / 1.6));
+  const badReveal = elapsed > 2.5 ? 1 : 0;
+
+  // Right: small milestones ticking one by one
+  const ticks = [0.9, 1.3, 1.7, 2.1, 2.5];
+  const fadeOut = interpolate(elapsed, [2.85, 3], [1, 0], Easing.easeIn);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: fadeOut,
+      padding:'80px 120px', display:'flex', flexDirection:'column'}}>
+
+      {/* Title */}
+      <div style={{textAlign:'center', marginBottom: 60, opacity: titleOp}}>
+        <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+          color: TERRA, marginBottom: 16}}>
+          JUNIOR DESIGNER MODE · 工作方式对比
+        </div>
+        <div style={{fontFamily: serif, fontSize: 68, fontWeight: 500,
+          color: INK, lineHeight: 1.1, letterSpacing:'-0.01em'}}>
+          理解错了 <span style={{fontStyle:'italic', color: TERRA}}>早改</span> 比 <span style={{fontStyle:'italic', color: TERRA}}>晚改</span> 便宜 100 倍
+        </div>
+      </div>
+
+      {/* Two columns */}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap: 60, flex: 1}}>
+
+        {/* Left: bad mode */}
+        <div style={{opacity: leftOp, background:'#f4eee3', padding:'40px 44px',
+          display:'flex', flexDirection:'column', position:'relative'}}>
+          <div style={{display:'flex', alignItems:'center', gap: 14, marginBottom: 28}}>
+            <div style={{width: 32, height: 32, borderRadius:'50%',
+              background:'#ccc', color:'#fff', fontFamily: serif, fontSize: 20,
+              fontWeight: 600, display:'flex', alignItems:'center',
+              justifyContent:'center', lineHeight: 1}}>✗</div>
+            <div style={{fontFamily: serif, fontSize: 30, fontWeight: 500,
+              color:'#555'}}>闷头做大招</div>
+          </div>
+
+          <div style={{fontFamily: mono, fontSize: 11, color: ASH,
+            letterSpacing: '0.2em', marginBottom: 14}}>
+            6 HOURS · 0 FEEDBACK
+          </div>
+
+          <div style={{height: 18, background:'#e2dbcd', position:'relative',
+            marginBottom: 36}}>
+            <div style={{position:'absolute', top:0, left:0, height:'100%',
+              width: `${badBar * 100}%`, background:'#999'}} />
+          </div>
+
+          <div style={{fontFamily: serif, fontSize: 16, color: ASH,
+            lineHeight: 1.7, flex: 1}}>
+            埋头 6 小时<br/>
+            一次性端出成品<br/>
+            默祷「方向没理解错」
+          </div>
+
+          {badReveal > 0 && (
+            <div style={{marginTop: 20, padding:'14px 18px', background:'#fff',
+              border: `1px solid #d0c8b8`, opacity: badReveal,
+              display:'flex', alignItems:'center', gap: 12}}>
+              <div style={{fontFamily: serif, fontSize: 22, color:'#888'}}>😐</div>
+              <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 15,
+                color:'#666', lineHeight: 1.4}}>
+                「这方向不对…<br/>得重来」
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: good mode */}
+        <div style={{opacity: rightOp, background:'#fff', padding:'40px 44px',
+          border: `1.5px solid ${TERRA}`, display:'flex', flexDirection:'column',
+          position:'relative'}}>
+          <div style={{display:'flex', alignItems:'center', gap: 14, marginBottom: 28}}>
+            <div style={{width: 32, height: 32, borderRadius:'50%',
+              background: TERRA, color:'#fff', fontFamily: serif, fontSize: 20,
+              fontWeight: 600, display:'flex', alignItems:'center',
+              justifyContent:'center', lineHeight: 1}}>✓</div>
+            <div style={{fontFamily: serif, fontSize: 30, fontWeight: 500,
+              color: INK}}>Junior Designer 模式</div>
+          </div>
+
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.2em', marginBottom: 14}}>
+            5 CHECKPOINTS · CONTINUOUS FEEDBACK
+          </div>
+
+          {/* Timeline with ticks */}
+          <div style={{position:'relative', height: 18, marginBottom: 36}}>
+            <div style={{position:'absolute', top: 8, left: 0, right: 0,
+              height: 2, background:'#e8e1d3'}} />
+            {ticks.map((tick, i) => {
+              const show = elapsed > tick ? 1 : 0;
+              const pct = (i + 1) / ticks.length * 100;
+              return (
+                <div key={i} style={{position:'absolute',
+                  left: `calc(${pct}% - 10px)`, top: 0, width: 20, height: 20,
+                  borderRadius:'50%', background: TERRA, color:'#fff',
+                  fontSize: 11, display:'flex', alignItems:'center',
+                  justifyContent:'center', opacity: show,
+                  transform: `scale(${show})`, transition:'none',
+                  fontFamily: sans, fontWeight: 600}}>✓</div>
+              );
+            })}
+          </div>
+
+          <div style={{fontFamily: serif, fontSize: 16, color: INK,
+            lineHeight: 1.7, flex: 1}}>
+            假设 · 骨架 · 粗图<br/>
+            每步都 show 一下<br/>
+            错得早，改得小
+          </div>
+
+          {elapsed > 2.5 && (
+            <div style={{marginTop: 20, padding:'14px 18px', background:'#faf6ef',
+              border: `1px solid ${LINE}`, display:'flex', alignItems:'center', gap: 12,
+              opacity: interpolate(elapsed, [2.5, 2.85], [0, 1])}}>
+              <div style={{fontFamily: serif, fontSize: 22}}>🙂</div>
+              <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 15,
+                color: INK, lineHeight: 1.4}}>
+                「方向对，<br/>继续推进」
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 2: HTML skeleton with assumptions + placeholders (3 – 8s) ──
+function Scene2_Skeleton() {
+  const { elapsed } = useSprite();
+  const opacity = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.6, 5], [1, 0]);
+
+  // Typewriter content
+  const fullText = `<!--
+  ASSUMPTIONS:
+  - 主色用暖调橙（未确认，等品牌 spec）
+  - 3 屏切换，Today / Memory / Chat
+  - 字体：Newsreader + Noto Serif SC
+
+  PLACEHOLDERS:
+  - Hero 图暂用灰块 + 文字标签（有图再替换）
+  - AI 洞察文本用「等用户提供真实数据」
+
+  REASONING:
+  - 选橙调是因为客户说要「温暖感」
+  - Serif 因为是阅读类 App
+-->`;
+
+  // Type at ~50 chars/sec
+  const charCount = Math.floor(interpolate(elapsed, [0.4, 4.0], [0, fullText.length]));
+  const shownText = fullText.slice(0, charCount);
+  const cursorBlink = Math.floor(elapsed * 2.4) % 2 === 0 && charCount < fullText.length;
+
+  // Hint callout appears after most text typed
+  const hintOp = interpolate(elapsed, [3.5, 4.2], [0, 1]);
+  const hintBob = Math.sin(elapsed * 3) * 4;
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: opacity * fadeOut,
+      padding:'60px 100px', display:'flex', flexDirection:'column'}}>
+
+      {/* Header */}
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 32}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.3em', marginBottom: 6}}>STEP 1 / 3</div>
+          <div style={{fontFamily: serif, fontSize: 52, fontWeight: 500, color: INK}}>
+            先写 <span style={{fontStyle:'italic', color: TERRA}}>骨架</span> · 不写渲染
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign: 'right', lineHeight: 1.5}}>
+          Assumptions + Placeholders + Reasoning<br/>
+          <span style={{fontSize: 14}}>— 把「猜」写在代码里</span>
+        </div>
+      </div>
+
+      {/* Editor */}
+      <div style={{flex: 1, background:'#1a1a1a', position:'relative',
+        display:'flex', flexDirection:'column', overflow:'hidden'}}>
+
+        {/* Editor top bar */}
+        <div style={{padding:'12px 20px', background:'#222',
+          borderBottom:'1px solid #2e2e2e', display:'flex',
+          alignItems:'center', gap: 16}}>
+          <div style={{display:'flex', gap: 8}}>
+            <div style={{width: 12, height: 12, borderRadius:'50%', background:'#ff5f57'}} />
+            <div style={{width: 12, height: 12, borderRadius:'50%', background:'#febc2e'}} />
+            <div style={{width: 12, height: 12, borderRadius:'50%', background:'#28c840'}} />
+          </div>
+          <div style={{fontFamily: mono, fontSize: 11, color:'#888',
+            letterSpacing: '0.1em'}}>
+            index.html · junior-pass-v0
+          </div>
+        </div>
+
+        {/* Code body */}
+        <div style={{flex: 1, padding:'32px 40px', fontFamily: mono,
+          fontSize: 19, lineHeight: 1.7, color:'#8a8a8a',
+          whiteSpace:'pre-wrap', position:'relative'}}>
+          <span style={{color:'#6a8a56'}}>{shownText}</span>
+          {cursorBlink && <span style={{background:'#c04a1a', display:'inline-block',
+            width: 10, height: 22, verticalAlign:'text-bottom'}} />}
+        </div>
+
+        {/* Bottom status bar */}
+        <div style={{padding:'10px 20px', background:'#161616',
+          borderTop:'1px solid #2a2a2a', display:'flex',
+          justifyContent:'space-between', fontFamily: mono, fontSize: 10,
+          color:'#666', letterSpacing:'0.12em'}}>
+          <span>HTML · COMMENTS ONLY</span>
+          <span>LN {Math.min(15, Math.floor(charCount / 30) + 1)} / 15</span>
+        </div>
+      </div>
+
+      {/* Callout */}
+      <div style={{position:'absolute', right: 120, bottom: 100,
+        opacity: hintOp, transform: `translateY(${hintBob}px)`,
+        display:'flex', alignItems:'center', gap: 14}}>
+        <svg width="48" height="24" viewBox="0 0 48 24">
+          <path d="M 46 12 L 6 12 M 14 6 L 6 12 L 14 18"
+            fill="none" stroke={TERRA} strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22,
+          color: TERRA, letterSpacing:'0.02em'}}>
+          还没写一行渲染代码
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 3: First show to user (8 – 13s) ─────────────────
+function Scene3_FirstShow() {
+  const { elapsed } = useSprite();
+  const opacity = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.6, 5], [1, 0]);
+
+  // Wireframe fade in
+  const wireOp = interpolate(elapsed, [0.2, 0.9], [0, 1]);
+
+  // Chat bubbles stagger in
+  const b1Op = interpolate(elapsed, [1.0, 1.5], [0, 1]);
+  const b2Op = interpolate(elapsed, [2.0, 2.5], [0, 1]);
+  const b3Op = interpolate(elapsed, [2.9, 3.4], [0, 1]);
+
+  // Bottom subtitle
+  const subOp = interpolate(elapsed, [3.8, 4.3], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: opacity * fadeOut,
+      padding:'60px 100px', display:'flex', flexDirection:'column'}}>
+
+      {/* Header */}
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 28}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.3em', marginBottom: 6}}>STEP 2 / 3</div>
+          <div style={{fontFamily: serif, fontSize: 52, fontWeight: 500, color: INK}}>
+            第一次 <span style={{fontStyle:'italic', color: TERRA}}>show</span> 给用户
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign:'right', lineHeight: 1.5}}>
+          「先给你看方向 —— 对吗？」<br/>
+          <span style={{fontSize: 14}}>— 10 分钟对齐</span>
+        </div>
+      </div>
+
+      {/* Two panels */}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1px 1.1fr', gap: 40,
+        flex: 1, alignItems:'stretch'}}>
+
+        {/* Left: wireframe */}
+        <div style={{background:'#fff', border: `1px solid ${LINE}`,
+          padding: 28, opacity: wireOp, display:'flex', flexDirection:'column'}}>
+          <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.2em', marginBottom: 14}}>
+            WIREFRAME · NO STYLING
+          </div>
+
+          {/* Hero placeholder */}
+          <div style={{height: 180, background:'#ececec', border:'1.5px dashed #bbb',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontFamily: mono, fontSize: 13, color:'#888',
+            letterSpacing:'0.15em', marginBottom: 20}}>
+            [ HERO IMAGE ]
+          </div>
+
+          {/* Title placeholder */}
+          <div style={{height: 26, background:'#e5e0d3', width:'75%',
+            marginBottom: 10}} />
+          <div style={{height: 16, background:'#ede8db', width:'55%',
+            marginBottom: 24}} />
+
+          {/* AI insight block */}
+          <div style={{background:'#f5f0e3', padding:'16px 18px', marginBottom: 20,
+            border: `1px dashed ${LINE}`}}>
+            <div style={{fontFamily: mono, fontSize: 9, color: ASH,
+              letterSpacing:'0.2em', marginBottom: 8}}>[ AI INSIGHT · 3 行 ]</div>
+            <div style={{height: 8, background:'#d9d2c5', width:'92%', marginBottom: 6}} />
+            <div style={{height: 8, background:'#d9d2c5', width:'88%', marginBottom: 6}} />
+            <div style={{height: 8, background:'#d9d2c5', width:'70%'}} />
+          </div>
+
+          <div style={{fontFamily: serif, fontSize: 14, color:'#888',
+            fontStyle:'italic', marginTop:'auto', textAlign:'center',
+            paddingTop: 14, borderTop: `1px solid ${LINE}`}}>
+            Marcus Aurelius · 第四卷
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{background: LINE, width: 1}} />
+
+        {/* Right: chat */}
+        <div style={{display:'flex', flexDirection:'column', gap: 18,
+          paddingTop: 10}}>
+          {/* Designer bubble */}
+          <div style={{opacity: b1Op, display:'flex', gap: 14,
+            alignItems:'flex-start'}}>
+            <div style={{width: 40, height: 40, background: TERRA, color:'#fff',
+              fontFamily: serif, fontSize: 16, fontWeight: 600,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              flexShrink: 0, borderRadius: 2, letterSpacing:'0.05em'}}>JD</div>
+            <div style={{background:'#fff', border: `1px solid ${LINE}`,
+              padding:'16px 20px', maxWidth: '85%'}}>
+              <div style={{fontFamily: mono, fontSize: 9, color: ASH,
+                letterSpacing:'0.2em', marginBottom: 8}}>
+                JUNIOR DESIGNER
+              </div>
+              <div style={{fontFamily: serif, fontSize: 19, color: INK,
+                lineHeight: 1.5}}>
+                我对方向有几个假设，先给你看线框——想法对吗？
+              </div>
+            </div>
+          </div>
+
+          {/* User bubble 1 */}
+          <div style={{opacity: b2Op, display:'flex', gap: 14,
+            alignItems:'flex-start', justifyContent:'flex-end'}}>
+            <div style={{background: OLIVE, color:'#fff',
+              padding:'14px 20px', maxWidth: '80%'}}>
+              <div style={{fontFamily: mono, fontSize: 9,
+                color:'rgba(255,255,255,0.6)', letterSpacing:'0.2em',
+                marginBottom: 8}}>USER · FEEDBACK</div>
+              <div style={{fontFamily: serif, fontSize: 18, lineHeight: 1.5}}>
+                橙调 OK。AI 洞察那块我想要 <span style={{fontStyle:'italic',
+                  textDecoration:'underline'}}>两行</span> 不要三行
+              </div>
+            </div>
+          </div>
+
+          {/* User bubble 2 */}
+          <div style={{opacity: b3Op, display:'flex', gap: 14,
+            alignItems:'flex-start', justifyContent:'flex-end'}}>
+            <div style={{background: OLIVE, color:'#fff',
+              padding:'14px 20px', maxWidth: '80%'}}>
+              <div style={{fontFamily: serif, fontSize: 18, lineHeight: 1.5}}>
+                Hero 图要 <span style={{fontStyle:'italic',
+                  textDecoration:'underline'}}>摄影</span> 不要插画
+              </div>
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <div style={{marginTop:'auto', paddingTop: 24, opacity: subOp,
+            borderTop: `1px solid ${LINE}`}}>
+            <div style={{fontFamily: mono, fontSize: 11,
+              color: TERRA, letterSpacing:'0.3em', marginBottom: 6}}>
+              ALIGNMENT
+            </div>
+            <div style={{fontFamily: serif, fontSize: 30, fontWeight: 500,
+              color: INK, lineHeight: 1.2}}>
+              对齐 = <span style={{color: TERRA}}>10 分钟</span>
+              <span style={{fontStyle:'italic', color: ASH, fontSize: 22}}> · 不是 2 小时</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ArtBlock: oil painting hero (from c1-ios-prototype) ───
+function ArtBlock({ mood = 'warm' }) {
+  const palettes = {
+    warm: ['#8b4a2b', '#c67b4a', '#e3a876', '#f2d4a7'],
+    quiet: ['#3d4a3a', '#6a8066', '#a8b89c', '#e0d8b8'],
+  };
+  const p = palettes[mood];
+  return (
+    <div style={{
+      width:'100%', height:'100%', position:'relative', overflow:'hidden',
+      background: `linear-gradient(135deg, ${p[0]} 0%, ${p[1]} 35%, ${p[2]} 70%, ${p[3]} 100%)`,
+    }}>
+      <div style={{
+        position:'absolute', inset: 0,
+        background: `
+          radial-gradient(ellipse 80px 30px at 30% 40%, ${p[3]}44, transparent 70%),
+          radial-gradient(ellipse 60px 20px at 70% 60%, ${p[0]}33, transparent 70%),
+          radial-gradient(ellipse 100px 40px at 50% 80%, ${p[2]}44, transparent 70%),
+          radial-gradient(ellipse 50px 25px at 20% 70%, ${p[1]}55, transparent 70%)
+        `,
+        filter:'blur(1px)',
+      }} />
+      <svg width="100%" height="100%" style={{position:'absolute', inset:0, opacity: 0.18}}>
+        <filter id="paint-noise-w2">
+          <feTurbulence baseFrequency="0.9" numOctaves="2" />
+          <feColorMatrix values="0 0 0 0 0.3   0 0 0 0 0.2   0 0 0 0 0.1   0 0 0 1 0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paint-noise-w2)" />
+      </svg>
+    </div>
+  );
+}
+
+// ── Scene 4: Full pass fills in (13 – 18s) ────────────────
+function Scene4_FullPass() {
+  const { elapsed } = useSprite();
+  const opacity = interpolate(elapsed, [0, 0.5], [0, 1]);
+  const fadeOut = interpolate(elapsed, [4.6, 5], [1, 0]);
+
+  // Staggered reveal of real content
+  const heroReveal = interpolate(elapsed, [0.6, 1.8], [0, 1], Easing.easeOut);
+  const titleReveal = interpolate(elapsed, [1.5, 2.3], [0, 1]);
+  const insightReveal = interpolate(elapsed, [2.2, 3.1], [0, 1]);
+  const meta = interpolate(elapsed, [3.0, 3.8], [0, 1]);
+
+  // Bottom subtitle
+  const subOp = interpolate(elapsed, [3.9, 4.4], [0, 1]);
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity: opacity * fadeOut,
+      padding:'60px 100px', display:'flex', flexDirection:'column'}}>
+
+      {/* Header */}
+      <div style={{display:'flex', justifyContent:'space-between',
+        alignItems:'baseline', marginBottom: 28}}>
+        <div>
+          <div style={{fontFamily: mono, fontSize: 11, color: TERRA,
+            letterSpacing: '0.3em', marginBottom: 6}}>STEP 3 / 3</div>
+          <div style={{fontFamily: serif, fontSize: 52, fontWeight: 500, color: INK}}>
+            Full pass · <span style={{fontStyle:'italic', color: TERRA}}>灰块变真图</span>
+          </div>
+        </div>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 18,
+          color: ASH, textAlign:'right', lineHeight: 1.5}}>
+          Placeholders → Content<br/>
+          <span style={{fontSize: 14}}>— 方向对了再填色</span>
+        </div>
+      </div>
+
+      {/* Two panels: before wireframe (thumbnail) vs after (full card) */}
+      <div style={{display:'grid', gridTemplateColumns:'0.55fr 60px 1fr', gap: 0,
+        flex: 1, alignItems:'center'}}>
+
+        {/* Left: wireframe thumbnail, still, for contrast */}
+        <div style={{background:'#fff', border: `1px solid ${LINE}`,
+          padding: 20, opacity: 0.55, transform:'scale(0.92)',
+          transformOrigin:'center right'}}>
+          <div style={{fontFamily: mono, fontSize: 9, color: ASH,
+            letterSpacing:'0.2em', marginBottom: 10}}>
+            BEFORE
+          </div>
+          <div style={{height: 100, background:'#ececec',
+            border:'1.5px dashed #bbb', display:'flex',
+            alignItems:'center', justifyContent:'center',
+            fontFamily: mono, fontSize: 10, color:'#888',
+            letterSpacing:'0.15em', marginBottom: 12}}>
+            [ HERO IMAGE ]
+          </div>
+          <div style={{height: 14, background:'#e5e0d3', width:'75%', marginBottom: 6}} />
+          <div style={{height: 10, background:'#ede8db', width:'55%', marginBottom: 14}} />
+          <div style={{background:'#f5f0e3', padding:'10px 12px',
+            border: `1px dashed ${LINE}`}}>
+            <div style={{height: 6, background:'#d9d2c5', width:'92%', marginBottom: 4}} />
+            <div style={{height: 6, background:'#d9d2c5', width:'88%', marginBottom: 4}} />
+            <div style={{height: 6, background:'#d9d2c5', width:'70%'}} />
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div style={{display:'flex', alignItems:'center', justifyContent:'center'}}>
+          <svg width="40" height="24" viewBox="0 0 40 24">
+            <path d="M 2 12 L 38 12 M 30 4 L 38 12 L 30 20"
+              fill="none" stroke={TERRA} strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+
+        {/* Right: full card */}
+        <div style={{background:'#fff', border: `1px solid ${LINE}`,
+          boxShadow:'0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)',
+          display:'flex', flexDirection:'column', overflow:'hidden'}}>
+
+          <div style={{padding:'14px 24px', borderBottom:`1px solid ${LINE}`,
+            display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+            <div style={{fontFamily: mono, fontSize: 10, color: TERRA,
+              letterSpacing:'0.25em'}}>AFTER · FULL PASS</div>
+            <div style={{fontFamily: mono, fontSize: 10, color: ASH,
+              letterSpacing:'0.15em'}}>STOIC READER · v0.3</div>
+          </div>
+
+          {/* Hero image: oil painting */}
+          <div style={{height: 220, position:'relative', overflow:'hidden'}}>
+            <div style={{position:'absolute', inset: 0, opacity: heroReveal}}>
+              <ArtBlock mood="warm" />
+            </div>
+            {heroReveal < 0.95 && (
+              <div style={{position:'absolute', inset: 0, background:'#ececec',
+                opacity: 1 - heroReveal, display:'flex', alignItems:'center',
+                justifyContent:'center', fontFamily: mono, fontSize: 12,
+                color:'#888', letterSpacing:'0.15em',
+                border:'1.5px dashed #bbb'}}>
+                [ HERO IMAGE ]
+              </div>
+            )}
+            {/* Photo credit */}
+            <div style={{position:'absolute', bottom: 10, right: 12,
+              fontFamily: mono, fontSize: 9, color:'rgba(255,255,255,0.7)',
+              letterSpacing:'0.2em', opacity: heroReveal}}>
+              PHOTO · J. TURNER
+            </div>
+          </div>
+
+          {/* Title */}
+          <div style={{padding:'26px 32px 10px', opacity: titleReveal}}>
+            <div style={{fontFamily: serif, fontSize: 36, fontWeight: 500,
+              color: INK, lineHeight: 1.15, letterSpacing:'-0.01em',
+              marginBottom: 6}}>
+              The Obstacle<br/>
+              <span style={{fontStyle:'italic', color: TERRA}}>is the Way</span>
+            </div>
+            <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 15,
+              color: ASH}}>
+              Marcus Aurelius · 第四卷 · 今日阅读
+            </div>
+          </div>
+
+          {/* AI insight — NOW 2 lines, not 3 */}
+          <div style={{margin:'10px 32px 20px', padding:'16px 20px',
+            background:'#faf6ef', borderLeft: `3px solid ${TERRA}`,
+            opacity: insightReveal}}>
+            <div style={{fontFamily: mono, fontSize: 9, color: TERRA,
+              letterSpacing:'0.25em', marginBottom: 8}}>AI INSIGHT · 2 LINES</div>
+            <div style={{fontFamily: serif, fontSize: 15, color: INK,
+              lineHeight: 1.55}}>
+              你最近笔记里「困难」出现 7 次。<br/>
+              Aurelius 今天正好在说：障碍本身就是路。
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div style={{padding:'14px 32px', borderTop:`1px solid ${LINE}`,
+            display:'flex', justifyContent:'space-between',
+            fontFamily: mono, fontSize: 10, color: ASH,
+            letterSpacing:'0.15em', opacity: meta}}>
+            <span>READ · 4 MIN</span>
+            <span>MEMORY · 12 NOTES</span>
+            <span>CHAT · ASK AURELIUS</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Subtitle */}
+      <div style={{textAlign:'center', marginTop: 30, opacity: subOp}}>
+        <div style={{fontFamily: serif, fontStyle:'italic', fontSize: 22,
+          color: INK}}>
+          迭代到 80%，再做最后 20% 的抛光
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Scene 5: Closing + 4 checkpoints (18 – 22s) ───────────
+function Scene5_Closing() {
+  const { elapsed } = useSprite();
+  const opacity = interpolate(elapsed, [0, 0.6], [0, 1]);
+
+  const titleY = interpolate(elapsed, [0, 1.0], [30, 0], Easing.easeOut);
+  const lineW = interpolate(elapsed, [0.8, 1.6], [0, 620]);
+
+  const items = [
+    { text: '问 clarifying questions（一次一批）' },
+    { text: '写 assumptions + placeholders' },
+    { text: '尽早 show（哪怕只是灰块）' },
+    { text: '迭代再抛光，不一次做完' },
+  ];
+
+  return (
+    <div style={{position:'absolute', inset:0, background:CREAM, opacity,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexDirection:'column', padding:'60px 120px'}}>
+
+      <div style={{fontFamily: mono, fontSize: 12, letterSpacing:'0.4em',
+        color: TERRA, marginBottom: 24}}>
+        JUNIOR DESIGNER · RECAP
+      </div>
+
+      <div style={{fontFamily: serif, fontSize: 100, fontWeight: 500,
+        color: INK, lineHeight: 1.05, letterSpacing:'-0.015em',
+        transform: `translateY(${titleY}px)`, textAlign:'center'}}>
+        早 <span style={{fontStyle:'italic', color: TERRA}}>show</span>
+        <span style={{color: ASH, fontWeight: 400, margin:'0 18px'}}>·</span>
+        早 <span style={{fontStyle:'italic', color: TERRA}}>改</span>
+        <span style={{color: ASH, fontWeight: 400, margin:'0 18px'}}>·</span>
+        早 <span style={{fontStyle:'italic', color: TERRA}}>对齐</span>
+      </div>
+
+      <div style={{height: 1, background: INK, width: lineW, marginTop: 34,
+        marginBottom: 46}} />
+
+      {/* 4 checkpoints */}
+      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'18px 60px',
+        maxWidth: 1100, width:'100%'}}>
+        {items.map((it, i) => {
+          const appear = interpolate(elapsed, [1.6 + i * 0.25, 2.2 + i * 0.25], [0, 1]);
+          const checkAppear = interpolate(elapsed, [2.0 + i * 0.25, 2.5 + i * 0.25], [0, 1], Easing.spring);
+          return (
+            <div key={i} style={{display:'flex', alignItems:'center', gap: 20,
+              opacity: appear, borderBottom:`1px solid ${LINE}`, paddingBottom: 14}}>
+              <div style={{width: 36, height: 36, border:`2px solid ${TERRA}`,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                flexShrink: 0, background: checkAppear > 0.5 ? TERRA : 'transparent',
+                color:'#fff', fontFamily: serif, fontWeight: 600, fontSize: 20,
+                lineHeight: 1, transform: `scale(${0.7 + checkAppear * 0.3})`}}>
+                {checkAppear > 0.5 ? '✓' : ''}
+              </div>
+              <div style={{fontFamily: serif, fontSize: 26, color: INK,
+                lineHeight: 1.35, letterSpacing:'0.005em'}}>
+                {it.text}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Watermark ─────────────────────────────────────────────
+function Watermark() {
+  return (
+    <div style={{position:'absolute', bottom: 24, right: 32,
+      fontSize: 11, color: 'rgba(0,0,0,0.38)', letterSpacing:'0.15em',
+      fontFamily: mono, pointerEvents:'none', zIndex: 100}}>
+      Created by Huashu-Design
+    </div>
+  );
+}
+
+// ── Main composition ──────────────────────────────────────
+function App() {
+  return (
+    <Stage duration={22} width={1920} height={1080} bgColor={CREAM}>
+      <Sprite start={0} end={3}><Scene1_Contrast /></Sprite>
+      <Sprite start={3} end={8}><Scene2_Skeleton /></Sprite>
+      <Sprite start={8} end={13}><Scene3_FirstShow /></Sprite>
+      <Sprite start={13} end={18}><Scene4_FullPass /></Sprite>
+      <Sprite start={18} end={22}><Scene5_Closing /></Sprite>
+      <Watermark />
+    </Stage>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
