@@ -1,138 +1,138 @@
-# Design Context：从已有上下文出发
+# Design Context: Start from Existing Context
 
-**这是这个skill最重要的one thing。**
+**This is the most important one thing for this skill.**
 
-好的hi-fi设计一定是从已有design context长出来的。**凭空做hi-fi是last resort，一定会产出generic的作品**。所以每次设计任务开始，先问：有没有可以参考的东西？
+Good hi-fi design always grows from existing design context. **Creating hi-fi from nothing is a last resort and will always produce generic work.** So at the start of every design task, first ask: is there anything to reference?
 
-## 什么是Design Context
+## What is Design Context
 
-按优先级从高到低：
+Priority from high to low:
 
-### 1. 用户的Design System/UI Kit
-用户自己产品已有的组件库、色彩token、字型规范、icon系统。**最完美的情况**。
+### 1. User's Design System/UI Kit
+User's existing component library, color tokens, typography specs, icon system. **Most perfect scenario**.
 
-### 2. 用户的Codebase
-如果用户给了代码库，里面就有活生生的组件实现。Read那些组件文件：
+### 2. User's Codebase
+If user gave codebase, there are living component implementations. Read those component files:
 - `theme.ts` / `colors.ts` / `tokens.css` / `_variables.scss`
-- 具体的组件（Button.tsx、Card.tsx）
-- Layout scaffold（App.tsx、MainLayout.tsx）
+- Specific components (Button.tsx, Card.tsx)
+- Layout scaffold (App.tsx, MainLayout.tsx)
 - Global stylesheets
 
-**读代码抄exact values**：hex codes、spacing scale、font stack、border radius。不要凭记忆重画。
+**Read code to copy exact values**: hex codes, spacing scale, font stack, border radius. Don't redraw from memory.
 
-### 3. 用户已发布的产品
-如果用户有上线的产品但没给代码，用Playwright或让用户提供截图。
+### 3. User's Released Product
+If user has released product but didn't give code, use Playwright or have user provide screenshots.
 
 ```bash
-# 用Playwright截图一个公开URL
+# Screenshot a public URL using Playwright
 npx playwright screenshot https://example.com screenshot.png --viewport-size=1920,1080
 ```
 
-让你看到真实的视觉vocabulary。
+Lets you see real visual vocabulary.
 
-### 4. 品牌指南/Logo/已有素材
-用户可能有：Logo文件、品牌色规范、营销物料、slide模板。这些都是context。
+### 4. Brand Guidelines/Logo/Existing Assets
+User may have: Logo files, brand color specs, marketing materials, slide templates. All are context.
 
-### 5. 竞品参考
-用户说"像XX网站那样"——让他提供URL或截图。**不要**凭你训练数据里的模糊印象做。
+### 5. Competitor Reference
+User says "like XX website" — get URL or screenshot from them. **Don't** do based on your training data's vague impression.
 
-### 6. 已知的design system（fallback）
-如果以上都没有，用公认的设计系统作为base：
+### 6. Known Design Systems (fallback)
+If none of above, use recognized design systems as base:
 - Apple HIG
 - Material Design 3
-- Radix Colors（配色）
-- shadcn/ui（组件）
-- Tailwind默认palette
+- Radix Colors (colors)
+- shadcn/ui (components)
+- Tailwind default palette
 
-明确告诉用户你用的什么，让他知道这是起点不是定稿。
+Explicitly tell user what you used, let them know it's starting point not final.
 
-## 获取Context的流程
+## Getting Context Process
 
-### Step 1：问用户
+### Step 1: Ask User
 
-任务开始时的必问清单（来自`workflow.md`）：
+Must-ask checklist at task start (from `workflow.md`):
 
 ```markdown
-1. 你有现成的design system/UI kit/组件库吗？在哪？
-2. 有品牌指南、色彩/字体规范吗？
-3. 可以给我现有产品的截图或URL吗？
-4. 有codebase我可以读吗？
+1. Do you have existing design system/UI kit/component library? Where?
+2. Have brand guidelines, color/typography specs?
+3. Can you give me screenshots or URL of existing product?
+4. Is there a codebase I can read?
 ```
 
-### Step 2：用户说"没有"时，帮他找
+### Step 2: User Says "None" — Help Find
 
-别直接放弃。尝试：
+Don't give up directly. Try:
 
 ```markdown
-让我看看有没有线索：
-- 你之前的项目有相关设计吗？
-- 公司的marketing网站用什么色彩/字型？
-- 你产品的Logo什么风格？能给我一张吗？
-- 有什么你欣赏的产品作为参考？
+Let me see if there's any线索:
+- Do you have related designs from previous projects?
+- What colors/typography does your company's marketing website use?
+- What's the style of your product's logo? Can you send me one?
+- Any products you admire as reference?
 ```
 
-### Step 3：Read所有能找到的context
+### Step 3: Read All Context Found
 
-如果用户给了codebase路径，你读：
-1. **先list文件结构**：找style/theme/component相关的文件
-2. **读theme/token文件**：lift具体的hex/px values
-3. **读2-3个代表性组件**：看视觉vocabulary（hover state、shadow、border、padding node pattern）
-4. **读global stylesheet**：基础重置、font loading
-5. **如果有Figma链接/截图**：看图，但**更相信代码**
+If user gave codebase path, you read:
+1. **First list file structure**: find style/theme/component related files
+2. **Read theme/token files**: lift specific hex/px values
+3. **Read 2-3 representative components**: see visual vocabulary (hover state, shadow, border, padding node pattern)
+4. **Read global stylesheet**: base resets, font loading
+5. **If Figma link/screenshots**: look at images, but **trust code more**
 
-**重要**：**不要**看了一眼就凭印象做。读下来有30+个具体values才真的lift到了。
+**Important**: **Don't** glance and do from impression. Only truly lifted when you have 30+ specific values.
 
-### Step 4：Vocalize你要用的系统
+### Step 4: Vocalize System You're Using
 
-看完context后，告诉用户你要用的系统：
+After reviewing context, tell user system you'll use:
 
 ```markdown
-根据你的codebase和产品截图，我提炼的设计系统：
+Based on your codebase and product screenshots, the design system I extracted:
 
-**色彩**
-- Primary: #C27558（从tokens.css）
+**Colors**
+- Primary: #C27558 (from tokens.css)
 - Background: #FDF9F0
 - Text: #1A1A1A
 - Muted: #6B6B6B
 
-**字型**
-- Display: Instrument Serif（从global.css的@font-face）
+**Typography**
+- Display: Instrument Serif (from global.css @font-face)
 - Body: Geist Sans
 - Mono: JetBrains Mono
 
-**Spacing**（来自你的scale系统）
+**Spacing** (from your scale system)
 - 4, 8, 12, 16, 24, 32, 48, 64
 
 **Shadow pattern**
-- `0 1px 2px rgba(0,0,0,0.04)`（subtle card）
-- `0 10px 40px rgba(0,0,0,0.1)`（elevated modal）
+- `0 1px 2px rgba(0,0,0,0.04)` (subtle card)
+- `0 10px 40px rgba(0,0,0,0.1)` (elevated modal)
 
 **Border-radius**
-- 小组件 4px，卡片 12px，按钮 8px
+- Small components 4px, cards 12px, buttons 8px
 
-**component vocabulary**
-- Button：filled primary，outlined secondary，ghost tertiary，全部圆角8px
-- Card：白色背景，subtle shadow，无border
+**Component vocabulary**
+- Button: filled primary, outlined secondary, ghost tertiary, all 8px rounded
+- Card: white background, subtle shadow, no border
 
-我按这套系统开始做。确认没问题？
+I'll start working with this system. Confirm okay?
 ```
 
-用户确认后再动手。
+Proceed after user confirms.
 
-## 凭空做设计（没Context时的 fallback）
+## Designing from Nothing (Fallback When No Context)
 
-**强烈警告**：这种情况下的产出质量会显著下降。明确告诉用户。
+**Strong warning**: Output quality significantly degrades in this situation. Explicitly tell user.
 
 ```markdown
-你没有design context，我就只能基于通用直觉做。
-产出会是"看起来OK但缺乏独特性"的东西。
-你愿意继续，还是先补一些参考材料？
+You have no design context, so I can only work from generic intuition.
+Output will be "looks okay but lacks uniqueness".
+Do you want to continue, or first add some reference materials?
 ```
 
-用户执意要你做，按这个顺序做决策：
+If user insists you proceed, make decisions in this order:
 
-### 1. 选一个aesthetic direction
-不要给generic结果。挑一个明确方向：
+### 1. Choose an aesthetic direction
+Don't give generic result. Pick a clear direction:
 - brutally minimal
 - editorial/magazine
 - brutalist/raw
@@ -142,25 +142,25 @@ npx playwright screenshot https://example.com screenshot.png --viewport-size=192
 - retro-futuristic
 - soft/pastel
 
-告诉用户你选了哪个。
+Tell user which you chose.
 
-### 2. 选一个known design system作为骨架
-- 用Radix Colors做配色（https://www.radix-ui.com/colors）
-- 用shadcn/ui做组件vocabulary（https://ui.shadcn.com）
-- 用Tailwind spacing scale（4的倍数）
+### 2. Choose known design system as skeleton
+- Use Radix Colors for palette (https://www.radix-ui.com/colors)
+- Use shadcn/ui for component vocabulary (https://ui.shadcn.com)
+- Use Tailwind spacing scale (multiples of 4)
 
-### 3. 选有特点的字体配对
+### 3. Choose distinctive font pairing
 
-不要用Inter/Roboto。建议组合（从Google Fonts白嫖）：
+Don't use Inter/Roboto. Recommended combos (free from Google Fonts):
 - Instrument Serif + Geist Sans
 - Cormorant Garamond + Inter Tight
-- Bricolage Grotesque + Söhne（付费）
-- Fraunces + Work Sans（注意Fraunces已经被AI用烂）
-- JetBrains Mono + Geist Sans（technical feel）
+- Bricolage Grotesque + Söhne (paid)
+- Fraunces + Work Sans (note: Fraunces already overused by AI)
+- JetBrains Mono + Geist Sans (technical feel)
 
-### 4. 每个关键决策都有reasoning
+### 4. Every key decision has reasoning
 
-不要默默选。在HTML的comment里写：
+Don't choose silently. Write in HTML comments:
 
 ```html
 <!--
@@ -173,41 +173,41 @@ Design decisions:
 -->
 ```
 
-## Import策略（用户给了codebase）
+## Import Strategy (User Gives Codebase)
 
-如果用户说"import这个codebase做参考"：
+If user says "import this codebase for reference":
 
-### 小型（<50文件）
-全部Read，把context内化。
+### Small (<50 files)
+Read all, internalize context.
 
-### 中型（50-500文件）
-Focus在：
-- `src/components/` 或 `components/`
-- 所有styles/tokens/theme相关的文件
-- 2-3个代表性的整页组件（Home.tsx、Dashboard.tsx）
+### Medium (50-500 files)
+Focus on:
+- `src/components/` or `components/`
+- All styles/tokens/theme related files
+- 2-3 representative full-page components (Home.tsx, Dashboard.tsx)
 
-### 大型（>500文件）
-让用户指明focus：
-- "我要做settings页面" → 读现有的settings相关
-- "我要做一个新的feature" → 读整体shell + 最接近的参考
-- 不求全，求准
+### Large (>500 files)
+Let user specify focus:
+- "I need to make settings page" → read existing settings related
+- "I need to make a new feature" → read overall shell + closest reference
+- Don't seek completeness, seek accuracy.
 
-## 和Figma/设计稿的配合
+## Working with Figma/Design Files
 
-如果用户给了Figma链接：
+If user gave Figma link:
 
-- **不要**期望你能直接"转Figma为HTML"——那需要额外工具
-- Figma链接通常不公开可访问
-- 让用户：导出为**截图**发给你 + 告诉你具体的color/spacing values
+- **Don't** expect you can directly "convert Figma to HTML" — that needs extra tools
+- Figma links usually not publicly accessible
+- Let user: export as **screenshot** send to you + tell you specific color/spacing values
 
-如果只给了Figma截图，告诉用户：
-- 我能看到视觉，但取不到精确values
-- 关键数字（hex、px）请告诉我，或者export as code（Figma支持）
+If only got Figma screenshot, tell user:
+- I can see visuals, but can't extract precise values
+- Key numbers (hex, px) tell me, or export as code (Figma supports)
 
-## 最后的提醒
+## Final Reminder
 
-**一个项目的设计质量上限，由你拿到的context质量决定**。
+**A project's design quality ceiling is determined by the quality of context you receive.**
 
-花10分钟收集context，比花1小时凭空画hi-fi更有价值。
+Spending 10 minutes collecting context is more valuable than 1 hour creating hi-fi from nothing.
 
-**遇到没context的情况，优先问用户要，而不是硬上**。
+**When encountering no context situation, prioritize asking user rather than forcing through.**

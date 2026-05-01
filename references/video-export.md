@@ -1,209 +1,209 @@
-# Video Export：HTML 动画导出为 MP4/GIF
+# Video Export: HTML Animation Export to MP4/GIF
 
-动画 HTML 完成后，用户常想「能导出视频吗」。这份指南给出完整流程。
+After animation HTML is complete, users often ask "can I export video?" This guide gives the complete process.
 
-## 何时导出
+## When to Export
 
-**导出时机**：
-- 动画完整跑通、视觉验证过（Playwright 截图确认各时间点状态正确）
-- 用户在浏览器里看过至少一次，表示效果 OK
-- **不要**在动画 bug 没修完的阶段导出——导出到视频后改起来更贵
+**Export timing**:
+- Animation fully runs through, visual verified (Playwright screenshot confirms each time point correct)
+- User has watched in browser at least once, indicated effect OK
+- **Don't** export while animation bugs not fixed — changes cost more after exporting to video
 
-**用户可能说的触发语**：
-- 「能导出成视频吗」
-- 「转成 MP4」
-- 「做成 GIF」
-- 「60fps」
+**Trigger phrases user might say**:
+- "Can you export as video"
+- "Convert to MP4"
+- "Make a GIF"
+- "60fps"
 
-## 产出规格
+## Output Specs
 
-默认一次给三种格式，让用户选：
+Default give three formats at once, let user choose:
 
-| 格式 | 规格 | 适合场景 | 典型大小（30s） |
+| Format | Spec | Suitable Scenario | Typical Size (30s) |
 |---|---|---|---|
-| MP4 25fps | 1920×1080 · H.264 · CRF 18 | 公众号嵌入、视频号、YouTube | 1-2 MB |
-| MP4 60fps | 1920×1080 · minterpolate 插帧 · H.264 · CRF 18 | 高帧率展示、B站、作品集 | 1.5-3 MB |
-| GIF | 960×540 · 15fps · palette 优化 | Twitter/X、README、Slack 预览 | 2-4 MB |
+| MP4 25fps | 1920×1080 · H.264 · CRF 18 | WeChat embed, Video号, YouTube | 1-2 MB |
+| MP4 60fps | 1920×1080 · minterpolate interpolation · H.264 · CRF 18 | High framerate display, Bilibili, portfolio | 1.5-3 MB |
+| GIF | 960×540 · 15fps · palette optimized | Twitter/X, README, Slack preview | 2-4 MB |
 
-## 工具链
+## Toolchain
 
-两个脚本在 `scripts/`：
+Two scripts in `scripts/`:
 
 ### 1. `render-video.js` — HTML → MP4
 
-录一个 25fps 的 MP4 基础版本。依赖全局 playwright。
+Record a 25fps MP4 base version. Depends on global playwright.
 
 ```bash
-NODE_PATH=$(npm root -g) node /path/to/claude-design/scripts/render-video.js <html文件>
+NODE_PATH=$(npm root -g) node /path/to/claude-design/scripts/render-video.js <html file>
 ```
 
-可选参数：
-- `--duration=30` 动画时长（秒）
-- `--width=1920 --height=1080` 分辨率
-- `--trim=2.2` 从视频开头裁掉的秒数（去掉 reload + 字体加载时间）
-- `--fontwait=1.5` 字体加载等待时间（秒），字体多时调高
+Optional parameters:
+- `--duration=30` animation duration (seconds)
+- `--width=1920 --height=1080` resolution
+- `--trim=2.2` seconds to trim from video start (remove reload + font load time)
+- `--fontwait=1.5` font loading wait time (seconds), increase when many fonts
 
-输出：与 HTML 同目录，同名 `.mp4`。
+Output: Same directory as HTML, same name `.mp4`.
 
 ### 2. `add-music.sh` — MP4 + BGM → MP4
 
-给无声 MP4 混入背景音乐，按场景（mood）从内置 BGM 库里选，也可自带音频。自动匹配时长、加淡入淡出。
+Mix background music into silent MP4, select from built-in BGM library by scene (mood), or bring own audio. Auto-match duration, add fade in/out.
 
 ```bash
 bash add-music.sh <input.mp4> [--mood=<name>] [--music=<path>] [--out=<path>]
 ```
 
-**内置 BGM 库**（在 `assets/bgm-<mood>.mp3`）：
+**Built-in BGM library** (in `assets/bgm-<mood>.mp3`):
 
-| `--mood=` | 风格 | 适配场景 |
+| `--mood=` | Style | Fit Scenario |
 |-----------|------|---------|
-| `tech`（默认） | Apple Silicon / 苹果发布会，极简合成器+钢琴 | 产品发布、AI工具、Skill 宣传 |
-| `ad` | upbeat 现代电子，有 build + drop | 社交媒体广告、产品预告、促销片 |
-| `educational` | 温暖明亮、轻吉他/电钢琴，inviting | 科普、教程介绍、课程预告 |
-| `educational-alt` | 同类备选，换一首试试 | 同上 |
-| `tutorial` | lo-fi 环境音，几乎无存在感 | 软件演示、编程教程、长演示 |
-| `tutorial-alt` | 同类备选 | 同上 |
+| `tech` (default) | Apple Silicon / Apple launch, minimal synth + piano | Product launch, AI tools, Skill promotion |
+| `ad` | upbeat modern electronic, with build + drop | Social media ads, product teasers, promo |
+| `educational` | warm bright, light guitar/electric piano, inviting | Science, tutorial intro, course preview |
+| `educational_alt` | Same category alternate, try another | Same as above |
+| `tutorial` | lo-fi ambient, almost unnoticeable | Software demo, coding tutorial, long demo |
+| `tutorial_alt` | Same category alternate | Same as above |
 
-**行为**：
-- 音乐按视频时长裁剪
-- 0.3s 淡入 + 1s 淡出（避免硬切）
-- 视频流 `-c:v copy` 不重编码，音频 AAC 192k
-- `--music=<path>` 优先级高于 `--mood`，可以直接指定任意外部音频
-- 传错 mood 名会列出所有可用选项，不会静默失败
+**Behavior**:
+- Music trimmed to video duration
+- 0.3s fade in + 1s fade out (avoid hard cut)
+- Video stream `-c:v copy` no re-encode, audio AAC 192k
+- `--music=<path>` has higher priority than `--mood`, can specify any external audio
+- Wrong mood name lists all available options, won't silently fail
 
-**典型流水线**（动画导出三件套 + 配乐）：
+**Typical pipeline** (animation export trio + soundtrack):
 ```bash
-node render-video.js animation.html                        # 录屏
-bash convert-formats.sh animation.mp4                      # 派生 60fps + GIF
-bash add-music.sh animation-60fps.mp4                      # 加默认 tech BGM
-# 或针对不同场景：
+node render-video.js animation.html                        # Record
+bash convert-formats.sh animation.mp4                      # Derive 60fps + GIF
+bash add-music.sh animation-60fps.mp4                    # Add default tech BGM
+# Or for different scenarios:
 bash add-music.sh tutorial-demo.mp4 --mood=tutorial
 bash add-music.sh product-promo.mp4 --mood=ad --out=promo-final.mp4
 ```
 
 ### 3. `convert-formats.sh` — MP4 → 60fps MP4 + GIF
 
-从已有 MP4 生成 60fps 版本和 GIF。
+Generate 60fps version and GIF from existing MP4.
 
 ```bash
 bash /path/to/claude-design/scripts/convert-formats.sh <input.mp4> [gif_width] [--minterpolate]
 ```
 
-输出（与输入同目录）：
-- `<name>-60fps.mp4` — 默认用 `fps=60` 帧复制（兼容性广）；加 `--minterpolate` 启用高质量插帧
-- `<name>.gif` — palette 优化的 GIF（默认 960 宽，可改）
+Output (same directory as input):
+- `<name>-60fps.mp4` — default uses `fps=60` frame copy (wide compatibility); add `--minterpolate` for high-quality interpolation
+- `<name>.gif` — palette optimized GIF (default 960 width, can change)
 
-**60fps 模式选择**：
+**60fps mode selection**:
 
-| 模式 | 命令 | 兼容性 | 使用场景 |
+| Mode | Command | Compatibility | Use Scenario |
 |---|---|---|---|
-| 帧复制（默认）| `convert-formats.sh in.mp4` | QuickTime/Safari/Chrome/VLC 全通 | 通用交付、上传平台、社交媒体 |
-| minterpolate 插帧 | `convert-formats.sh in.mp4 --minterpolate` | macOS QuickTime/Safari 可能拒打 | B站等需要真插帧的展示场景，**交付前必须本地测**目标播放器 |
+| Frame copy (default) | `convert-formats.sh in.mp4` | QuickTime/Safari/Chrome/VLC all pass | General delivery, upload platforms, social media |
+| minterpolate interpolation | `convert-formats.sh in.mp4 --minterpolate` | macOS QuickTime/Safari may refuse | Bilibili etc needing true interpolation, **must test target player locally before delivery** |
 
-为什么默认改成帧复制？minterpolate 输出的 H.264 elementary stream 有 known compat bug——之前默认 minterpolate 时多次踩到「macOS QuickTime 打不开」的问题。详见 `animation-pitfalls.md` §14。
+Why changed default to frame copy? minterpolate output H.264 elementary stream has known compat bug — previously default minterpolate hit "macOS QuickTime won't open" issue multiple times. See `animation-pitfalls.md` §14.
 
-`gif_width` 参数：
-- 960（默认）—— 社交平台通用
-- 1280 —— 更清晰但文件更大
-- 600 —— Twitter/X 优先加载
+`gif_width` parameter:
+- 960 (default) — social platforms universal
+- 1280 — clearer but larger
+- 600 — Twitter/X priority loading
 
-## 完整流程（标准推荐）
+## Complete Process (Standard Recommendation)
 
-用户说「导出视频」后：
+After user says "export video":
 
 ```bash
-cd <项目目录>
+cd <project directory>
 
-# 假设 $SKILL 指向本 skill 的根目录（自行按安装位置替换）
+# Assuming $SKILL points to this skill's root (replace according to your installation)
 
-# 1. 录 25fps 基础 MP4
+# 1. Record 25fps base MP4
 NODE_PATH=$(npm root -g) node "$SKILL/scripts/render-video.js" my-animation.html
 
-# 2. 派生 60fps MP4 和 GIF
+# 2. Derive 60fps MP4 and GIF
 bash "$SKILL/scripts/convert-formats.sh" my-animation.mp4
 
-# 产出清单：
+# Output list:
 # my-animation.mp4         (25fps · 1-2 MB)
 # my-animation-60fps.mp4   (60fps · 1.5-3 MB)
 # my-animation.gif         (15fps · 2-4 MB)
 ```
 
-## 技术细节（排错用）
+## Technical Details (for Troubleshooting)
 
-### Playwright recordVideo 的坑
+### Playwright recordVideo pitfalls
 
-- 帧率固定 25fps，无法直接录 60fps（Chromium headless 的 compositor 上限）
-- 从 context 创建就开始录，必须用 `trim` 裁掉前面的加载时间
-- 默认 webm 格式，需要 ffmpeg 转 H.264 MP4 才能通用播放
+- Frame rate fixed at 25fps, can't directly record 60fps (Chromium headless compositor ceiling)
+- Starts recording from context creation, must use `trim` to cut loading time at start
+- Default webm format, needs ffmpeg convert to H.264 MP4 for universal playback
 
-`render-video.js` 已处理以上问题。
+`render-video.js` handles above.
 
-### ffmpeg minterpolate 参数
+### ffmpeg minterpolate parameters
 
-当前配置：`minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1`
+Current config: `minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1`
 
-- `mi_mode=mci` — motion compensation interpolation（运动补偿）
+- `mi_mode=mci` — motion compensation interpolation
 - `mc_mode=aobmc` — adaptive overlapped block motion compensation
-- `me_mode=bidir` — 双向运动估计
-- `vsbmc=1` — 可变 size block motion compensation
+- `me_mode=bidir` — bidirectional motion estimation
+- `vsbmc=1` — variable size block motion compensation
 
-对 CSS **transform 动画**（translate/scale/rotate）效果好。
-对**纯 fade** 可能产生轻微 ghosting——如果用户嫌弃，退化为简单帧复制：
+Good for CSS **transform animations** (translate/scale/rotate).
+For **pure fade** may produce slight ghosting — if user complains, degrade to simple frame copy:
 
 ```bash
 ffmpeg -i input.mp4 -r 60 -c:v libx264 ... output.mp4
 ```
 
-### GIF palette 为何要两阶段
+### Why GIF palette needs two passes
 
-GIF 只能 256 色。一次 pass 的 GIF 会把全动画色彩压到 256 色通用 palette，对米色底+橙色这种细腻配色会糊。
+GIF only has 256 colors. Single-pass GIF compresses entire animation colors to 256-color universal palette, for beige bottom + orange delicate color combo will be blurry.
 
-两阶段：
-1. `palettegen=stats_mode=diff` —— 先扫描全片，生成**针对此动画的 optimal palette**
-2. `paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle` —— 用这个 palette 编码，rectangle diff 只更新变化区域，大幅减小文件
+Two passes:
+1. `palettegen=stats_mode=diff` — scan whole clip first, generate **optimal palette for this animation**
+2. `paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle` — encode with this palette, rectangle diff only updates changed areas, significantly reduces file
 
-对 fade 过渡用 `dither=bayer` 比 `none` 更平滑，但文件大一点。
+For fade transitions, `dither=bayer` is smoother than `none`, but file slightly larger.
 
-## Pre-flight check（导出前）
+## Pre-flight Check (Before Export)
 
-导出前 30 秒自检：
+30-second self-check before export:
 
-- [ ] HTML 在浏览器里完整跑过一遍，无控制台错误
-- [ ] 动画第 0 帧是完整初始状态（不是空白加载中）
-- [ ] 动画最后一帧是稳定的收尾状态（不是半截）
-- [ ] 字体/图片/emoji 全部正常渲染（参考 `animation-pitfalls.md`）
-- [ ] Duration 参数与 HTML 里的实际动画时长匹配
-- [ ] HTML 中 Stage 检测 `window.__recording` 强制 loop=false（手写 Stage 必查；用 `assets/animations.jsx` 自带）
-- [ ] 结尾 Sprite 的 `fadeOut={0}`（视频末帧不淡出）
-- [ ] 含「Created by Huashu-Design」水印（仅动画场景必加；第三方品牌作品加「非官方出品 · 」前缀。详见 SKILL.md §「Skill 推广水印」）
+- [ ] HTML fully runs in browser, no console errors
+- [ ] Animation frame 0 is complete initial state (not blank loading)
+- [ ] Animation last frame is stable ending (not half-cut)
+- [ ] Fonts/images/emoji all render correctly (reference `animation-pitfalls.md`)
+- [ ] Duration parameter matches actual animation duration in HTML
+- [ ] HTML Stage detects `window.__recording` forces loop=false (must check for hand-written Stage; `assets/animations.jsx` has this built-in)
+- [ ] End Sprite has `fadeOut={0}` (video last frame doesn't fade out)
+- [ ] Has "Created by Huashu-Design" watermark (must add for animation scenarios; third-party brand work adds "非官方出品 · " prefix. See SKILL.md § "Skill Promotion Watermark")
 
-## 交付时附带的说明
+## Delivery Notes
 
-导出完成后给用户的标准说明格式：
+Standard format to user after export complete:
 
 ```
-**完整交付**
+**Complete Delivery**
 
-| 文件 | 格式 | 规格 | 大小 |
+| File | Format | Spec | Size |
 |---|---|---|---|
 | foo.mp4 | MP4 | 1920×1080 · 25fps · H.264 | X MB |
-| foo-60fps.mp4 | MP4 | 1920×1080 · 60fps（运动插帧）· H.264 | X MB |
-| foo.gif | GIF | 960×540 · 15fps · palette 优化 | X MB |
+| foo-60fps.mp4 | MP4 | 1920×1080 · 60fps (motion interpolation) · H.264 | X MB |
+| foo.gif | GIF | 960×540 · 15fps · palette optimized | X MB |
 
-**说明**
-- 60fps 用 minterpolate 做运动估计插帧，transform 动画效果好
-- GIF 用 palette 优化，30s 动画可压到 3MB 左右
+**Notes**
+- 60fps uses minterpolate for motion estimation interpolation, good for transform animations
+- GIF uses palette optimization, 30s animation can compress to ~3MB
 
-要换尺寸或帧率说一声。
+Let me know if you want different sizes or frame rates.
 ```
 
-## 常见用户追加需求
+## Common User Follow-up Requests
 
-| 用户说 | 应对 |
+| User Says | Response |
 |---|---|
-| 「太大了」 | MP4：提高 CRF 到 23-28；GIF：降分辨率到 600 或 fps 到 10 |
-| 「GIF 太糊」 | 提高 `gif_width` 到 1280；或者建议用 MP4 代替（微信朋友圈也支持） |
-| 「要竖屏 9:16」 | 改 HTML 源的 `--width=1080 --height=1920`，重新录 |
-| 「加水印」 | ffmpeg 加 `-vf "drawtext=..."` 或 `overlay=` 一个 PNG |
-| 「要透明背景」 | MP4 不支持 alpha；用 WebM VP9 + alpha 或 APNG |
-| 「要无损」 | CRF 改 0 + preset veryslow（文件会大 10 倍） |
+| "Too large" | MP4: raise CRF to 23-28; GIF: lower resolution to 600 or fps to 10 |
+| "GIF too blurry" | Raise `gif_width` to 1280; or suggest MP4 instead (WeChat Moments also supports) |
+| "Need vertical 9:16" | Change HTML source to `--width=1080 --height=1920`, re-record |
+| "Add watermark" | ffmpeg add `-vf "drawtext=..."` or `overlay=` a PNG |
+| "Need transparent background" | MP4 doesn't support alpha; use WebM VP9 + alpha or APNG |
+| "Want lossless" | Change CRF to 0 + preset veryslow (file will be 10× larger) |

@@ -1,162 +1,162 @@
-# 可编辑 PPTX 导出：HTML 硬约束 + 尺寸决策 + 常见错误
+# Editable PPTX Export: HTML Hard Constraints + Size Decision + Common Errors
 
-本文档讲的是**用 `scripts/html2pptx.js` + `pptxgenjs` 把 HTML 逐元素翻译成真·可编辑 PowerPoint 文本框**的路径，也是 `export_deck_pptx.mjs` 唯一支持的路径。
+This document covers the path of using `scripts/html2pptx.js` + `pptxgenjs` to translate HTML element-by-element into truly editable PowerPoint text boxes, also the only path supported by `export_deck_pptx.mjs`.
 
-> **核心前提**：要走这条路，HTML 必须从第一行就按下面 4 条约束写。**不是写完再转**——事后补救会触发 2-3 小时返工（2026-04-20 期权私董会项目实测踩坑）。
+> **Core prerequisite**: To follow this path, HTML must be written with the following 4 constraints from the first line. **Not "write then convert"** — retroactive fix triggers 2-3 hours rework (2026-04-20 期权私董会 project real pitfall).
 >
-> 视觉自由度优先的场景（动画 / web component / CSS 渐变 / 复杂 SVG）请改走 PDF 路径（`export_deck_pdf.mjs` / `export_deck_stage_pdf.mjs`），**不要**指望 pptx 导出能兼得视觉保真和可编辑——这是 PPTX 文件格式本身的物理约束（见文末「为什么 4 条约束不是 Bug 而是物理约束」）。
+> For scenarios prioritizing visual freedom (animations/web components/CSS gradients/complex SVG) please switch to PDF path (`export_deck_pdf.mjs` / `export_deck_stage_pdf.mjs`), **don't** expect pptx export to balance visual fidelity and editability — this is a physical constraint of PPTX file format itself (see end "Why 4 Constraints Are Not Bugs But Physical Constraints").
 
 ---
 
-## 画布尺寸：用 960×540pt（LAYOUT_WIDE）
+## Canvas Size: Use 960×540pt (LAYOUT_WIDE)
 
-PPTX 单位是 **inch**（物理尺寸），不是 px。决策原则：body 的 computedStyle 尺寸要**匹配 presentation layout 的 inch 尺寸**（±0.1"，由 `html2pptx.js` 的 `validateDimensions` 强制检查）。
+PPTX units are **inches** (physical size), not px. Decision principle: body's computedStyle size should **match presentation layout's inch size** (±0.1", enforced by `html2pptx.js`'s `validateDimensions`).
 
-### 3 个候选尺寸对比
+### 3 Candidate Size Comparison
 
-| HTML body | 物理尺寸 | 对应 PPT layout | 何时选 |
+| HTML body | Physical size | Corresponding PPT layout | When to choose |
 |---|---|---|---|
-| **`960pt × 540pt`** | **13.333″ × 7.5″** | **pptxgenjs `LAYOUT_WIDE`** | ✅ **默认推荐**（现代 PowerPoint 16:9 标配） |
-| `720pt × 405pt` | 10″ × 5.625″ | 自定义 | 仅当用户指定「老版 PowerPoint Widescreen」模板时 |
-| `1920px × 1080px` | 20″ × 11.25″ | 自定义 | ❌ 非标尺寸，投影后字体显得异常小 |
+| **`960pt × 540pt`** | **13.333″ × 7.5″** | **pptxgenjs `LAYOUT_WIDE`** | ✅ **Default recommended** (modern PowerPoint 16:9 standard) |
+| `720pt × 405pt` | 10″ × 5.625″ | Custom | Only when user specifies "legacy PowerPoint Widescreen" template |
+| `1920px × 1080px` | 20″ × 11.25″ | Custom | ❌ Non-standard size, fonts appear abnormally small after projection |
 
-**别把 HTML 尺寸当分辨率想。** PPTX 是矢量文档，body 尺寸决定的是**物理尺寸**不是清晰度。超大 body（20″×11.25″）不会让文字更清晰——只会让字号 pt 相对画布变小，投影/打印时反而更难看。
+**Don't think of HTML size as resolution.** PPTX is a vector document; body size determines **physical size**, not clarity. Super large body (20″×11.25″) won't make text clearer — only makes font size pt relatively smaller to canvas, looks worse projected/printed.
 
-### body 写法三选一（等价）
+### Body Writing Three Options (Equivalent)
 
 ```css
-body { width: 960pt;  height: 540pt; }    /* 最清晰，推荐 */
-body { width: 1280px; height: 720px; }    /* 等价，px 习惯 */
-body { width: 13.333in; height: 7.5in; }  /* 等价，英寸直觉 */
+body { width: 960pt;  height: 540pt; }    /* Most clear, recommended */
+body { width: 1280px; height: 720px; }    /* Equivalent, px habit */
+body { width: 13.333in; height: 7.5in; }  /* Equivalent, inches intuition */
 ```
 
 配套的 pptxgenjs 代码：
 
 ```js
 const pptx = new pptxgen();
-pptx.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, 无需自定义
+pptx.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, no custom needed
 ```
 
 ---
 
-## 4 条硬约束（违反会直接报错）
+## 4 Hard Constraints (Violations Error Directly)
 
-`html2pptx.js` 把 HTML 的 DOM 逐元素翻译成 PowerPoint 对象。PowerPoint 的格式约束投射到 HTML 上 = 下面 4 条规则。
+`html2pptx.js` translates HTML DOM element-by-element into PowerPoint objects. PowerPoint's format constraints projected onto HTML = 4 rules below.
 
-### 规则 1：DIV 里不能直接写文字 — 必须用 `<p>` 或 `<h1>`-`<h6>` 包裹
+### Rule 1: Cannot Write Direct Text in DIV — Must Use `<p>` or `<h1>`-`<h6>`
 
 ```html
-<!-- ❌ 错误：文字直接在 div 里 -->
-<div class="title">Q3营收增长23%</div>
+<!-- ❌ Wrong: text directly in div -->
+<div class="title">Q3 Revenue up 23%</div>
 
-<!-- ✅ 正确：文字在 <p> 或 <h1>-<h6> 里 -->
-<div class="title"><h1>Q3营收增长23%</h1></div>
-<div class="body"><p>新用户是主要驱动力</p></div>
+<!-- ✅ Correct: text in <p> or <h1>-<h6> -->
+<div class="title"><h1>Q3 Revenue up 23%</h1></div>
+<div class="body"><p>New users are the main driver</p></div>
 ```
 
-**为什么**：PowerPoint 文本必须存在 text frame 里，text frame 对应 HTML 的段落级元素（p/h*/li）。裸 `<div>` 在 PPTX 里没有对应的文本容器。
+**Why**: PowerPoint text must exist in text frame, text frame corresponds to HTML paragraph-level elements (p/h*/li). Bare `<div>` has no corresponding text container in PPTX.
 
-**也不能用 `<span>` 承载主文字**——span 是行内元素，没法独立对齐成文本框。span 只能**夹在 p/h\* 里**做局部样式（加粗、换色）。
+**Also can't use `<span>` for main text** — span is inline element, can't independently align as text frame. Span can **only be inside p/h\*** for local styling (bold, color change).
 
-### 规则 2：不支持 CSS 渐变 — 只能用纯色
+### Rule 2: No CSS Gradients — Only Solid Colors
 
 ```css
-/* ❌ 错误 */
+/* ❌ Wrong */
 background: linear-gradient(to right, #FF6B6B, #4ECDC4);
 
-/* ✅ 正确：纯色 */
+/* ✅ Correct: solid color */
 background: #FF6B6B;
 
-/* ✅ 如果必须多色条纹，用 flex 子元素各自纯色 */
+/* ✅ If must have multi-color stripes, use flex children each with solid */
 .stripe-bar { display: flex; }
 .stripe-bar div { flex: 1; }
 .red   { background: #FF6B6B; }
 .teal  { background: #4ECDC4; }
 ```
 
-**为什么**：PowerPoint 的 shape fill 只支持 solid/gradient-fill 两种，但 pptxgenjs 的 `fill: { color: ... }` 只映射 solid。渐变走 PowerPoint 原生 gradient 需要另写结构，目前工具链不支持。
+**Why**: PowerPoint's shape fill only supports solid/gradient-fill two types, but pptxgenjs's `fill: { color: ... }` only maps solid. Gradient goes through PowerPoint native gradient requires separate structure, currently toolchain doesn't support.
 
-### 规则 3：背景/边框/阴影只能在 DIV 上，不能在文字标签上
+### Rule 3: Background/Border/Shadow Only on DIV, Not on Text Tags
 
 ```html
-<!-- ❌ 错误：<p> 有背景色 -->
-<p style="background: #FFD700; border-radius: 4px;">重点内容</p>
+<!-- ❌ Wrong: <p> has background -->
+<p style="background: #FFD700; border-radius: 4px;">Key content</p>
 
-<!-- ✅ 正确：外层 div 承载背景/边框，<p> 只负责文字 -->
+<!-- ✅ Correct: outer div carries background/border, <p> only handles text -->
 <div style="background: #FFD700; border-radius: 4px; padding: 8pt 12pt;">
-  <p>重点内容</p>
+  <p>Key content</p>
 </div>
 ```
 
-**为什么**：PowerPoint 里 shape（方块/圆角矩形）和 text frame 是两个对象。HTML 的 `<p>` 只翻译成 text frame，背景/边框/阴影属于 shape——必须在**包裹 text 的 div** 上写。
+**Why**: In PowerPoint, shape (box/rounded rectangle) and text frame are two objects. HTML's `<p>` only translates to text frame, background/border/shadow belong to shape — must be on **div wrapping text**.
 
-### 规则 4：DIV 不能用 `background-image` — 用 `<img>` 标签
+### Rule 4: DIV Cannot Use `background-image` — Use `<img>` Tag
 
 ```html
-<!-- ❌ 错误 -->
+<!-- ❌ Wrong -->
 <div style="background-image: url('chart.png')"></div>
 
-<!-- ✅ 正确 -->
+<!-- ✅ Correct -->
 <img src="chart.png" style="position: absolute; left: 50%; top: 20%; width: 300pt; height: 200pt;" />
 ```
 
-**为什么**：`html2pptx.js` 只从 `<img>` 元素提取图片路径，不解析 CSS 的 `background-image` URL。
+**Why**: `html2pptx.js` only extracts image paths from `<img>` elements, doesn't parse CSS `background-image` URLs.
 
 ---
 
-## Path A HTML 模板骨架
+## Path A HTML Template Skeleton
 
-每张 slide 一个独立 HTML 文件，彼此作用域隔离（避开单文件 deck 的 CSS 污染）。
+Each slide one independent HTML file, scopes isolated (avoid single-file deck CSS pollution).
 
 ```html
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    width: 960pt; height: 540pt;           /* ⚠️ 匹配 LAYOUT_WIDE */
-    font-family: system-ui, -apple-system, "PingFang SC", sans-serif;
-    background: #FEFEF9;                    /* 纯色，不能渐变 */
+    width: 960pt; height: 540pt;           /* ⚠️ Match LAYOUT_WIDE */
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #FEFEF9;                    /* Solid, no gradients */
     overflow: hidden;
   }
-  /* DIV 负责布局/背景/边框 */
+  /* DIV handles layout/background/border */
   .card {
     position: absolute;
-    background: #1A4A8A;                    /* 背景在 DIV 上 */
+    background: #1A4A8A;                    /* Background on DIV */
     border-radius: 4pt;
     padding: 12pt 16pt;
   }
-  /* 文字标签只负责字体样式，不加背景/边框 */
+  /* Text tags only handle font styles, no background/border */
   .card h2 { font-size: 24pt; color: #FFFFFF; font-weight: 700; }
   .card p  { font-size: 14pt; color: rgba(255,255,255,0.85); }
 </style>
 </head>
 <body>
 
-  <!-- 标题区：外层 div 定位，内层文字标签 -->
+  <!-- Title area: outer div positions, inner text tag -->
   <div style="position: absolute; top: 40pt; left: 60pt; right: 60pt;">
-    <h1 style="font-size: 36pt; color: #1A1A1A; font-weight: 700;">标题用断言句，不是主题词</h1>
-    <p style="font-size: 16pt; color: #555555; margin-top: 10pt;">副标题补充说明</p>
+    <h1 style="font-size: 36pt; color: #1A1A1A; font-weight: 700;">Title uses declarative sentence, not topic</h1>
+    <p style="font-size: 16pt; color: #555555; margin-top: 10pt;">Subtitle additional explanation</p>
   </div>
 
-  <!-- 内容卡片：div 负责背景，h2/p 负责文字 -->
+  <!-- Content card: div handles background, h2/p handles text -->
   <div class="card" style="top: 130pt; left: 60pt; width: 240pt; height: 160pt;">
-    <h2>要点一</h2>
-    <p>简短说明文字</p>
+    <h2>Key Point One</h2>
+    <p>Brief explanation text</p>
   </div>
 
-  <!-- 列表：使用 ul/li，不用手动 • 符号 -->
+  <!-- List: use ul/li, don't manually type • symbols -->
   <div style="position: absolute; top: 320pt; left: 60pt; width: 540pt;">
     <ul style="font-size: 16pt; color: #1A1A1A; padding-left: 24pt; list-style: disc;">
-      <li>第一条要点</li>
-      <li>第二条要点</li>
-      <li>第三条要点</li>
+      <li>First key point</li>
+      <li>Second key point</li>
+      <li>Third key point</li>
     </ul>
   </div>
 
-  <!-- 插图：用 <img> 标签，不用 background-image -->
+  <!-- Illustrations: use <img> tag, not background-image -->
   <img src="illustration.png" style="position: absolute; right: 60pt; top: 110pt; width: 320pt; height: 240pt;" />
 
 </body>
@@ -165,44 +165,44 @@ background: #FF6B6B;
 
 ---
 
-## 常见错误速查
+## Common Error Quick Reference
 
-| 错误信息 | 原因 | 修复方法 |
+| Error Message | Cause | Fix |
 |---------|------|---------|
-| `DIV element contains unwrapped text "XXX"` | div 里有裸文字 | 把文字包进 `<p>` 或 `<h1>`-`<h6>` |
-| `CSS gradients are not supported` | 用了 linear/radial-gradient | 改为纯色，或用 flex 子元素分段 |
-| `Text element <p> has background` | `<p>` 标签加了背景色 | 外套 `<div>` 承载背景，`<p>` 只写文字 |
-| `Background images on DIV elements are not supported` | div 用了 background-image | 改为 `<img>` 标签 |
-| `HTML content overflows body by Xpt vertically` | 内容超出 540pt | 减少内容或缩小字号，或 `overflow: hidden` 截断 |
-| `HTML dimensions don't match presentation layout` | body 尺寸和 pres layout 对不上 | body 用 `960pt × 540pt` 配 `LAYOUT_WIDE`；或 defineLayout 自定义尺寸 |
-| `Text box "XXX" ends too close to bottom edge` | 大字号 `<p>` 距离 body 底边 < 0.5 inch | 往上挪，留足下边距；PPT 底部本身就会被遮住一部分 |
+| `DIV element contains unwrapped text "XXX"` | Bare text in div | Wrap text in `<p>` or `<h1>`-`<h6>` |
+| `CSS gradients are not supported` | Used linear/radial-gradient | Change to solid color, or use flex children for segments |
+| `Text element <p> has background` | `<p>` tag has background color | Wrap in outer `<div>` for background, `<p>` only has text |
+| `Background images on DIV elements are not supported` | Div used background-image | Change to `<img>` tag |
+| `HTML content overflows body by Xpt vertically` | Content exceeds 540pt | Reduce content or shrink font size, or `overflow: hidden` to crop |
+| `HTML dimensions don't match presentation layout` | Body size doesn't match pres layout | Body use `960pt × 540pt` with `LAYOUT_WIDE`; or defineLayout custom size |
+| `Text box "XXX" ends too close to bottom edge` | Large font `<p>` too close to body bottom | Move up, leave enough margin; PPT bottom itself gets covered |
 
 ---
 
-## 基本工作流（3 步出 PPTX）
+## Basic Workflow (3 Steps to PPTX)
 
-### Step 1：按约束写每页独立 HTML
+### Step 1: Write Each Slide Independent HTML by Constraints
 
 ```
-我的Deck/
+MyDeck/
 ├── slides/
-│   ├── 01-cover.html    # 每个文件都是完整 960×540pt HTML
+│   ├── 01-cover.html    # Each file is complete 960×540pt HTML
 │   ├── 02-agenda.html
 │   └── ...
-└── illustration/        # 所有 <img> 引用的图片
+└── illustration/        # All <img> referenced images
     ├── chart1.png
     └── ...
 ```
 
-### Step 2：写 build.js 调用 `html2pptx.js`
+### Step 2: Write build.js Calling `html2pptx.js`
 
 ```js
 const pptxgen = require('pptxgenjs');
-const html2pptx = require('../scripts/html2pptx.js');  // 本 skill 脚本
+const html2pptx = require('../scripts/html2pptx.js');  // This skill's script
 
 (async () => {
   const pres = new pptxgen();
-  pres.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch，匹配 HTML 的 960×540pt
+  pres.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, matches HTML's 960×540pt
 
   const slides = ['01-cover.html', '02-agenda.html', '03-content.html'];
   for (const file of slides) {
@@ -213,89 +213,89 @@ const html2pptx = require('../scripts/html2pptx.js');  // 本 skill 脚本
 })();
 ```
 
-### Step 3：打开检查
+### Step 3: Open and Check
 
-- PowerPoint/Keynote 打开导出 PPTX
-- 双击任意文字应能直接编辑（如果是图片说明第 1 条违反了）
-- 验证 overflow：每页应该在 body 范围内，没有被截
+- Open exported PPTX in PowerPoint/Keynote
+- Double-click any text should be directly editable (if image, 说明 rule 1 violated)
+- Verify overflow: each page should be within body bounds, not cropped
 
 ---
 
-## 这条路径 vs 其他选项（什么时候选什么）
+## This Path vs Other Options (When to Choose What)
 
-| 需求 | 选什么 |
+| Need | Choose What |
 |------|------|
-| 同事会改 PPTX 里的文字 / 发给非技术人员继续编辑 | **本文路径**（editable，需从头按 4 条约束写 HTML） |
-| 只是演讲用 / 发存档，不再改 | `export_deck_pdf.mjs`（多文件）或 `export_deck_stage_pdf.mjs`（单文件 deck-stage），出矢量 PDF |
-| 视觉自由度优先（动画、web component、CSS 渐变、复杂 SVG），接受不可编辑 | **PDF**（同上）——PDF 既保真又跨平台，比「图片 PPTX」更合适 |
+| Colleague will edit PPTX text / send to non-technical to continue editing | **This path** (editable, need write HTML from start following 4 constraints) |
+| Just for presentation/archive, no more edits | `export_deck_pdf.mjs` (multi-file) or `export_deck_stage_pdf.mjs` (single-file deck-stage), output vector PDF |
+| Visual freedom priority (animations, web components, CSS gradients, complex SVG), accept non-editable | **PDF** (same as above) — PDF preserves fidelity and cross-platform, more suitable than "image PPTX" |
 
-**绝不要在视觉自由写好的 HTML 上硬跑 html2pptx**——实测视觉驱动的 HTML pass 率 < 30%，剩下的逐页改造比重写还慢。这种场景应该出 PDF，不是硬挤 PPTX。
+**Never run html2pptx on visually free HTML expecting it to pass** — tested: visually-driven HTML pass rate on html2pptx <30%, remaining pages need改造 slower than rewriting. For such scenarios should output PDF, not force PPTX.
 
 ---
 
-## Fallback：已有视觉稿但用户坚持要 editable PPTX
+## Fallback: Have Visual Draft But User Insists on Editable PPTX
 
-偶尔会遇到这个场景：你/用户已经写好一份视觉驱动的 HTML（渐变、web component、复杂 SVG 都用上了），本来出 PDF 最合适，但用户明确说「不行，必须是可编辑的 PPTX」。
+Occasionally encounter this: You/user already have a visually-driven HTML (gradients, web components, complex SVG all used), PDF is most suitable originally, but user clearly says "no, must be editable PPTX".
 
-**不要硬跑 `html2pptx` 期待它 pass**——实测视觉驱动 HTML 在 html2pptx 上 pass 率 <30%，剩下 70% 会报错或走样。正确的 fallback 是：
+**Don't hard-run `html2pptx` hoping it passes** — tested: visually-driven HTML on html2pptx pass rate <30%, remaining 70% will error or distort. Correct fallback is:
 
-### Step 1 · 先告知局限性（透明沟通）
+### Step 1 · State Limitations First (Transparent Communication)
 
-一句话跟用户说清三件事：
+One sentence to user explaining three things:
 
-> 「你现在的 HTML 用了 [具体列出：渐变 / web component / 复杂 SVG / ...]，直接转 editable PPTX 会 fail。我有两个方案：
-> - A. **出 PDF**（推荐）——视觉 100% 保留，接收方能看能印但不能改文字
-> - B. **以视觉稿为蓝本，重写一版 editable HTML**（保留色彩/布局/文案的设计决策，但按 4 条硬约束重新组织 HTML 结构，**牺牲**渐变、web component、复杂 SVG 等视觉能力）→ 再导出 editable PPTX
+> "Your current HTML uses [list specifically: gradients / web components / complex SVG / ...], directly converting to editable PPTX will fail. I have two options:
+> - A. **Output PDF** (recommended) — 100% visual preserved, recipient can view/print but not edit text
+> - B. **Rewrite based on visual draft as blueprint, create editable HTML** (retain color system/layout/copy design decisions, but **sacrifice** gradients/web components/complex SVG etc visual capabilities) → then export editable PPTX
 >
-> 你选哪个？」
+> Which do you choose?"
 
-不要把 B 方案说得云淡风轻——明确告知**会丢失什么**。让用户做取舍。
+Don't describe B option lightly — explicitly tell **what will be lost**. Let user make the choice.
 
-### Step 2 · 如果用户选 B：AI 主动改写，不要求用户自己写
+### Step 2 · If User Chooses B: AI，主动 rewrite, not require user to write themselves
 
-这里的 doctrine 是：**用户给的是设计意图，你负责翻译成合规实现**。不是让用户去学 4 条硬约束然后自己重写。
+Doctrine here: **User gives design intent, you are responsible for translating to compliant implementation.** Not let user learn 4 constraints then rewrite themselves.
 
-改写时的遵循原则：
-- **保留**：色彩系统（主色/辅色/中性色）、信息层级（标题/副标题/正文/注解）、核心文案、layout 骨架（上中下 / 左右分栏 / 网格）、页面节奏
-- **降级**：CSS 渐变 → 纯色或 flex 分段、web component → 段落级 HTML、复杂 SVG → 简化的 `<img>` 或纯色几何、阴影 → 删除或降为极弱、自定义字体 → 向系统字体靠齐
-- **重写**：裸文字 → 包进 `<p>` / `<h*>`、`background-image` → `<img>` 标签、`<p>` 上的背景边框 → 外层 div 承载
+Rewrite principles:
+- **Retain**: Color system (primary/secondary/neutral), information hierarchy (title/subtitle/body/notes), core copy, layout skeleton (top-middle-bottom/columns/grid), page rhythm
+- **Downgrade**: CSS gradient → solid or flex segments, web component → paragraph-level HTML, complex SVG → simplified `<img>` or solid geometry, shadow → delete or downgrade to very weak, custom font → converge to system fonts
+- **Rewrite**: Bare text → wrap in `<p>`/`h*>`, `background-image` → `<img>` tag, background/border on `<p>` → outer div carries
 
-### Step 3 · 产出对照清单（透明交付）
+### Step 3 · Output Comparison List (Transparent Delivery)
 
-改写完成后给用户一份 before/after 对照，让他知道哪些视觉细节被简化了：
+After rewrite, give user a before/after comparison, let them know which visual details were simplified:
 
 ```
-原设计 → editable 版调整
-- 标题区紫色渐变 → 主色 #5B3DE8 纯色背景
-- 数据卡片阴影 → 删除（改为 2pt 描边区分）
-- 复杂 SVG 折线图 → 简化为 <img> PNG（从 HTML 截图生成）
-- Hero 区 web component 动效 → 静态首帧（web component 无法翻译）
+Original design → Editable version adjustments
+- Title area purple gradient → Primary color #5B3DE8 solid background
+- Data card shadow → Deleted (changed to 2pt border for separation)
+- Complex SVG line chart → Simplified to <img> PNG (generated from HTML screenshot)
+- Hero area web component animation → Static first frame (web component can't translate)
 ```
 
-### Step 4 · 导出 & 双格式交付
+### Step 4 · Export & Dual Format Delivery
 
-- `editable` 版 HTML → 跑 `scripts/export_deck_pptx.mjs` 出可编辑 PPTX
-- **建议同时保留**原视觉稿 → 跑 `scripts/export_deck_pdf.mjs` 出高保真 PDF
-- 双格式交付给用户：视觉稿的 PDF + 可编辑的 PPTX，各司其职
+- `editable` version HTML → run `scripts/export_deck_pptx.mjs` output editable PPTX
+- **Recommend also keep** original visual draft → run `scripts/export_deck_pdf.mjs` output high-fidelity PDF
+- Dual format delivery to user: visual PDF + editable PPTX, each serves its purpose
 
-### 什么情况下直接拒绝 B 方案
+### When to Directly Reject B Option
 
-个别场景下改写代价过高，应该劝用户放弃 editable PPTX：
-- HTML 核心价值是动画或交互（改写后只剩静态首帧，信息量损失 50%+）
-- 页数 > 30，改写成本超过 2 小时
-- 视觉设计深度依赖精确 SVG / 自定义 filter（改写后和原图几乎无关）
+In some scenarios rewrite cost too high, should persuade user to give up editable PPTX:
+- HTML core value is animation or interaction (after rewrite only static first frame, info loss 50%+)
+- >30 pages, rewrite cost exceeds 2 hours
+- Visual design deeply depends on precise SVG/custom filters (after rewrite almost unrelated to original)
 
-此时告诉用户：「这个 deck 改写代价过高，建议出 PDF 而不是 PPTX。如果接收方确实要 pptx 格式，就接受视觉会大幅朴素化——要不要换成 PDF？」
+Tell user: "This deck rewrite cost too high, recommend PDF not PPTX. If recipient really needs pptx format, accept significant visual simplification — want to switch to PDF?"
 
 ---
 
-## 为什么 4 条约束不是 Bug 而是物理约束
+## Why 4 Constraints Are Not Bugs But Physical Constraints
 
-这 4 条不是 `html2pptx.js` 作者偷懒——它们是 **PowerPoint 文件格式（OOXML）本身的约束**投射到 HTML 上的结果：
+These 4 are not `html2pptx.js` author being lazy — they are **PowerPoint file format (OOXML) constraints themselves** projected onto HTML:
 
-- PPTX 里文字必须在 text frame（`<a:txBody>`），对应段落级 HTML 元素
-- PPTX 的 shape 和 text frame 是两个对象，无法在同一 element 上同时画背景和写文字
-- PPTX 的 shape fill 对 gradient 支持有限（仅某些 preset gradients，不支持 CSS 任意角度渐变）
-- PPTX 的 picture 对象必须引用真实图片文件，不是 CSS 属性
+- In PPTX, text must be in text frame (`<a:txBody>`), corresponds to paragraph-level HTML elements
+- In PPTX, shape and text frame are two objects, cannot have background and write text on same element
+- PPTX's shape fill has limited gradient support (only certain preset gradients, not CSS arbitrary angle gradients)
+- PPTX's picture object must reference real image file, not CSS property
 
-理解这点后，**不要期待工具变聪明** —— 是 HTML 写法要适配 PPTX 格式，不是反过来。
+Understanding this, **don't expect tool to get smarter** — HTML writing should adapt to PPTX format, not the other way around.
