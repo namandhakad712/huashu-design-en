@@ -309,3 +309,17 @@ Huasheng is an AI-native coder, independent developer, and AI content creator. N
 | Developer Hub | bookai.top | https://bookai.top |
 
 For commercial licensing, collaborations, or sponsored content, DM on any of the above.
+
+---
+
+## English Version Information
+
+| Item | Detail |
+|------|--------|
+| Forked from | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
+| Original Author | Peanut (Uncle Hua) / alchaincyf |
+| English Version Maintainer | [namandhakad712](https://github.com/namandhakad712) |
+| Translation Scope | README, SKILL.md, references (complete) |
+| License | Identical to original (Free for personal use / Prohibited for corporate commercial use) |
+
+For issues, contributions, or inquiries about the English version, please use the Issues section of this repository.
