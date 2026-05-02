@@ -23,7 +23,7 @@ Not "decent for AI" quality — it looks like a real design team made it. Give t
 **Every animation in this README was made by huashu-design itself.** No Figma, no After Effects — just a sentence + skill run. Next product launch needs a promo video? You can make it too.
 
 ```
-npx skills add alchaincyf/huashu-design
+npx skills add namandhakad712/huashu-design-en
 ```
 
 [See it work](#demo-gallery) · [Install](#install) · [What it does](#what-it-does) · [How it works](#core-mechanics) · [vs. Claude Design](#vs-claude-design)
@@ -47,7 +47,7 @@ npx skills add alchaincyf/huashu-design
 ## Install
 
 ```bash
-npx skills add alchaincyf/huashu-design
+npx skills add namandhakad712/huashu-design-en
 ```
 
 Then just talk to Claude Code:
@@ -315,7 +315,8 @@ For commercial licensing, collaborations, or sponsored content, DM on any of the
 
 | Item | Detail |
 |------|--------|
-| Forked from | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
+| Forked from | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) (Chinese) |
+| English Version | [namandhakad712/huashu-design-en](https://github.com/namandhakad712/huashu-design-en) |
 | Original Author | Peanut (Uncle Hua) / alchaincyf |
 | English Version Maintainer | [namandhakad712](https://github.com/namandhakad712) |
 | Translation Scope | README, SKILL.md, references (complete) |

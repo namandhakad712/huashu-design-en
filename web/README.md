@@ -29,4 +29,4 @@ The workbench communicates with Kimi CLI via file-based protocol:
 
 ## Credits
 
-Built as an extension to [huashu-design](https://github.com/alchaincyf/huashu-design) by naman.
+Built as an extension to [huashu-design-en](https://github.com/namandhakad712/huashu-design-en) by naman.
