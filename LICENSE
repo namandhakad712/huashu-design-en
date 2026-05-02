@@ -1,44 +1,45 @@
 Huashu Design · Personal Use License
-Copyright (c) 2026 alchaincyf (花叔 · 花生)
-
-本 skill（以下简称「本作品」）包含 SKILL.md、scripts、references、assets、demos 及其全部派生内容。使用本作品视为同意以下条款：
-
----
-
-## 1. 允许的使用（个人免费）
-
-以下场景无需授权、无需打招呼：
-
-- **学习与研究**：阅读代码、修改、二次开发用于自己理解
-- **个人创作**：为自己的文章、视频、副业项目、小红书/公众号/B站等内容创作使用
-- **非营利分享**：基于本作品做 demo、教程，发布到社交平台、博客、播客
-- **派生作品**：在自己名下的个人仓库里基于本作品做派生 skill，需在 README 显著位置注明来源（`Derived from alchaincyf/huashu-design`）
-
-## 2. 禁止的使用（必须事先授权）
-
-以下场景**必须联系花生获得书面授权后方可使用**：
-
-- 任何**公司、团队、工作室、机构**将本作品集成到其内部工具链或对外产品
-- 将本作品或其派生物作为**面向付费客户的交付手段**（包括设计外包、品牌咨询、B 端 SaaS 等）
-- 基于本作品做**商业软件产品**、付费模板、付费订阅服务
-- 以**营利为目的**的培训课程、商业工作坊、闭门付费社群
-- 在**商单创作**（乙方向甲方交付物）中使用本作品生成的内容
-
-## 3. 授权联系方式
-
-商用授权请通过以下任一平台联系花生：
-
-- X / Twitter：https://x.com/AlchainHust
-- 公众号：微信搜索「花叔」
-- B 站：https://space.bilibili.com/14097567
-- YouTube：https://www.youtube.com/@Alchain
-- 小红书：https://www.xiaohongshu.com/user/profile/5abc6f17e8ac2b109179dfdf
-- 官网：https://www.huasheng.ai/
-
-## 4. 免责声明
-
-本作品按「现状」提供，不提供任何明示或默示的担保。作者不对因使用本作品导致的任何损失承担责任。
+Copyright (c) 2026 alchaincyf (Peanut · Uncle Hua)
+English Version: Copyright (c) 2026 namandhakad712
 
 ---
 
-简而言之：**个人随便用，企业要打招呼。**
+This skill ("this work") includes SKILL.md, scripts, references, assets, demos, and all derived content. Using this work constitutes agreement to the following terms:
+
+## 1. Permitted Use (Personal, Free)
+
+No authorization or notification required for:
+
+- **Learning & Research**: Read code, modify, fork for personal understanding
+- **Personal Creation**: Use for articles, videos, side projects, social media content
+- **Non-profit Sharing**: Create demos, tutorials, post to social platforms, blogs, podcasts
+- **Derived Works**: Create derivative skills in your own personal repo, must credit source in README (`Derived from alchaincyf/huashu-design` or `English version: namandhakad712/huashu-design-en`)
+
+## 2. Prohibited Use (Requires Authorization)
+
+**Must obtain written permission from Peanut (Uncle Hua)** for:
+
+- Any **company, team, studio, organization** integrating this work into internal tools or products
+- Using this work or derivatives as **deliverables for paying clients** (including design outsourcing, brand consulting, B2B SaaS)
+- Creating **commercial software products**, paid templates, paid subscription services
+- **Profit-making** training courses, commercial workshops, paid private communities
+- Using this work in **client projects** (vendor deliverables to clients)
+
+## 3. Contact for Commercial License
+
+Contact Peanut (Uncle Hua) via:
+
+- X / Twitter: https://x.com/AlchainHust
+- WeChat: Search "花叔" (Uncle Hua)
+- Bilibili: https://space.bilibili.com/14097567
+- YouTube: https://www.youtube.com/@Alchain
+- Xiaohongshu: https://www.xiaohongshu.com/user/profile/5abc6f17e8ac2b109179dfdf
+- Website: https://www.huasheng.ai/
+
+## 4. Disclaimer
+
+This work is provided "as is" without any express or implied warranties. The author is not liable for any damages arising from use of this work.
+
+---
+
+In short: **Personal use is free, commercial use requires permission.**
