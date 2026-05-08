@@ -2,44 +2,60 @@ Huashu Design · Personal Use License
 Copyright (c) 2026 alchaincyf (Peanut · Uncle Hua)
 English Version: Copyright (c) 2026 namandhakad712
 
----
+This skill ("this work") includes SKILL.md, scripts, references, assets, demos, and all derived content. Using this work constitutes agreement to the following terms.
 
-This skill ("this work") includes SKILL.md, scripts, references, assets, demos, and all derived content. Using this work constitutes agreement to the following terms:
+================================================================================
+ENGLISH
+================================================================================
 
-## 1. Permitted Use (Personal, Free)
+## 1. Permitted Use (free for individuals)
 
 No authorization or notification required for:
 
-- **Learning & Research**: Read code, modify, fork for personal understanding
-- **Personal Creation**: Use for articles, videos, side projects, social media content
-- **Non-profit Sharing**: Create demos, tutorials, post to social platforms, blogs, podcasts
-- **Derived Works**: Create derivative skills in your own personal repo, must credit source in README (`Derived from alchaincyf/huashu-design` or `English version: namandhakad712/huashu-design-en`)
+- **Learning and research**: reading the code, modifying it, or adapting it for your own understanding
+- **Personal creation**: using the Work for your own articles, videos, side projects, or content on social platforms
+- **Non-commercial sharing**: building demos or tutorials based on the Work and publishing them on social platforms, blogs, or podcasts
+- **Derivative works**: creating derivative skills under your own personal repositories, provided you visibly credit the source in your README (`Derived from alchaincyf/huashu-design` or `English version: namandhakad712/huashu-design-en`)
 
-## 2. Prohibited Use (Requires Authorization)
+## 2. Restricted Use (prior authorization required)
 
-**Must obtain written permission from Peanut (Uncle Hua)** for:
+The following uses **require prior written authorization from Peanut (Uncle Hua)**:
 
-- Any **company, team, studio, organization** integrating this work into internal tools or products
-- Using this work or derivatives as **deliverables for paying clients** (including design outsourcing, brand consulting, B2B SaaS)
-- Creating **commercial software products**, paid templates, paid subscription services
-- **Profit-making** training courses, commercial workshops, paid private communities
-- Using this work in **client projects** (vendor deliverables to clients)
+- Any **company, team, studio, or organization** integrating the Work into its internal toolchain or external products
+- Using the Work or its derivatives as a **delivery mechanism for paying clients** (including design outsourcing, brand consulting, B2B SaaS, etc.)
+- Building **commercial software products**, paid templates, or paid subscription services on top of the Work
+- **For-profit** training courses, commercial workshops, or paid private communities built on the Work
+- Using Work-generated content in **client-deliverable projects** (vendor-to-client deliverables)
 
-## 3. Contact for Commercial License
+## 3. Commercial Licensing — Indicative Pricing
 
-Contact Peanut (Uncle Hua) via:
+Two standard commercial licensing options:
+
+| Option | Fee | Term | Updates |
+|---|---|---|---|
+| **Annual License** | USD 1,800 | 12 months, renewable | All updates released during the term |
+| **Perpetual License** | USD 3,500 | One-time, perpetual | Updates released within the first 12 months |
+
+Pricing is indicative and may be adjusted based on company size, scope of use, and number of licensed entities. Custom enterprise terms available on request.
+
+Payment via SWIFT international wire transfer; bank charges borne by licensee.
+
+## 4. How to Request Commercial Authorization
+
+Email preferred: **alchaincyf@gmail.com**
+
+Or reach Uncle Hua via:
 
 - X / Twitter: https://x.com/AlchainHust
-- WeChat: Search "花叔" (Uncle Hua)
 - Bilibili: https://space.bilibili.com/14097567
 - YouTube: https://www.youtube.com/@Alchain
 - Xiaohongshu: https://www.xiaohongshu.com/user/profile/5abc6f17e8ac2b109179dfdf
 - Website: https://www.huasheng.ai/
 
-## 4. Disclaimer
+## 5. Disclaimer
 
-This work is provided "as is" without any express or implied warranties. The author is not liable for any damages arising from use of this work.
+The Work is provided "as is", without warranty of any kind, express or implied. The author shall not be liable for any damages arising from the use of the Work.
 
 ---
 
-In short: **Personal use is free, commercial use requires permission.**
+In short: **personal use is free; commercial use requires a license — email alchaincyf@gmail.com.**
