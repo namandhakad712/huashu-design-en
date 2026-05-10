@@ -6,6 +6,10 @@
 .video-tmp-*/
 **/.video-tmp-*/
 
+# Narration temp (TTS mp3, timeline.json, voiceover)
+**/_narration/
+**/_narration_*/
+
 # Personal asset index（个人真实数据，只保留 .example.json 模板）
 assets/personal-asset-index.json
 
