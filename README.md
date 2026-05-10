@@ -38,6 +38,7 @@ This skill is also available in other languages:
 |----------|------------|-------------|
 | 中文 (original) | alchaincyf | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
 | 한국어 | ktkarchive | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
+| Vietnamese | @letrquan | [[letrquan/huashu-design](https://github.com/letrquan/huashu-design)] |
 
 </div>
 
