@@ -28,7 +28,16 @@ npx skills add namandhakad712/huashu-design-en
 
 [See it work](#demo-gallery) · [Install](#install) · [What it does](#what-it-does) · [How it works](#core-mechanics) · [vs. Claude Design](#vs-claude-design)
 
-> 📖 **Note for English readers**: this skill is built by a Chinese-speaking developer. The skill's agent prompts (`SKILL.md`, `references/*.md`) are in Chinese but the agent is bilingual — works fine with English tasks. The demos below are the English parallel versions; the Chinese ones are in the default-named files (see the Chinese [README.md](README.md)).
+> 📖 **English-only version**: This is the English localization of huashu-design. All skill prompts (`SKILL.md`, `references/*.md`) are in English. For the original Chinese version, see [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design).
+
+## Available Languages
+
+This skill is also available in other languages:
+
+| Language | Maintainer | Repository |
+|----------|------------|-------------|
+| 中文 (original) | alchaincyf | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
+| 한국어 | ktkarchive | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
 
 </div>
 
