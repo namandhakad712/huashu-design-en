@@ -291,17 +291,13 @@ Thanks to Anthropic for writing the Claude Design prompts so clearly. This kind 
 
 ---
 
-## License · Usage Rights
+## License
 
-**Personal use is free and unrestricted** — studying, research, creating things for yourself, writing articles, side projects, personal social media. Use it freely, no need to ask.
+[MIT License](LICENSE) — free to use, modify, and distribute for any purpose, including commercial use. Attribution appreciated but not required.
 
-**Enterprise / commercial use is restricted** — any company, team, or for-profit organization integrating this skill into a product, external service, or client deliverable **must obtain authorization from Huasheng first**. Including but not limited to:
-- Using the skill as part of internal company tooling
-- Using skill outputs as the primary creative method for external deliverables
-- Building a commercial product on top of the skill
-- Using it in paid client projects
+**Relicensed to MIT on 2026-05-14.** This skill was previously released under a Personal Use License that restricted commercial use. That restriction is now removed.
 
-**Commercial licensing contact**: any of the social platforms below.
+Under the [MIT License](LICENSE) you are free to **use, modify, and distribute** this skill for any purpose, **including commercial use** — inside companies, in client deliverables, as part of a paid product, anywhere. No prior authorization, no licensing fee, no notification required. Attribution is appreciated but not required.
 
 ---
 
