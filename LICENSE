@@ -1,61 +1,29 @@
-Huashu Design · Personal Use License
+MIT License
+
 Copyright (c) 2026 alchaincyf (Peanut · Uncle Hua)
 English Version: Copyright (c) 2026 namandhakad712
 
-This skill ("this work") includes SKILL.md, scripts, references, assets, demos, and all derived content. Using this work constitutes agreement to the following terms.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-================================================================================
-ENGLISH
-================================================================================
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## 1. Permitted Use (free for individuals)
-
-No authorization or notification required for:
-
-- **Learning and research**: reading the code, modifying it, or adapting it for your own understanding
-- **Personal creation**: using the Work for your own articles, videos, side projects, or content on social platforms
-- **Non-commercial sharing**: building demos or tutorials based on the Work and publishing them on social platforms, blogs, or podcasts
-- **Derivative works**: creating derivative skills under your own personal repositories, provided you visibly credit the source in your README (`Derived from alchaincyf/huashu-design` or `English version: namandhakad712/huashu-design-en`)
-
-## 2. Restricted Use (prior authorization required)
-
-The following uses **require prior written authorization from Peanut (Uncle Hua)**:
-
-- Any **company, team, studio, or organization** integrating the Work into its internal toolchain or external products
-- Using the Work or its derivatives as a **delivery mechanism for paying clients** (including design outsourcing, brand consulting, B2B SaaS, etc.)
-- Building **commercial software products**, paid templates, or paid subscription services on top of the Work
-- **For-profit** training courses, commercial workshops, or paid private communities built on the Work
-- Using Work-generated content in **client-deliverable projects** (vendor-to-client deliverables)
-
-## 3. Commercial Licensing — Indicative Pricing
-
-Two standard commercial licensing options:
-
-| Option | Fee | Term | Updates |
-|---|---|---|---|
-| **Annual License** | USD 1,800 | 12 months, renewable | All updates released during the term |
-| **Perpetual License** | USD 3,500 | One-time, perpetual | Updates released within the first 12 months |
-
-Pricing is indicative and may be adjusted based on company size, scope of use, and number of licensed entities. Custom enterprise terms available on request.
-
-Payment via SWIFT international wire transfer; bank charges borne by licensee.
-
-## 4. How to Request Commercial Authorization
-
-Email preferred: **alchaincyf@gmail.com**
-
-Or reach Uncle Hua via:
-
-- X / Twitter: https://x.com/AlchainHust
-- Bilibili: https://space.bilibili.com/14097567
-- YouTube: https://www.youtube.com/@Alchain
-- Xiaohongshu: https://www.xiaohongshu.com/user/profile/5abc6f17e8ac2b109179dfdf
-- Website: https://www.huasheng.ai/
-
-## 5. Disclaimer
-
-The Work is provided "as is", without warranty of any kind, express or implied. The author shall not be liable for any damages arising from the use of the Work.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ---
 
-In short: **personal use is free; commercial use requires a license — email alchaincyf@gmail.com.**
+**Relicensed to MIT on 2026-05-14.** 
+This skill was previously released under a Personal Use License that restricted commercial use. That restriction is now removed.
+
+You are free to **use, modify, and distribute** this skill for any purpose, **including commercial use** — inside companies, in client deliverables, as part of a paid product, anywhere. No prior authorization, no licensing fee, no notification required. Attribution is appreciated but not required.
