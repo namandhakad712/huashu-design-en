@@ -1,6 +1,6 @@
 ﻿---
 name: huashu-design-en
-description: Huashu-Design (花叔Design English fork) — build high-fidelity prototypes, slides, animations, visualizations and expert reviews with HTML. Any new visual design 100% first produces three direction drafts for the user to choose from (specified styles/brands are NOT exempt); execution begins only after the user selects. Trigger words: build a prototype, PPT, slides, animation, design style, review, make an HTML page, UI mockup, export MP4/GIF, make something nice. Production-grade web apps / systems needing a backend are not applicable.
+description: "Huashu-Design (花叔Design English fork) — build high-fidelity prototypes, slides, animations, visualizations and expert reviews with HTML. Any new visual design 100% first produces three direction drafts for the user to choose from (specified styles/brands are NOT exempt); execution begins only after the user selects. Trigger words: build a prototype, PPT, slides, animation, design style, review, make an HTML page, UI mockup, export MP4/GIF, make something nice. Production-grade web apps / systems needing a backend are not applicable."
 ---
 
 # Huashu-Design (English Fork)
