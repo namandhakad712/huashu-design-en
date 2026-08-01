@@ -15,7 +15,7 @@
 - You need both focus and the big picture at once (see the details without losing the whole)
 
 **Poor fit**:
-- Single-product focus (use the frontend-design product hero template)
+- Single-product focus (use a dedicated single-product hero template instead)
 - Emotion-driven / story-heavy animation (use the timeline narrative template)
 - Small / portrait screens (the tilted perspective gets blurry on small screens)
 
