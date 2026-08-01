@@ -6,13 +6,13 @@ Read this when making animation/motion design HTML. Principles, usage, typical p
 
 Our animation system (`assets/animations.jsx`) provides a timeline-driven engine:
 
-- **`<Stage>`**: Container for entire animation, auto-provides auto-scale (fit viewport) + scrubber + play/pause/loop controls
-- **`<Sprite start end>`**: Time segment. A Sprite only displays during `start` to `end` time. Internally can use `useSprite()` hook to read its own local progress `t` (0→1)
-- **`useTime()`**: Read current global time (seconds)
-- **`Easing.easeInOut` / `Easing.easeOut` / ...**: Easing functions
-- **`interpolate(t, from, to, easing?)`**: Interpolate based on t
+- **`<Stage>`**: the container of the whole animation, automatically providing auto-scale (fit viewport) + scrubber + play/pause/loop controls
+- **`<Sprite start end>`**: a time segment. A Sprite is only displayed during the `start` to `end` window. Internally you can use the `useSprite()` hook to read its own local progress `t` (0→1)
+- **`useTime()`**: read the current global time (seconds)
+- **`Easing.easeInOut` / `Easing.easeOut` / ...**: easing functions
+- **`interpolate(t, from, to, easing?)`**: interpolate based on t
 
-This pattern借鉴Remotion/After Effects ideas, but lightweight, zero dependencies.
+This pattern borrows from Remotion / After Effects thinking, but lightweight and zero-dependency.
 
 ## Getting Started
 
@@ -22,7 +22,7 @@ This pattern借鉴Remotion/After Effects ideas, but lightweight, zero dependenci
   const { Stage, Sprite, useTime, useSprite, Easing, interpolate } = window.Animations;
 
   function Title() {
-    const { t } = useSprite();  // Local progress 0→1
+    const { t } = useSprite();  // local progress 0→1
     const opacity = interpolate(t, [0, 1], [0, 1], Easing.easeOut);
     const y = interpolate(t, [0, 1], [40, 0], Easing.easeOut);
     return (
@@ -68,7 +68,7 @@ function FadeIn({ children }) {
 }
 ```
 
-**Note range**: `[0, 0.3]` means complete fade-in in first 30% of sprite time, then keep opacity=1.
+**Note on the range**: `[0, 0.3]` means the fade-in completes in the first 30% of the sprite's time, then stays at opacity=1.
 
 ### 2. Slide In
 
@@ -94,17 +94,14 @@ function SlideIn({ children, from = 'left' }) {
 }
 ```
 
-### 3. Character-by-Character Typewriter
+### 3. Typewriter Effect (⚠️ first distinguish the two scenarios; don't use per-character pops)
 
-```jsx
-function Typewriter({ text }) {
-  const { t } = useSprite();
-  const charCount = Math.floor(text.length * Math.min(t * 2, 1));
-  return <span>{text.slice(0, charCount)}</span>;
-}
-```
+A constant-speed per-character Typewriter is the official counter-example (in the best-practices "AI slop" list: it looks like old movie subtitles). Pick the right solution by content:
 
-### 4. Number Count Up
+- **AI output** (token streaming emergence) → Chunk Reveal: irregular blocky emergence, see `animation-best-practices.md` §4.5 / `gsap-recipes.md` §3.4
+- **User input** (a real person typing in an input box) → 3f/character + cursor steady-on turning to blinking + occasional backspaces, see `ui-demo-animation.md` trick ③
+
+### 4. Number Count-Up
 
 ```jsx
 function CountUp({ from = 0, to = 100, duration = 0.6 }) {
@@ -115,28 +112,28 @@ function CountUp({ from = 0, to = 100, duration = 0.6 }) {
 }
 ```
 
-### 5. Segmented Explanation (Typical Tutorial Animation)
+### 5. Segmented Explanation (typical teaching animation)
 
 ```jsx
 function Scene() {
   return (
     <Stage duration={20}>
-      {/* Phase 1: Show problem */}
+      {/* Phase 1: present the problem */}
       <Sprite start={0} end={4}>
         <Problem />
       </Sprite>
 
-      {/* Phase 2: Show approach */}
+      {/* Phase 2: present the approach */}
       <Sprite start={4} end={10}>
         <Approach />
       </Sprite>
 
-      {/* Phase 3: Show result */}
+      {/* Phase 3: present the result */}
       <Sprite start={10} end={16}>
         <Result />
       </Sprite>
 
-      {/* Subtitle shown throughout */}
+      {/* caption shown throughout */}
       <Sprite start={0} end={20}>
         <Caption />
       </Sprite>
@@ -147,103 +144,97 @@ function Scene() {
 
 ## Easing Functions
 
-Preset easing curves:
+The preset easing curves:
 
-| Easing | Characteristic | Use For |
+| Easing | Characteristics | Used for |
 |--------|------|------|
-| `linear` | Constant speed | Scrolling subtitles, continuous animations |
-| `easeIn` | Slow→fast | Exit/disappear |
-| `easeOut` | Fast→slow | Entry/appear |
-| `easeInOut` | Slow→fast→slow | Position changes |
-| **`expoOut`** ⭐ | **Exponential ease-out** | **Anthropic-level main easing** (physical weight feel) |
-| **`overshoot`** ⭐ | **Elastic bounce** | **Toggle/button pop/emphasis interaction** |
-| `spring` | Spring | Interaction feedback, geometry return |
-| `anticipation` | Reverse then forward first | Emphasize action |
+| `linear` | constant speed | scrolling captions, continuous animation |
+| `easeIn` | slow→fast | exiting/disappearing |
+| `easeOut` | fast→slow | entering/appearing |
+| `easeInOut` | slow→fast→slow | position changes |
+| **`expoOut`** ⭐ | **exponential ease-out** | **Anthropic-grade primary easing** (physical weight) |
+| **`overshoot`** ⭐ | **elastic bounce-back** | **Toggles / button pops / emphasis interactions** |
+| `spring` | spring | interaction feedback, geometry settling |
+| `anticipation` | reverse first, then forward | emphasis motions |
 
-**Default main easing use `expoOut`** (not `easeOut`) — see `animation-best-practices.md` §2.
-Entry use `expoOut`, exit use `easeIn`, toggle use `overshoot` — basic rhythm for Anthropic-level animation.
+**The default primary easing is `expoOut`** (not `easeOut`) — see `animation-best-practices.md` §2.
+Entries use `expoOut`, exits use `easeIn`, toggles use `overshoot` — the basic rules of Anthropic-grade animation.
 
-## Rhythm and Duration Guide
+## Rhythm and Duration Guidelines
 
-### Micro-interactions (0.1-0.3 seconds)
-- Button hover
-- Card expand
-- Tooltip appear
+### Micro-interactions (0.1-0.3s)
+- button hover
+- card expand
+- tooltip appearance
 
-### UI Transitions (0.3-0.8 seconds)
-- Page switch
-- Modal appear
-- List item add
+### UI transitions (0.3-0.8s)
+- page switching
+- modal appearance
+- list item joining
 
-### Narrative Animation (2-10 seconds per segment)
-- One phase of concept explanation
-- Data chart reveal
-- Scene transition
+### Narrative animation (2-10s per segment)
+- one phase of a concept explanation
+- data chart reveal
+- scene transitions
 
-### Single Narrative Segment Max 10 Seconds
-Human attention limited. 10 seconds for one thing, then move to next.
+### A single narrative segment must not exceed 10 seconds
+Human attention is limited. Say one thing in 10 seconds, then move on to the next.
 
-## Thinking Order for Designing Animation
+## The Thinking Order for Designing Animation
 
-### 1. Have Content/Story First, Then Animation
+### 1. Content/story first, animation second
 
-**Wrong**: Want fancy animation first, then stuff content in
-**Correct**: First clarify what information to convey, then use animation to serve that information
+**Wrong**: first want to do fancy animation, then stuff content into it
+**Right**: first figure out what information you want to convey, then use animation to serve that information
 
-Animation is **signal**, not **decoration**. A fade-in emphasizes "look here, this is important" — if everything fades in, signal失效.
+Animation is **signal**, not **decoration**. A fade-in emphasizes "this is important, please look" — if everything fade-ins, the signal loses its meaning.
 
-### 2. Write Timeline by Scene
+### 2. Write the timeline by Scene
 
 ```
-0:00 - 0:03   Problem appears (fade in)
-0:03 - 0:06   Problem enlarges/expands (zoom+pan)
-0:06 - 0:09   Solution appears (slide in from right)
-0:09 - 0:12   Solution explained (typewriter)
-0:12 - 0:15   Result demo (counter up + chart reveal)
-0:15 - 0:18   Summary one sentence (static, read 3 seconds)
+0:00 - 0:03   problem appears (fade in)
+0:03 - 0:06   problem enlarges/expands (zoom+pan)
+0:06 - 0:09   solution appears (slide in from right)
+0:09 - 0:12   solution expanded explanation (typewriter)
+0:12 - 0:15   result demo (counter up + chart reveal)
+0:15 - 0:18   one-sentence summary (static, read for 3 seconds)
 0:18 - 0:20   CTA or fade out
 ```
 
-Write components after timeline.
+Write the timeline first, then the components.
 
-### 3. Resources First
+### 3. Assets first
 
-Images/icons/fonts for animation **prepare first**. Don't search for materials halfway — breaks rhythm.
+Prepare the images/icons/fonts the animation needs **up front**. Don't go hunting for assets halfway through drawing — it breaks the rhythm.
 
 ## Common Issues
 
-**Animation lag**
-→ Mainly layout thrashing. Use `transform` and `opacity`, don't change `top`/`left`/`width`/`height`/`margin`. Browser GPU accelerates `transform`.
+**Animation stutters**
+→ Mainly layout thrashing. Use `transform` and `opacity`; don't touch `top`/`left`/`width`/`height`/`margin`. The browser GPU-accelerates `transform`.
 
-**Animation too fast, can't see clearly**
-→ Humans need 100-150ms to read one Chinese character, 300-500ms for a word. If telling story with text, leave at least 3 seconds per sentence.
+**Animation too fast, hard to read**
+→ A human takes 100-150ms to read one Chinese character, 300-500ms for a word. If you're telling the story with text, give each sentence at least 3 seconds.
 
-**Animation too slow, audience bored**
-→ Interesting visual changes should be dense. Static画面 over 5 seconds gets boring.
+**Animation too slow, the audience is bored**
+→ Interesting visual changes should be dense. A static frame for more than 5 seconds gets dull.
 
 **Multiple animations affecting each other**
-→ Use CSS `will-change: transform` to tell browser in advance this element will move, reduce reflow.
+→ Use CSS `will-change: transform` to tell the browser early that this element will move, reducing reflow.
 
 **Recording to video**
-→ Use skill's built-in toolchain (one command outputs three formats): see `video-export.md`
+→ Use the skill's built-in toolchain (one command, three formats out): see `video-export.md`
 - `scripts/render-video.js` — HTML → 25fps MP4 (Playwright + ffmpeg)
 - `scripts/convert-formats.sh` — 25fps MP4 → 60fps MP4 + optimized GIF
-- Need more precise frame rendering? Make render(t) pure function, see `animation-pitfalls.md` point 5.
+- Want more precise frame rendering? Make render(t) a pure function, see item 5 in `animation-pitfalls.md`
 
 ## Coordination with Video Tools
 
-This skill makes **HTML animations** (runs in browser). If final output needed as video asset:
+This skill does **HTML animation** (running in the browser). If the final output is to be used as video material:
 
-- **Short animation/concept demo**: Make HTML animation here → screen recording
-- **Long video/narrative**: This skill specializes in HTML animation, long videos use AI video generation skills or professional video software
-- **Motion graphics**: Professional After Effects/Motion Canvas more suitable
+- **Short animations / concept demos**: make HTML animation with these methods → screen record
+- **Long videos / narratives** (5-20 minutes with voiceover): go through SKILL.md Step 9.5's voiceover-driven pipeline (`voiceover-pipeline.md`); don't outsource to other tools
+- **Motion graphics**: professional After Effects / Motion Canvas is more suitable
 
-## About Popmotion and Other Libraries
+## When You Need Physics Animation (spring / decay)
 
-If you really need physical animations (spring, decay, keyframes with precise timing), our engine can't handle, can fallback to Popmotion:
-
-```html
-<script src="https://unpkg.com/popmotion@11.0.5/dist/popmotion.min.js"></script>
-```
-
-But **try our engine first**. 90% of cases sufficient.
+Don't pull in Popmotion (the CDN is guaranteed to fail on restricted networks, violating the self-containment principle, see `animation-pitfalls.md` #17). For spring needs go with GSAP: `elastic.out` / `back.out` and custom springEase mappings see `gsap-recipes.md` §1.2; for landing settle, use the dampedSettle closed-form solution (`camera-language.md` §9).

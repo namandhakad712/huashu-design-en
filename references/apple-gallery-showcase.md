@@ -1,23 +1,23 @@
 # Apple Gallery Showcase · Gallery Display Wall Animation Style
 
-> Inspiration source: Claude Design official website hero video + Apple product page "work wall" style display
-> Practical origin: huashu-design release hero v5
-> Applicable scenarios: **product launch hero animation, skill capability demo, portfolio showcase** — any scenario needing to display "multiple high-quality outputs" simultaneously while guiding audience attention
+> Inspiration: the Claude Design site's hero video + the "gallery wall" style display on Apple product pages
+> From practice: the huashu-design v5 release hero
+> Use cases: **product launch hero animation, skill capability demos, portfolio showcases** — any scenario that needs to present "multiple high-quality outputs" at once while guiding the audience's attention
 
 ---
 
-## Trigger Decision: When to Use This Style
+## Trigger Check: When to Use This Style
 
-**Suitable**:
-- Have 10+ real outputs to display on same screen (PPT, App, infographic)
-- Audience is professional (developers, designers, product managers), sensitive to "texture"
-- Convey vibe: "restrained, exhibition-style, premium, spatial"
-- Need focus and global to exist simultaneously (see details but don't lose overall)
+**Good fit**:
+- 10+ real outputs to display on screen at once (PPT, app, web pages, infographics)
+- Audience is professional (developers, designers, product managers), sensitive to "polish"
+- You want to convey a feel of "restrained, exhibition-like, premium, spacious"
+- You need both focus and the big picture at once (see the details without losing the whole)
 
-**Not suitable**:
-- Single product focus (use frontend-design product hero template)
-- Emotion-driven/story-heavy animation (use timeline narrative template)
-- Small screen / vertical (tilted perspective will be blurry on small screens)
+**Poor fit**:
+- Single-product focus (use the frontend-design product hero template)
+- Emotion-driven / story-heavy animation (use the timeline narrative template)
+- Small / portrait screens (the tilted perspective gets blurry on small screens)
 
 ---
 
@@ -26,9 +26,9 @@
 ```css
 :root {
   /* Light gallery palette */
-  --bg:         #F5F5F7;   /* Main canvas background — Apple official gray */
+  --bg:         #F5F5F7;   /* Main canvas background — Apple's site gray */
   --bg-warm:    #FAF9F5;   /* Warm off-white variant */
-  --ink:        #1D1D1F;   /* Main text color */
+  --ink:        #1D1D1F;   /* Primary text color */
   --ink-80:     #3A3A3D;
   --ink-60:     #545458;
   --muted:      #86868B;   /* Secondary text */
@@ -45,36 +45,36 @@
 ```
 
 **Key principles**:
-1. **Never use pure black background**. Black makes work look like movie, not "work results that can be adopted"
-2. **Terracotta orange is the only hue accent**, rest all grayscale + white
-3. **Three font stacks** (serif-en + serif-cn + sans + mono) create "publication" not "internet product" vibe
+1. **Never use a pure black background**. Black makes the work look like a movie, not like "work results that can be adopted"
+2. **Terracotta orange is the only hue accent**; everything else is grayscale + white
+3. **Three font stacks** (serif EN + serif CN + sans + mono) create a "publication" feel rather than an "internet product" one
 
 ---
 
 ## Core Layout Patterns
 
-### 1. Floating Cards (Basic Unit of Entire Style)
+### 1. Floating Cards (the Basic Unit of the Entire Style)
 
 ```css
 .gallery-card {
   background: #FFFFFF;
   border-radius: 14px;
-  padding: 6px;                          /* Padding is "mounting paper" */
+  padding: 6px;                          /* Padding is the "mounting mat" */
   border: 1px solid var(--hairline);
   box-shadow:
     0 20px 60px -20px rgba(29, 29, 31, 0.12),   /* Main shadow, soft and long */
-    0 6px 18px -6px rgba(29, 29, 31, 0.06);     /* Second layer near light, creates floating feel */
+    0 6px 18px -6px rgba(29, 29, 31, 0.06);     /* Second-layer near light, creates the floating feel */
   aspect-ratio: 16 / 9;                  /* Unified slide ratio */
   overflow: hidden;
 }
 .gallery-card img {
   width: 100%; height: 100%;
   object-fit: cover;
-  border-radius: 9px;                    /* Slightly smaller than card radius, visual nesting */
+  border-radius: 9px;                    /* Slightly smaller than the card's radius, visual nesting */
 }
 ```
 
-**Counter-example**: Don't do edge-to-edge tiles (no padding no border no shadow) — that's infographic density expression, not exhibition.
+**Anti-example**: don't use edge-to-edge tiles (no padding, no border, no shadow) — that's infographic density, not an exhibition.
 
 ### 2. 3D Tilted Work Wall
 
@@ -82,17 +82,17 @@
 .gallery-viewport {
   position: absolute; inset: 0;
   overflow: hidden;
-  perspective: 2400px;                   /* Deeper perspective, tilt not exaggerated */
+  perspective: 2400px;                   /* Deeper perspective, so the tilt isn't exaggerated */
   perspective-origin: 50% 45%;
 }
 .gallery-canvas {
   width: 4320px;                         /* Canvas = 2.25× viewport */
-  height: 2520px;                        /* Leave pan space */
+  height: 2520px;                        /* Leaves room to pan */
   transform-origin: center center;
   transform: perspective(2400px)
-             rotateX(14deg)              /* Tilt back */
-             rotateY(-10deg)             /* Turn left */
-             rotateZ(-2deg);             /* Slight tilt, remove too regular feel */
+             rotateX(14deg)              /* Tilts back */
+             rotateY(-10deg)             /* Turns left */
+             rotateZ(-2deg);             /* Slight tilt to lose the overly tidy look */
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 40px;
@@ -101,10 +101,10 @@
 ```
 
 **Parameter sweet spot**:
-- rotateX: 10-15deg (more becomes like VIP backdrop at wine party)
-- rotateY: ±8-12deg (symmetric left-right)
-- rotateZ: ±2-3deg ("not arranged by machine" human touch)
-- perspective: 2000-2800px (less than 2000 fisheye, greater than 3000 approaches orthographic projection)
+- rotateX: 10–15deg (beyond that it starts to look like a VIP backdrop at a party)
+- rotateY: ±8–12deg (left–right symmetry)
+- rotateZ: ±2–3deg (the human touch of "this wasn't arranged by a machine")
+- perspective: 2000–2800px (below 2000 you get fisheye; above 3000 it approaches orthographic projection)
 
 ### 3. 2×2 Four-Corner Convergence (Selection Scene)
 
@@ -117,7 +117,7 @@
 }
 ```
 
-Each card slides in from corresponding corner (tl/tr/bl/br) to center + fade in. Corresponding `cornerEntry` vectors:
+Each card slides in from its corresponding corner (tl/tr/bl/br) toward the center + fade in. The matching `cornerEntry` vectors:
 
 ```js
 const cornerEntry = {
@@ -132,9 +132,9 @@ const cornerEntry = {
 
 ## Five Core Animation Patterns
 
-### Pattern A · Four-Corner Convergence (0.8-1.2s)
+### Pattern A · Four-Corner Convergence (0.8–1.2s)
 
-4 elements slide in from viewport four corners, simultaneously scale 0.85→1.0, corresponding ease-out. Suitable for "show multiple direction choices" opening.
+Four elements slide in from the viewport's four corners while scaling 0.85→1.0, with ease-out. Good for an opening that "presents a choice of directions".
 
 ```js
 const inP = easeOut(clampLerp(t, start, end));
@@ -142,9 +142,9 @@ card.style.transform = `translate3d(${(1-inP)*ce.dx}px, ${(1-inP)*ce.dy}px, 0) s
 card.style.opacity = inP;
 ```
 
-### Pattern B · Selected Enlarge + Others Slide Out (0.8s)
+### Pattern B · Selected Card Enlarges + Others Slide Out (0.8s)
 
-Selected card enlarges 1.0→1.28, other cards fade out + blur + drift to four corners:
+The selected card enlarges 1.0→1.28 while the others fade out + blur + drift back toward the four corners:
 
 ```js
 // Selected
@@ -154,11 +154,11 @@ card.style.opacity = 1 - outP;
 card.style.filter = `blur(${outP * 1.5}px)`;
 ```
 
-**Key**: Unselected need blur, not pure fade. Blur simulates depth of field, visually "pushes" selected out.
+**Key point**: the unselected cards need blur, not a plain fade. Blur simulates depth of field and visually "pushes" the selected card forward.
 
 ### Pattern C · Ripple Expansion (1.7s)
 
-From center outward, by distance delay, each card fades in sequentially + scales from 1.25x to 0.94x ("camera pulls back"):
+From the center outward, with delay based on distance, each card fades in in sequence while scaling from 1.25x down to 0.94x (a "camera pull-back"):
 
 ```js
 const col = i % COLS, row = Math.floor(i / COLS);
@@ -168,28 +168,28 @@ const delay = (dist / maxDist) * 0.8;
 const localT = Math.max(0, (t - rippleStart - delay) / 0.7);
 card.style.opacity = easeOut(Math.min(1, localT));
 
-// Simultaneously overall scale 1.25→0.94
+// At the same time, the whole gallery scales 1.25→0.94
 const galleryScale = 1.25 - 0.31 * easeOut(rippleProgress);
 ```
 
 ### Pattern D · Sinusoidal Pan (Continuous Drift)
 
-Use sine wave + linear drift combination, avoid marquee "has start has end" looping feel:
+Combines a sine wave + linear drift to avoid the "has a start and an end" looping feel of a marquee:
 
 ```js
-const panX = Math.sin(panT * 0.12) * 220 - panT * 8;    // Horizontal left drift
-const panY = Math.cos(panT * 0.09) * 120 - panT * 5;    // Vertical up drift
-const clampedX = Math.max(-900, Math.min(900, panX));   // Prevent edge exposure
+const panX = Math.sin(panT * 0.12) * 220 - panT * 8;    // Drifts left horizontally
+const panY = Math.cos(panT * 0.09) * 120 - panT * 5;    // Drifts up vertically
+const clampedX = Math.max(-900, Math.min(900, panX));   // Prevents exposing the edges
 ```
 
 **Parameters**:
-- Sine period `0.09-0.15 rad/s` (slow, ~30-50 seconds one oscillation)
-- Linear drift `5-8 px/s` (slower than viewer blink)
-- Amplitude `120-220 px` (big enough to feel, small enough not to dizzy)
+- Sine period `0.09–0.15 rad/s` (slow, roughly one oscillation every 30–50 seconds)
+- Linear drift `5–8 px/s` (slower than a viewer's blink)
+- Amplitude `120–220 px` (large enough to be felt, small enough not to cause dizziness)
 
 ### Pattern E · Focus Overlay (Focus Switch)
 
-**Key design**: Focus overlay is a **flat element** (not tilted), floating above tilted canvas. Selected slide scales from tile position (~400×225) to screen center (960×540), background canvas doesn't change tilt but **dims to 45%**:
+**Key design**: the focus overlay is a **flat element** (not tilted) that floats above the tilted canvas. The selected slide scales from its tile position (~400×225) to the screen center (960×540); the background canvas keeps its tilt but **dims to 45%**:
 
 ```js
 // Focus overlay (flat, centered)
@@ -197,15 +197,15 @@ focusOverlay.style.width = (startW + (endW - startW) * focusIntensity) + 'px';
 focusOverlay.style.height = (startH + (endH - startH) * focusIntensity) + 'px';
 focusOverlay.style.opacity = focusIntensity;
 
-// Background cards dim, but still visible (key! don't 100% mask)
+// Background cards dim but stay visible (key: don't mask them 100%)
 card.style.opacity = entryOp * (1 - 0.55 * focusIntensity);   // 1 → 0.45
 card.style.filter = `brightness(${1 - 0.3 * focusIntensity})`;
 ```
 
-**Clarity iron law**:
-- Focus overlay's `<img>` must `src` directly connect to original image, **don't reuse gallery compressed thumbnail**
-- Preload all original images to `new Image()[]` array in advance
-- Overlay own `width/height` calculated per frame, browser resamples original every frame
+**The iron law of clarity**:
+- The focus overlay's `<img>` must point its `src` directly at the original image — **don't reuse the compressed thumbnail from the gallery**
+- Preload all original images into a `new Image()[]` array up front
+- The overlay's own `width`/`height` are computed per frame; the browser resamples the original image every frame
 
 ---
 
@@ -227,7 +227,8 @@ const T = {
   s4_walloff: [21.1, 21.8], s4_in: [21.8, 22.7], s4_hold: [23.7, 25.0],
 };
 
-// Core easing
+// Core easing (v9's historical implementation used cubic; new projects default
+// the main easing to expoOut — see the correction in best-practices §2 / hero-case-study Pattern 1)
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 const easeInOut = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
 function lerp(time, start, end, fromV, toV, easing) {
@@ -238,7 +239,7 @@ function lerp(time, start, end, fromV, toV, easing) {
   return fromV + (toV - fromV) * p;
 }
 
-// Single render(t) function reads timestamp, writes all elements
+// A single render(t) function reads the timestamp and writes to all elements
 function render(t) { /* ... */ }
 requestAnimationFrame(function tick(now) {
   const t = ((now - startMs) / 1000) % T.DURATION;
@@ -247,18 +248,18 @@ requestAnimationFrame(function tick(now) {
 });
 ```
 
-**Architecture essence**: **All states derived from timestamp t**, no state machine, no setTimeout. This:
-- Play to any moment `window.__setTime(12.3)` immediately jumps (convenient for playwright frame-by-frame capture)
-- Loop naturally seamless (t mod DURATION)
-- Debug can freeze any frame
+**Architecture essence**: **all state is derived from the timestamp t** — no state machine, no setTimeout. The payoff:
+- You can jump to any moment instantly via `window.__setTime(12.3)` (handy for playwright frame-by-frame captures)
+- Looping is naturally seamless (`t mod DURATION`)
+- You can freeze any frame while debugging
 
 ---
 
-## Texture Details (Easily Overlooked But Critical)
+## Texture Details (Easy to Overlook but Critical)
 
-### 1. SVG noise texture
+### 1. SVG Noise Texture
 
-Light background most fears "too flat". Overlay one layer very weak fractalNoise:
+Light backgrounds are most at risk of looking "too flat". Overlay a very faint layer of fractalNoise:
 
 ```html
 <style>
@@ -273,7 +274,7 @@ Light background most fears "too flat". Overlay one layer very weak fractalNoise
 </style>
 ```
 
-Looks no difference, removing reveals presence.
+It looks the same either way — until you remove it.
 
 ### 2. Corner Brand Mark
 
@@ -295,7 +296,7 @@ Looks no difference, removing reveals presence.
 }
 ```
 
-Only shows in work wall scene, fade in/out. Like museum exhibition label.
+Shown only in the work-wall scene, with a fade in/out. Like a museum label.
 
 ### 3. Brand Closure Wordmark
 
@@ -304,35 +305,35 @@ Only shows in work wall scene, fade in/out. Like museum exhibition label.
   font-family: var(--sans);
   font-size: 148px;
   font-weight: 700;
-  letter-spacing: -0.045em;   /* Negative letter-spacing key, makes characters compact into mark */
+  letter-spacing: -0.045em;   /* Negative letter-spacing is the key — it compacts the type into a mark */
 }
 .brand-wordmark .accent {
   color: var(--accent);
-  font-weight: 500;           /* Accent character反而细一点，视觉差 */
+  font-weight: 500;           /* The accent character is actually lighter, for visual contrast */
 }
 ```
 
-`letter-spacing: -0.045em` is standard approach for Apple product page large text.
+`letter-spacing: -0.045em` is standard practice for the large type on Apple product pages.
 
 ---
 
 ## Common Failure Modes
 
-| Symptom | Cause | Solution |
+| Symptom | Cause | Fix |
 |---|---|---|
-| Looks like PPT template | Cards no shadow/hairline | Add two-layer box-shadow + 1px border |
-| Tilt feels cheap | Only rotateY without rotateZ | Add ±2-3deg rotateZ to break regularity |
-| Pan feels "stuck" | Used setTimeout or CSS keyframes loop | Use rAF + sin/cos continuous function |
-| Text unclear during focus | Reused gallery tile low-res image | Independent overlay + original image src direct |
-| Background too empty | Solid `#F5F5F7` | Overlay SVG fractalNoise 0.5 opacity |
-| Fonts too "internet" | Only Inter | Add Serif (cn+en) + mono three stacks |
+| Looks like a PPT template | Cards have no shadow / hairline | Add two-layer box-shadow + 1px border |
+| Tilt looks cheap | Only rotateY, no rotateZ | Add ±2–3deg rotateZ to break up the tidiness |
+| Pan feels "stuttery" | Used setTimeout or a CSS keyframes loop | Use rAF + continuous sin/cos functions |
+| Text is unreadable during focus | Reused the gallery tile's low-res image | Dedicated overlay + direct original-image src |
+| Background too empty | Flat `#F5F5F7` | Overlay SVG fractalNoise at 0.5 opacity |
+| Type looks too "internet" | Only Inter | Add Serif (one CN, one EN) + mono for a three-stack system |
 
 ---
 
 ## References
 
-- Complete implementation sample: `/Users/alchain/Documents/写作/01-公众号写作/项目/2026.04-huashu-design发布/配图/hero-animation-v5.html`
-- Original inspiration: claude.ai/design hero video
-- Reference aesthetics: Apple product page, Dribbble shot collection pages
+- Full implementation sample: hero-animation-v5.html (the original author's local sample, not distributed with the repository)
+- Original inspiration: the claude.ai/design hero video
+- Reference aesthetics: Apple product pages, Dribbble shot collection pages
 
-When encountering animation needs for "multiple high-quality outputs to display", directly copy skeleton from this file, change content + adjust timing.
+When you need an animation that "displays multiple high-quality outputs", just copy the skeleton from this file, swap in your content, and tune the timing.

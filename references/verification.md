@@ -1,175 +1,169 @@
-# Verification: Output Verification Process
+# Verification: Output verification process
 
-Some design-agent native environments (like Claude.ai Artifacts) have built-in `fork_verifier_agent` to start subagent using iframe screenshot checking. Most agent environments (Claude Code / Codex / Cursor / Trae / etc.) don't have this built-in capability — using Playwright manually covers the same verification scenarios.
+Some design-agent native environments (like Claude.ai Artifacts) have a built-in `fork_verifier_agent` that spawns a subagent to screenshot-check with iframes. Most agent environments (Claude Code / Codex / Cursor / Trae / etc.) don't have this built-in capability — doing it manually with Playwright covers the same verification scenarios.
 
-## Verification Checklist
+## Verification checklist
 
-After each HTML output, run through this checklist:
+After every HTML output, run through this checklist:
 
-### 1. Browser Rendering Check (Mandatory)
+### 1. Browser rendering check (required)
 
-Most basic: **Can HTML open?** On macOS:
+The most basic: **can the HTML open?** On macOS:
 
 ```bash
 open -a "Google Chrome" "/path/to/your/design.html"
 ```
 
-Or use Playwright to screenshot (next section).
+Or screenshot with Playwright (next section).
 
-### 2. Console Error Check
+### 2. Console error check
 
-Most common issue in HTML files is JS errors causing white screen. Run with Playwright:
+The most common problem in HTML files is a JS error causing a white screen. Run it through Playwright:
 
 ```bash
-python ~/.claude/skills/claude-design/scripts/verify.py path/to/design.html
+python ~/.claude/skills/huashu-design/scripts/verify.py path/to/design.html
 ```
 
 This script will:
-1. Open HTML with headless chromium
-2. Screenshot to project directory
+1. Open the HTML with headless chromium
+2. Save a screenshot to the project directory
 3. Capture console errors
-4. Report status
+4. Report the status
 
 See `scripts/verify.py` for details.
 
-### 3. Multi-Viewport Check
+### 3. Multi-viewport check
 
-If responsive design, capture multiple viewports:
+If it's a responsive design, capture multiple viewports:
 
 ```bash
 python verify.py design.html --viewports 1920x1080,1440x900,768x1024,375x667
 ```
 
-### 4. Interaction Check
+### 4. Interaction check
 
-Tweaks, animation, button toggles — static screenshots by default don't show. **Recommend letting user open browser and click through themselves**, or use Playwright to record video:
+Tweaks, animations, button toggles — the default static screenshots can't show them. **Recommend letting the user open the browser and click through it themselves**, or record with Playwright:
 
 ```python
 page.video.record('interaction.mp4')
 ```
 
-### 5. Slide-by-Slide Check
+### 5. Slide-by-slide check
 
-For deck-style HTML, screenshot page by page:
+For deck-type HTML, screenshot page by page:
 
 ```bash
-python verify.py deck.html --slides 10  # Screenshot first 10
+python verify.py deck.html --slides 10  # screenshot the first 10 slides
 ```
 
 Generates `deck-slide-01.png`, `deck-slide-02.png`... for quick browsing.
 
-## Playwright Setup
+## Playwright setup
 
-First-time use needs:
+First-time use requires:
 
 ```bash
 # If not installed yet
 npm install -g playwright
 npx playwright install chromium
 
-# Or Python version
+# Or the Python version
 pip install playwright
 playwright install chromium
 ```
 
-If user already has Playwright installed globally, use directly.
+If the user already has Playwright installed globally, use it directly.
 
-## Screenshot Best Practices
+## Screenshot best practices
 
-### Screenshot full page
+### Capture the full page
 
 ```python
 page.screenshot(path='full.png', full_page=True)
 ```
 
-### Screenshot viewport
+### Capture the viewport
 
 ```python
-page.screenshot(path='viewport.png')  # Only captures visible area by default
+page.screenshot(path='viewport.png')  # default only captures the visible area
 ```
 
-### Screenshot specific element
+### Capture a specific element
 
 ```python
 element = page.query_selector('.hero-section')
 element.screenshot(path='hero.png')
 ```
 
-### High-DPI screenshot
+### High-DPI screenshots
 
 ```python
 page = browser.new_page(device_scale_factor=2)  # retina
 ```
 
-### Wait for animation before screenshot
+### Wait for animations to finish before capturing
 
 ```python
-page.wait_for_timeout(2000)  # Wait 2 seconds for animation to settle
+page.wait_for_timeout(2000)  # wait 2 seconds for the animation to settle
 page.screenshot(...)
 ```
 
-## Sending Screenshots to User
+## Sending screenshots to the user
 
-### Open local screenshot directly
+### Open a local screenshot directly
 
 ```bash
 open screenshot.png
 ```
 
-User will view in their Preview/Figma/VSCode/browser.
+The user will view it in their Preview/Figma/VSCode/browser.
 
-### Upload to image hosting to share link
+### Upload to an image host to share a link
 
-If need to share with remote collaborators (e.g., Slack/Feishu/WeChat), let user use their image hosting tool or MCP to upload:
+If you need to show remote collaborators (e.g., Slack/Feishu/WeChat), have the user upload the screenshot with their own image-hosting tool or MCP to get a permanent link that can be pasted anywhere.
 
-```bash
-python ~/Documents/写作/tools/upload_image.py screenshot.png
-```
-
-Returns ImgBB permanent link, can paste anywhere.
-
-## When Verification Errors
+## When verification fails
 
 ### White screen
 
-Console definitely has errors. Check first:
+The console definitely has errors. Check first:
 
-1. React+Babel script tag integrity hash correct? (see `react-setup.md`)
-2. Is `const styles = {...}` naming conflict?
-3. Cross-file components exported to `window`?
-4. JSX syntax error (babel.min.js doesn't report, use non-minified babel.js)
+1. Whether the integrity hash on the React+Babel script tag is correct (see `react-setup.md`)
+2. Whether there's a `const styles = {...}` naming conflict
+3. Whether cross-file components are exported to `window`
+4. JSX syntax errors (babel.min.js doesn't report them; switch to the non-minified babel.js)
 
 ### Animation lag
 
-- Use Chrome DevTools Performance tab to record一段
-- Find layout thrashing (frequent reflow)
-- Animation prefer `transform` and `opacity` (GPU accelerated)
+- Record a section with the Chrome DevTools Performance tab
+- Look for layout thrashing (frequent reflow)
+- Prefer `transform` and `opacity` for animations (GPU accelerated)
 
 ### Wrong fonts
 
-- Check if `@font-face` URL accessible
-- Check fallback fonts
-- Chinese fonts load slow: show fallback first, switch after loaded
+- Check whether the `@font-face` URL is accessible
+- Check the fallback fonts
+- Chinese fonts load slowly: show the fallback first, switch after it finishes loading
 
 ### Layout misalignment
 
-- Check if `box-sizing: border-box` applied globally
-- Check `* { margin: 0; padding: 0 }` reset
-- In Chrome DevTools, turn on gridlines to see actual layout
+- Check whether `box-sizing: border-box` is applied globally
+- Check the `* { margin: 0; padding: 0 }` reset
+- Turn on gridlines in Chrome DevTools to see the actual layout
 
-## Verification = Designer's Second Pair of Eyes
+## Verification = the designer's second pair of eyes
 
-**Always run through yourself**. When AI writes code, often:
+**Always review it yourself.** When AI writes code, it often:
 
-- Looks right but interaction has bugs
-- Static screenshot good but scrolls misaligned
-- Wide screen looks good but narrow screen breaks
-- Dark mode forgot to test
-- Some components don't respond after Tweaks switch
+- Looks right but has interaction bugs
+- Screenshots fine statically but misaligns on scroll
+- Looks good wide but breaks narrow
+- Forgets to test dark mode
+- Has some components that don't respond after a Tweaks toggle
 
-**Last minute of verification saves 1 hour of rework**.
+**1 minute of verification at the end saves 1 hour of rework.**
 
-## Common Verification Script Commands
+## Common verification script commands
 
 ```bash
 # Basic: open + screenshot + capture errors
@@ -181,9 +175,26 @@ python verify.py design.html --viewports 1920x1080,375x667
 # Multiple slides
 python verify.py deck.html --slides 10
 
-# Output to specified directory
+# Output to a specified directory
 python verify.py design.html --output ./screenshots/
 
-# headless=false, open real browser for you to see
+# headless=false, opens a real browser for you to see
 python verify.py design.html --show
 ```
+
+## Hard validation of video artifacts (verify-video.sh)
+
+Don't rely on eyeballing the rendered MP4/final film — hard-validate it with a script (the HTML composition side is audited by the `hyperframes check` five-gate audit; this script only handles the artifact side):
+
+```bash
+# Final film (an audio track is required by default)
+bash scripts/verify-video.sh final.mp4 --duration=22 --fps=60 --width=1920 --height=1080
+
+# Silent intermediate artifact
+bash scripts/verify-video.sh raw.mp4 --duration=10 --fps=60 --no-audio
+
+# Deliberately cinematic black-open
+bash scripts/verify-video.sh film.mp4 --duration=30 --fps=60 --allow-black-open
+```
+
+Checks: resolution/frame rate, duration tolerance (±2%), audio stream existence (the machine-executed rule that no audio track = unfinished film), black frames at head/tail (blackdetect, a typical symptom of recording offset/loop bounce-back), LUFS loudness (final film target −14±4). A non-zero exit code means it must not be delivered.
