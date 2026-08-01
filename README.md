@@ -34,13 +34,16 @@ npx skills add namandhakad712/huashu-design-en
 
 ## Available Languages
 
-This skill is also available in other languages:
+This skill is also available in other languages (community-maintained; translation quality and license terms are the responsibility of each maintainer):
 
 | Language | Maintainer | Repository |
 |----------|------------|-------------|
 | 中文 (original) | alchaincyf | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
-| 한국어 | ktkarchive | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
-| Vietnamese | @letrquan | [[letrquan/huashu-design](https://github.com/letrquan/huashu-design)] |
+| English | [@namandhakad712](https://github.com/namandhakad712) | [namandhakad712/huashu-design-en](https://github.com/namandhakad712/huashu-design-en) |
+| 한국어 (Korean) | [@ktkarchive](https://github.com/ktkarchive) | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
+| Tiếng Việt (Vietnamese) | [@letrquan](https://github.com/letrquan) | [letrquan/huashu-design](https://github.com/letrquan/huashu-design) |
+
+Want to add your language? Fork the repo, translate `SKILL.md` + `README.md`, and open an issue there so it can be linked.
 
 </div>
 
@@ -232,6 +235,12 @@ Claude Design is a **better graphics tool**. Huashu-design makes **the graphics-
 
 ---
 
+## Security & Data Flow
+
+The core pipeline (design → render → MP4/PDF/PPTX export) runs **100% locally — zero network calls, zero API keys**. Cloud features (Doubao TTS narration, AI video review) are isolated in `scripts/cloud/`, fully optional: your own keys, official vendor APIs only, and an explicit `--yes` consent gate before anything leaves your machine. No telemetry; nothing is ever sent to any author-controlled server. Every outbound host, credential touchpoint, and deletion boundary is exhaustively declared in [SECURITY.md](SECURITY.md) — point your agent at it and verify against the code.
+
+---
+
 ## Limitations
 
 - **No layer-editable PPTX-to-Figma round-trip.** The output is HTML — screenshottable, recordable, image-exportable, but not draggable into Keynote for text-position tweaks.
@@ -245,10 +254,11 @@ This is an 80-point skill, not a 100-point product. For people unwilling to open
 ## Repository Structure
 
 ```
-huashu-design/
-├── SKILL.md                 # Main doc (read by agent, Chinese)
-├── README.md                # Chinese README (default)
-├── README.en.md             # English README (this file)
+huashu-design-en/
+├── SKILL.md                 # Main doc (read by agent, English)
+├── README.md                # English README (this file)
+├── SECURITY.md              # Data-flow & security declaration
+├── package.json             # Export toolchain dependencies
 ├── assets/                  # Starter Components
 │   ├── animations.jsx       # Stage + Sprite + Easing + interpolate
 │   ├── ios_frame.jsx        # iPhone 15 Pro bezel
@@ -260,7 +270,7 @@ huashu-design/
 │   ├── design_canvas.jsx    # Side-by-side variation display
 │   ├── showcases/           # 24 prebuilt samples (8 scenes × 3 styles)
 │   └── bgm-*.mp3            # 6 scene-specific background tracks
-├── references/              # Drill-down docs by task (Chinese)
+├── references/              # Drill-down docs by task (English)
 │   ├── animation-pitfalls.md
 │   ├── design-styles.md     # 20 design philosophies in detail
 │   ├── slide-decks.md
@@ -303,7 +313,7 @@ Under the [MIT License](LICENSE) you are free to **use, modify, and distribute**
 
 ## Connect · Huasheng (Huashu)
 
-Huasheng is an AI-native coder, independent developer, and AI content creator. Notable work: Cat Fill Light (App Store Top 1 in Paid category), *A Book on DeepSeek*, Nüwa.skill (GitHub 12k+ stars). Combined 300k+ followers across platforms.
+Huasheng is an AI-native coder, independent developer, and AI content creator. Notable work: Cat Fill Light (App Store Top 1 in Paid category), *A Book on DeepSeek*, Nüwa.skill (GitHub 21k+ stars). Combined 300k+ followers across platforms.
 
 | Platform | Handle | Link |
 |---|---|---|
@@ -328,6 +338,6 @@ For collaborations or sponsored content, DM on any of the above.
 | Original Author | Peanut (Uncle Hua) / alchaincyf |
 | English Version Maintainer | [namandhakad712](https://github.com/namandhakad712) |
 | Translation Scope | README, SKILL.md, references (complete) |
-| License | Identical to original (Free for personal use / Prohibited for corporate commercial use) |
+| License | MIT (identical to original, relicensed 2026-05-14) |
 
 For issues, contributions, or inquiries about the English version, please use the Issues section of this repository.
