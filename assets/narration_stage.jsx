@@ -403,7 +403,7 @@ const NarrationStageLib = (() => {
    *   haloColor 光晕色，默认 rgba(245,241,232,0.9)（适合 #f5f1e8 底）
    *   maxLen    单行最大视觉长度，默认 13
    *
-   深底场景：把 color 改成 '#fff'，haloColor 改成 'rgba(0,0,0,0.85)' 即可。
+   * 深底场景：把 color 改成 '#fff'，haloColor 改成 'rgba(0,0,0,0.85)' 即可。
    *
    * 卡拉OK模式（字级高亮，需 timeline chunks 里带 words——narrate-pipeline.mjs 默认输出）：
    *   karaoke       true 开启，默认 false。整行显示，读到哪个字哪个字变色
