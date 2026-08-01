@@ -6,12 +6,16 @@
 .video-tmp-*/
 **/.video-tmp-*/
 
-# Narration temp (TTS mp3, timeline.json, voiceover)
-**/_narration/
-**/_narration_*/
-
 # Personal asset index（个人真实数据，只保留 .example.json 模板）
 assets/personal-asset-index.json
+
+# 环境变量（API key 等敏感信息，只保留 .env.example 模板）
+.env
+.env.local
+
+# Voiceover 工作目录（TTS mp3、timeline.json 临时产物，可重新生成）
+**/_narration/
+**/_narration_*/
 
 # Node / editor / OS
 node_modules/
@@ -24,4 +28,14 @@ Thumbs.db
 demos/_frames_*.png
 demos/_verify.js
 demos/_verify.mjs
+
+# 开发/测试中间产物（skill 内部研发用，不分发给用户）
+_style-research/
+**/design-demos/
+
+# Demo 大视频（用 GitHub Releases 分发，不进仓库膨胀）
+demos/**/*.mp4
+__pycache__/
+
+# PARITY-AGENT.md（本地同步工作流说明，不分发）
 PARITY-AGENT.md
