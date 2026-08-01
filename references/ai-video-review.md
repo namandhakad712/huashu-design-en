@@ -16,10 +16,10 @@
 ## How to use
 
 ```bash
-cd 项目目录 && unset ALL_PROXY   # script is already proxy-immune; unset is a double safeguard
+cd <project-dir> && unset ALL_PROXY   # script is already proxy-immune; unset is a double safeguard
 uv run ~/.claude/skills/huashu-design/scripts/cloud/ai-review-video.py \
-  --video 成片.mp4 \
-  --context 导演稿.md \      # highly recommended: the model uses it to distinguish "design intent" from "bug"
+  --video <final>.mp4 \
+  --context <director-notes>.md \      # highly recommended: the model uses it to distinguish "design intent" from "bug"
   --yes                      # confirm sending video segments to Volcano Ark (or HUASHU_CLOUD_OK=1)
 ```
 
@@ -55,4 +55,4 @@ uv run ~/.claude/skills/huashu-design/scripts/cloud/ai-review-video.py \
 
 ## Measured baseline
 
-First run target: B00-前三分钟主线-SFX.mp4 (210s). The model independently spotted the inter-act transition problem and pointed in the right direction on the hero breakpoint, but misreported fades as hard cuts; pure-model dead-segment detection only hit 3/14, and after wiring in freezedetect it covered everything. Conclusion: the objective detection layer is the lower-bound guarantee of this loop, while the model handles semantic judgment.
+First run target: B00-first-3-minutes-mainline-SFX.mp4 (210s). The model independently spotted the inter-act transition problem and pointed in the right direction on the hero breakpoint, but misreported fades as hard cuts; pure-model dead-segment detection only hit 3/14, and after wiring in freezedetect it covered everything. Conclusion: the objective detection layer is the lower-bound guarantee of this loop, while the model handles semantic judgment.

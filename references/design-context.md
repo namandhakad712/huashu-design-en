@@ -64,7 +64,7 @@ Must-ask checklist at task start (from `workflow.md`):
 Don't give up directly. Try:
 
 ```markdown
-Let me see if there's any线索:
+Let me see if there are any clues:
 - Do you have related designs from previous projects?
 - What colors/typography does your company's marketing website use?
 - What's the style of your product's logo? Can you send me one?

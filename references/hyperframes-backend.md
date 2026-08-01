@@ -22,8 +22,8 @@
 > ⚠️ Install warning: besides generating project files, `hyperframes init` also installs **19 hyperframes skills into `~/.claude/skills/`** (composition contract docs for the rendering backend — pure documentation, no executable hooks). If that bothers you, run `npx hyperframes docs` first to see the local doc list before deciding whether to init.
 
 ```bash
-npx -y hyperframes init 项目名 --example blank   # non-interactive mode requires --example
-cd 项目名 && npm install
+npx -y hyperframes init <project-name> --example blank   # non-interactive mode requires --example
+cd <project-name> && npm install
 ```
 
 Generates index.html / hyperframes.json / meta.json / package.json (pinned CLI version) + a project-level CLAUDE.md. init installs the 19 hyperframes skills into `~/.claude/skills/` (already installed on this machine). For the composition authoring contract, read the hyperframes-core skill's SKILL.md (init installs them into each runtime's skill directory; Claude Code defaults to `~/.claude/skills/`; runtimes without a skill mechanism just read `npx hyperframes docs` local docs instead). Local docs: `npx hyperframes docs <topic>` (data-attributes / gsap / rendering / troubleshooting).
@@ -63,7 +63,7 @@ In-house Stage / plain render(t) animations don't need rewriting; four steps:
 ```bash
 npm run check                        # five-gate audit: lint+runtime+layout+motion+contrast
 npx hyperframes check --no-contrast  # for dark cinematic style (see below)
-npx -y hyperframes@<pin版本> render --fps 60   # final render; 30fps by default
+npx -y hyperframes@<pin-version> render --fps 60   # final render; 30fps by default
 ```
 
 - **check must be 0 errors before rendering** (except the contrast gate). lint catches a whole class of "no-warning visual bugs" — letterSpacing jitter, missing fonts, non-determinism, etc.
