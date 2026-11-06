@@ -1,6 +1,6 @@
 # Typography: a reasoning system for typesetting
 
-> **This is not a font list; it is the reasoning rules for pairing and layout.** `design-styles.md` already gives each of the 40 styles its font names; this file answers "why pair them this way" and "given any content, how to derive font size / line length / weight." Goal: the same style label, applied to different content, should yield different typesetting outcomes — not the same font sizes copied every time.
+> **This is not a font list; it is the reasoning rules for pairing and layout.** `design-styles.md` already gives each of the 60 styles its font names; this file answers "why pair them this way" and "given any content, how to derive font size / line length / weight." Goal: the same style label, applied to different content, should yield different typesetting outcomes — not the same font sizes copied every time.
 >
 > The standing discipline is unchanged: when there's a design context, lift the user's own fonts first (see `design-context.md`); everything in this file only kicks in when "the user has no font spec."
 
@@ -105,7 +105,7 @@ Three sources of contrast for a pairing; decide which one you're using before pa
 | 9 | Cormorant Garamond + Work Sans | High-contrast luxury: Cormorant's hairlines are extremely thin; **it only works at ≥40px** — strokes break at small sizes; suited to fashion / cosmic catalog aesthetics | bold | Google Fonts |
 | 10 | Geist Mono / JetBrains Mono + Geist | Mono as protagonist: command-line and engineering feel; mono only for labels / numbering / code — a full body paragraph in mono is a disaster (line length inflates 30%) | neutral·technical | Vercel / JetBrains official, both OFL |
 
-**The overused list** (fingerprints of AI-generated pages; using them is self-incrimination):
+**The overused list** (single fonts overused to saturation by AI tools; switching to the substitute is usually better):
 
 | Overused | Why it's overused | Substitute |
 |--------|----------|------|
@@ -113,6 +113,8 @@ Three sources of contrast for a pairing; decide which one you're using before pa
 | Inter as display | Inter was designed for small UI text; at large sizes it's uniform and expressionless | Archivo, Anton, Schibsted Grotesk |
 | Space Grotesk | the lazy answer to "techy feel," flooded across crypto/AI landing pages | Schibsted Grotesk, Familjen Grotesk |
 | Playfair Display | the lazy answer to "elegance," wedding-invitation vibes | Cormorant (more extreme), DM Serif Display (more wholesome) |
+
+The "high-contrast serif × warm cream background" **combination** is not on the list: it's a look family, not one overused font. Using it is fine — just don't crowd all three directions into it, and don't use it on every project — that's the look ledger's business (`references/content-guidelines.md`).
 
 ## 4. Chinese typesetting (the weightiest chapter here)
 
@@ -142,8 +144,8 @@ Selection reasoning: **body text only picks among serif / sans / kai** (everythi
 ```css
 /* Latin first, Chinese after, system Chinese as fallback, generic to finish */
 font-family: "Geist", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-/* same for serif */
-font-family: "Newsreader", "Noto Serif SC", "Songti SC", serif;
+/* same for serif (font names here are just examples — pick per the pairing table and the subject) */
+font-family: "Source Serif 4", "Noto Serif SC", "Songti SC", serif;
 ```
 
 Why this order: font-family matches character by character. A Latin font contains no CJK codepoints, so hanzi naturally fall through to the Chinese font. Written the other way (Chinese first), every Latin character gets eaten by the Chinese font — the pairing is wasted.
@@ -225,7 +227,7 @@ Chinese has no display-font ecosystem like Latin's Ultra Thin through Black; the
 :root {
   /* 1. fallback chain: Latin → Chinese → system Chinese → generic (order is the rule, see 4.2) */
   --font-body: "Geist", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-display: "Newsreader", "Noto Serif SC", "Songti SC", serif;
+  --font-display: "<pick per the pairing table for this subject>", "Noto Serif SC", "Songti SC", serif;  /* don't default-fill a serif */
 
   /* 2. ban synthesis: refuse browser-forged italics/bold (mandatory for Chinese scenarios) */
   font-synthesis: none;

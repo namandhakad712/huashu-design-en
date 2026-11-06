@@ -232,7 +232,7 @@ Prepare the images/icons/fonts the animation needs **up front**. Don't go huntin
 This skill does **HTML animation** (running in the browser). If the final output is to be used as video material:
 
 - **Short animations / concept demos**: make HTML animation with these methods → screen record
-- **Long videos / narratives** (5-20 minutes with voiceover): go through SKILL.md Step 9.5's voiceover-driven pipeline (`voiceover-pipeline.md`); don't outsource to other tools
+- **Long videos / narratives** (5-20 minutes with voiceover): go through the voiceover-driven line in `references/modules/motion.md` (`voiceover-pipeline.md`); don't outsource to other tools
 - **Motion graphics**: professional After Effects / Motion Canvas is more suitable
 
 ## When You Need Physics Animation (spring / decay)

@@ -397,7 +397,7 @@ When mounting `render(t)` into a GSAP timeline with a proxy tween (the old-demo 
 
 The `npm run check` contrast gate checks all text against WCAG AA 4.5:1. In dark cinematic designs, 16-40% opacity watermarks, mono labels, and decorative text are **deliberately** low-contrast (part of the cinematic feel); they'd report errors on delivery, and the framework has no per-element exemption mechanism. In the c3 measurements, all 42 contrast errors were by design.
 
-**Fix**: for dark cinematic output use `npx hyperframes check --no-contrast`; the lint/runtime/layout/motion four gates must still be 0 errors. **For light-background informational output, don't skip contrast** — errors in that context are usually real readability problems (the readability hard floor is in the SKILL.md Fallback section).
+**Fix**: for dark cinematic output use `npx hyperframes check --no-contrast`; the lint/runtime/layout/motion four gates must still be 0 errors. **For light-background informational output, don't skip contrast** — errors in that context are usually real readability problems (the readability hard floor is in SKILL.md's Narrow Bridge §5).
 
 ## 21. 【HyperFrames/GSAP】the fromTo immediateRender Phantom — Elements Appear Seconds Early
 
@@ -444,7 +444,7 @@ GSAP's `fromTo()` defaults to `immediateRender: true`: when the timeline is buil
 - [ ] The ending Sprite's `fadeOut` is set to 0 (stop on a crisp frame at the video tail)?
 - [ ] 60fps MP4 defaults to frame-duplication mode (compatibility), with `--minterpolate` only for high-quality interpolation?
 - [ ] After export, extract frame 0 + last frame to verify they're the animation's initial/final states?
-- [ ] Involves a specific brand (Stripe/Anthropic/Lovart/...): did you run the full "brand asset protocol" (SKILL.md §1.a, five steps)? Did you write `brand-spec.md`?
+- [ ] Involves a specific brand (Stripe/Anthropic/Lovart/...): did you run the full "Core Asset Protocol" (SKILL.md Narrow Bridge §2, five steps)? Did you write `brand-spec.md`?
 - [ ] Single-file delivery HTML: `animations.jsx` is inlined, not `src="..."`? (external .jsx goes black from CORS under file://)
 - [ ] Cross-scene elements (chapter labels/watermarks/scene numbers) have no hard-coded colors? Visible against every scene's background?
 - [ ] For offline / truly self-contained: React+ReactDOM inlined locally, **both the app and the `animations.jsx` engine pass through Babel transpile**, fonts use system fonts? (see bug #17; the engine contains JSX, missing the transpile guarantees `Unexpected token '<'`)

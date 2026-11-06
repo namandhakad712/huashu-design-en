@@ -12,7 +12,7 @@
 | Reusing/revamping an old Stage demo | Migrate it while at it (adapter recipe below, 20-30 min each); if only re-rendering without changes, keep using render-video-seek.js |
 | Weak runtime (no npm / can't install dependencies / single-file delivery for users to double-click open) | In-house Stage (assets/animations.jsx), old flow unchanged |
 | Interactive demos (users play in the browser, no video export) | In-house Stage or plain HTML; HyperFrames is a rendering pipeline, not an interaction framework |
-| Long narrated videos (Step 9.5, driven by narration_stage) | **In-house narration pipeline** (voiceover-pipeline.md + render-narration.sh), not HyperFrames for now — the dual time sources / subtitles / TTS timeline are deeply coupled to the in-house Stage; when both this row and "animations default to HyperFrames" apply, this row wins |
+| Long narrated videos (driven by narration_stage) | **In-house narration pipeline** (voiceover-pipeline.md + render-narration.sh), not HyperFrames for now — the dual time sources / subtitles / TTS timeline are deeply coupled to the in-house Stage; when both this row and "animations default to HyperFrames" apply, this row wins |
 | Batch parametrized videos (mass customization / template text swaps) | Remotion (see roadmap direction 5, independent of this skill's main flow) |
 
 **The design language always calls the shots**: narrative structure, the easing system, and the SFX/BGM dual-track system all still apply as before (animation-best-practices.md / audio-design-rules.md); HyperFrames is only the implementation and rendering tool. GSAP implementation recipes are in `references/gsap-recipes.md`.

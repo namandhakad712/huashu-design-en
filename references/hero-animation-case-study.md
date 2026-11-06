@@ -162,6 +162,8 @@ const panY = Math.cos(panT * 0.09) * 120 - panT * 5;
 
 ### 2. **Paper-toned background + terracotta orange accent (Anthropic heritage)**
 
+> This is the skill's own hero animation (a Claude-ecosystem subject) making its brand choice — **don't transplant it as a default onto other subjects**. What transfers is the method of "one accent threading every visual anchor", not these two color values.
+
 ```css
 --bg: #F7F4EE;        /* warm paper */
 --ink: #1D1D1F;       /* near black */

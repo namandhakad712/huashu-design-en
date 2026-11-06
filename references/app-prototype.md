@@ -1,6 +1,7 @@
 # App / iOS Prototype-Specific Guidelines · Complete Operations Manual
 
-> The full version spun down from SKILL.md. SKILL.md keeps a quick reference of the 7 hard rules; this file expands each rule: architecture selection, image sources and code, the AppPhone JSX skeleton, the three-step ios_frame usage, and the full taste-anchor table.
+> The complete App / iOS prototype manual that SKILL.md routes to here: architecture selection, image sources and code, the AppPhone JSX skeleton, ios_frame usage, taste anchors.
+> The three technical red lines of single-file inline React (style objects must be uniquely named, e.g. `const terminalStyles = {}`; components are shared between babel scripts via `Object.assign(window, …)`; no `scrollIntoView`) and the pinned versions are in `references/react-setup.md` — read it before writing. The three-direction gate still applies (`references/directions.md`); when the three versions' phones sit side by side, run compare with `--ignore-layout`.
 
 
 When building iOS/Android/mobile app prototypes (triggers: "app prototype", "iOS mockup", "mobile app", "make an app"), the four rules below **override** the generic placeholder principles — an app prototype is a live demo; static staged mockups and beige placeholder cards aren't convincing.
@@ -60,7 +61,7 @@ The iOS app prototype has **exactly one default delivery format — stop asking 
 | Dimension | Default approach |
 |------|---------|
 | **Screen count** | Tile **4-6 main screens** (covering the app's core feature surface, not just any screens). If there are more than 6, take the 4-6 most important; the rest are reachable via tabs/navigation within a single phone |
-| **Layout** | Multiple standalone iPhones side by side with `flexWrap`, each with a small italic label line above it indicating which screen it is |
+| **Layout** | One composed display board, not a row of equal-sized phones (see "Display board" below); a label line beside each phone saying which screen it is |
 | **Interaction per phone** | Each phone is an independent mini state machine: the tab bar switches, buttons/cards/toggles inside the screen are clickable, modals can pop up — not a static staged mockup |
 
 **Only two exceptions deviate from the default** (only when the user explicitly says so; otherwise always the default):
@@ -100,6 +101,22 @@ function AppPhone({ initial }) {
 
 Screen components take callback props (`onTabChange`, `onOpen`, `onClose`, `onToggle`, `onAnnotation`) instead of hardcoding state. TabBar, buttons, work cards, and toggles get `cursor: pointer` + hover feedback. Each phone lands on a different main screen, but they can reach each other after tab switching — tiling gives the overview, clicking gives the depth.
 
+The flex above is just the minimal skeleton to get it running — swap it for a presentation-board composition before delivery.
+
+#### Presentation board: don't line the phones up in a row
+
+In blind reviews, for app prototypes in any direction, whenever five or six equal-sized phones sit evenly spaced in a row, the user verdict is always "too regimented, too boring". However good the screens themselves are, what the eye hits first is a tidy grid. The display board is this direction's first poster, and it needs design of its own:
+
+| Technique | How | Suits |
+|---|---|---|
+| Hierarchy | Enlarge the screen that best represents the app to 1.2–1.4× at the visual center; shrink and scatter the rest around it at uneven heights | Almost always — the first choice |
+| Flow chaining | Arrange in the order of the user's real task; thin lines run from "what was tapped" to "which screen it leads to", with the caption beside the line | Apps with one main task flow (ordering, logging, trip mode) |
+| Close-up | Beside one screen, place a 2–3× close-up of a key component: the signature interaction, a data visualization, one carefully made control | When there's a detail worth remembering |
+| Contextual backdrop | The board's background uses the app's context of use: real photos, the subject's colors, its materials — not a blank white canvas | Subjects with a strong scene (outdoors, kitchen, night) |
+| Board typography | The board gets its own title area: app name, a one-line positioning, screen labels, in this direction's own type and colors | Always |
+
+Only three rules: the board's background and type follow the direction (a dark direction gets a dark board — no uniform white canvas); every phone stays clickable; screens don't shrink below legibility (each phone at least 300px wide). The three directions' board compositions must also differ — this is the most easily overlooked difference between the three directions.
+
 ### 3. Run a real click-through test before delivery
 
 Static screenshots only show the layout; interaction bugs are only found by clicking through. Use Playwright to run 3 minimal click tests: enter details / key annotation points / tab switching. Confirm `pageerror` is 0 before delivering. Playwright can be invoked via `npx playwright`, or via the machine's global install path (`npm root -g` + `/playwright`).
@@ -110,8 +127,8 @@ Without a design system, default to these directions to avoid hitting AI slop:
 
 | Dimension | Preferred | Avoid |
 |------|------|------|
-| **Typography** | Serif display (Newsreader/Source Serif/EB Garamond) + `-apple-system` body | SF Pro or Inter everywhere — too close to the system default, no personality |
-| **Color** | One warm background tone + a **single** accent throughout (rust orange / dark green / deep red) | Multi-color clustering (unless the data genuinely has ≥3 categorical dimensions) |
+| **Typography** | Display chosen per subject (`references/typography.md` pairing table), `-apple-system` body | SF Pro or Inter everywhere — too close to the system default |
+| **Color** | Colors sampled from the product's subject and real photos (the color derivation protocol), one primary color throughout | Multi-color clustering (unless the data genuinely has ≥3 categorical dimensions) |
 | **Information density · restrained** (default) | One fewer container layer, one fewer border, one fewer **decorative** icon — give the content room to breathe | Every card paired with a meaningless icon + tag + status dot |
 | **Information density · high-density** (exception) | When the product's core selling point is "intelligence / data / context-awareness" (AI tools, dashboards, trackers, Copilot, Pomodoro timers, health monitoring, expense trackers), every screen needs **at least 3 visible product-differentiating pieces of information**: non-decorative data, conversation/reasoning snippets, state inference, contextual relations | Just a button and a clock — the AI's intelligence isn't expressed, no different from an ordinary app |
 | **Detail signature** | Keep one "screenshot-worthy" texture: a very faint oil-painting texture / a serif italic quote / a full-screen black recording waveform | Spreading effort evenly everywhere, ending up bland in every spot |

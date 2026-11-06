@@ -2,6 +2,45 @@
 
 Some design-agent native environments (like Claude.ai Artifacts) have a built-in `fork_verifier_agent` that spawns a subagent to screenshot-check with iframes. Most agent environments (Claude Code / Codex / Cursor / Trae / etc.) don't have this built-in capability — doing it manually with Playwright covers the same verification scenarios.
 
+## 🔴 Rule 0: Verify Your Verification Tools First
+
+**Before trusting any rendering result, first confirm the renderer itself can render correctly.** This comes
+before all other verification, because when the tool can't be trusted, every step after it is handing you fake
+green lights.
+
+Two real-world failures (2026-09, one PPTX delivery with the client's template):
+
+- **macOS `qlmanage -t` thumbnails let 4 text-overlap-causing bugs through**. It takes a simplified
+  rendering path and is far more forgiving about line spacing than real PowerPoint — 20 pages checked one by
+  one all looked fine, and the moment the user opened it in WPS, text was sitting on text.
+  **A thumbnail is not a render; never use it as an acceptance basis.**
+- **LibreOffice on macOS rendered a Chinese PPTX as nothing but tofu blocks**, which at first looked like a
+  corrupted file.
+
+**How to tell a tool problem from an artifact problem: run a control experiment.**
+Feed the same renderer a **known-good file of the same kind** — in the second case above, rendering the
+client's original official template made its Chinese text disappear just the same, instantly proving it was
+an environment problem, not your file. This step saves hours of debugging in the wrong direction.
+
+**Trust ranking (macOS)**:
+
+| Tool | Can it be trusted |
+|---|---|
+| `qlmanage -t` thumbnails | ❌ Not acceptable as an acceptance basis |
+| LibreOffice headless | ⚠️ Layout trustworthy; fonts/Chinese may drop out entirely |
+| Keynote + AppleScript export to PDF | ✅ The first choice for automation — a real layout engine |
+| The target app itself (PowerPoint / WPS) opening it | ✅ Final confirmation, human eyes |
+
+⚠️ **Don't use System Events to inject keystrokes** to drive a GUI through pages for screenshots — the
+keystrokes land in whatever window the user is currently typing in. Either use AppleScript's document-level
+APIs (like Keynote's `export`), or look manually.
+
+**Pair it with one mechanical check that depends on no renderer at all**: character-by-character text
+comparison (source data vs artifact, must be exactly equal after `re.sub(r'\s+','')`) and per-page
+element-count comparison. A renderer can fool the eye, but not a count.
+
+---
+
 ## Verification checklist
 
 After every HTML output, run through this checklist:

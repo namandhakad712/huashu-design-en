@@ -18,7 +18,7 @@ Default recommendation: **add 2-3 tweaks to every design** (color theme / font s
 
 ```jsx
 const TWEAK_DEFAULTS = {
-  "primaryColor": "#D97757",
+  "primaryColor": "#2F6F5E",
   "fontSize": 16,
   "density": "comfortable",
   "dark": false
@@ -277,7 +277,7 @@ If you later want to upload the design to an environment that supports source-le
 
 ```jsx
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "primaryColor": "#D97757",
+  "primaryColor": "#2F6F5E",
   "fontSize": 16,
   "density": "comfortable",
   "dark": false

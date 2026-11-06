@@ -2,9 +2,18 @@
 
 This document covers the path of using `scripts/html2pptx.js` + `pptxgenjs` to translate HTML element-by-element into truly editable PowerPoint text boxes — the only path supported by `export_deck_pptx.mjs`.
 
-> **Core prerequisite**: To follow this path, the HTML must be written with the following 4 constraints from the very first line. **Not "convert after writing"** — retroactive fixes trigger 2-3 hours of rework (burned in practice on the 2026-04-20 Options Private Board Meeting project).
+> ## 🔴 Pick your route first: this document covers only one of the two routes
 >
-> For scenarios that prioritize visual freedom (animations / web components / CSS gradients / complex SVG), switch to the PDF path instead (`export_deck_pdf.mjs` / `export_deck_stage_pdf.mjs`), and **don't** expect the PPTX export to combine visual fidelity with editability — this is a physical constraint of the PPTX file format itself (see "Why the 4 Constraints Are Not Bugs But Physical Constraints" at the end).
+> | Situation | Which route |
+> |---|---|
+> | **HTML not written yet**, building the deck from scratch | **This document** (write to the 4 hard constraints → `html2pptx.js`). Cleanest structure, best suited for later editing |
+> | **HTML already written**, and visually driven (flex / centering / bare text / background images / SVG charts) | → `references/pptx-from-rendered-html.md` (reads rendered coordinates, **zero refactoring**) |
+> | **The client insists "you must use our template"** | → Same as above — **that's the only route that works**. pptxgenjs cannot use an existing pptx as the base to inherit its masters |
+>
+> Don't mix the two routes in the same project. The 4 constraints below hold only for this document's route —
+> a visual draft that's already written does **not** need to be rewritten into compliant structure just to convert to PPTX.
+>
+> **Core prerequisite**: To follow this path, the HTML must be written with the following 4 constraints from the very first line. **Not "convert after writing"** — retroactive fixes trigger 2-3 hours of rework (burned in practice on the 2026-04-20 Options Private Board Meeting project).
 
 ---
 
@@ -18,7 +27,7 @@ PPTX units are **inches** (physical size), not px. Decision principle: the body'
 |---|---|---|---|
 | **`960pt × 540pt`** | **13.333″ × 7.5″** | **pptxgenjs `LAYOUT_WIDE`** | ✅ **Default recommended** (standard on modern PowerPoint 16:9) |
 | `720pt × 405pt` | 10″ × 5.625″ | Custom | Only when the user specifies a "legacy PowerPoint Widescreen" template |
-| `1920px × 1080px` | 20″ × 11.25″ | Custom | ❌ Non-standard size, fonts look abnormally small when projected |
+| `1920px × 1080px` | 20″ × 11.25″ | Custom | ❌ Non-standard on this document's route — fonts look abnormally small when projected. ⚠️ But **when inheriting the client's template, the canvas must follow the template** (26.67″×15″ seen in practice); for that route see `pptx-from-rendered-html.md` |
 
 **Don't think of HTML size as resolution.** PPTX is a vector document; the body size determines **physical size**, not clarity. An oversized body (20″×11.25″) won't make text clearer — it only makes the pt font size smaller relative to the canvas, which actually looks worse when projected or printed.
 
@@ -41,66 +50,66 @@ pptx.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, no custom definition needed
 
 ## 4 Hard Constraints (Violations Error Immediately)
 
-`html2pptx.js` translates the HTML DOM element-by-element into PowerPoint objects. PowerPoint's format constraints projected onto HTML = the 4 rules below.
+`html2pptx.js` makes a single pass over the DOM, classifying every element by tag and computed style into "text frame / shape / image / ignore". Behind those classification rules sit the limits of the PowerPoint file format itself, projected onto HTML as the 4 rules below — run them through your head while writing and you'll save the per-page rework after conversion.
 
-### Rule 1: No Direct Text Inside a DIV — Must Be Wrapped in `<p>` or `<h1>`-`<h6>`
+### Rule 1: No Text Lying Directly Inside a DIV — Wrap It in a Layer of `<p>` or `<h1>`-`<h6>`
 
 ```html
-<!-- ❌ Wrong: text directly in a div -->
-<div class="title">Q3 revenue up 23%</div>
+<!-- ❌ Wrong: the text is a direct child text node of the div -->
+<div class="metric">DAU 124K, +8% MoM</div>
 
-<!-- ✅ Correct: text in <p> or <h1>-<h6> -->
-<div class="title"><h1>Q3 revenue up 23%</h1></div>
-<div class="body"><p>New users are the main driver</p></div>
+<!-- ✅ Correct: text wrapped in <p>/<h1>-<h6>, the div only handles positioning/background -->
+<div class="metric"><p>DAU 124K, +8% MoM</p></div>
 ```
 
-**Why**: PowerPoint text must exist inside a text frame, and a text frame corresponds to paragraph-level HTML elements (p/h*/li). A bare `<div>` has no corresponding text container in PPTX.
+**How the check works**: what the script inspects is the div's **direct child nodes** for a non-whitespace text node — text nested inside `<p>`/`<h1>`-`<h6>` doesn't count; only "characters stuck directly onto the div" is a violation. The error carries the first 50 characters of the offending text (truncated with `...` beyond that), so you can pinpoint which paragraph it is.
 
-**Nor can `<span>` carry the primary text** — span is an inline element and can't be independently aligned as a text box. Span can only be **sandwiched inside p/h\*** for local styling (bold, color change).
+**`<span>` likewise can't stand on its own**: span is an inline element, and the script only treats it as a local style override (bold, color change, underline) inside `<p>`/`<h1>`-`<h6>`, never promoting it into its own text frame. To get a run of independently editable text, there must be a `<p>`/`<h1>`-`<h6>` around it.
 
-### Rule 2: No CSS Gradients — Solid Colors Only
+### Rule 2: No CSS Gradients (essentially a special case of "no background-image")
 
 ```css
-/* ❌ Wrong */
-background: linear-gradient(to right, #FF6B6B, #4ECDC4);
+/* ❌ Wrong: linear-gradient/radial-gradient both count as background-image */
+.banner { background: linear-gradient(135deg, #FF6B6B, #4ECDC4); }
 
 /* ✅ Correct: solid color */
-background: #FF6B6B;
+.banner { background: #FF6B6B; }
 
-/* ✅ If multi-color stripes are required, use flex children each with a solid color */
-.stripe-bar { display: flex; }
-.stripe-bar div { flex: 1; }
-.red   { background: #FF6B6B; }
-.teal  { background: #4ECDC4; }
+/* ✅ For a multi-color transition look, stagger several solid-color flex blocks and fake the gradient with transparency or stepped shades */
+.banner { display: flex; }
+.banner div { flex: 1; }
+.banner .c1 { background: #FF6B6B; }
+.banner .c2 { background: #FF9B6B; }
+.banner .c3 { background: #4ECDC4; }
 ```
 
-**Why**: PowerPoint's shape fill supports only solid/gradient-fill, but pptxgenjs's `fill: { color: ... }` maps only to solid. Using PowerPoint's native gradient requires writing separate structures, which the current toolchain doesn't support.
+**Why**: the script's div validation only checks whether the computed `background-image` is `none` — anything other than `none`, whether it holds an image or a CSS gradient function, gets blocked (a gradient is essentially a special kind of background-image). Among PowerPoint's native shape fills, only solid is solidly supported by pptxgenjs; gradients need a separate OOXML structure that the toolchain hasn't built.
 
-### Rule 3: Background/Border/Shadow Only on DIV, Not on Text Tags
+### Rule 3: Background/Border/Shadow Can Only Hang on a DIV — Never on Text Tags (Including `<ul>`/`<ol>`)
 
 ```html
-<!-- ❌ Wrong: <p> has a background -->
-<p style="background: #FFD700; border-radius: 4px;">Key content</p>
+<!-- ❌ Wrong: the <h2> carries its own background and rounded corners -->
+<h2 style="background: #FFD700; border-radius: 6pt; padding: 6pt 10pt;">Core conclusion</h2>
 
-<!-- ✅ Correct: the outer div carries the background/border, <p> only handles text -->
-<div style="background: #FFD700; border-radius: 4px; padding: 8pt 12pt;">
-  <p>Key content</p>
+<!-- ✅ Correct: the outer div shoulders the background/border, the <h2> only handles text -->
+<div style="background: #FFD700; border-radius: 6pt; padding: 6pt 10pt;">
+  <h2>Core conclusion</h2>
 </div>
 ```
 
-**Why**: In PowerPoint, a shape (box/rounded rectangle) and a text frame are two separate objects. HTML's `<p>` translates only to a text frame; background/border/shadow belong to the shape — they must be written on the **div wrapping the text**.
+**Why**: for every `<p>`/`<h1>`-`<h6>`/`<ul>`/`<ol>` (plus the `<li>`s collected inside them), the script first runs a separate check of the element's own background/border/box-shadow — if any of the three is non-empty it errors immediately, without even consulting other rules such as the "placeholder" check (a `class` containing `placeholder`); it's flat-out a violation. This check runs before all other classification, because in PowerPoint "the shape that can draw background/border/shadow" and "the text frame that can hold text" are two different objects — `<p>`/`<h*>` translates only into the latter, with nowhere to put the former's properties.
 
-### Rule 4: DIV Cannot Use `background-image` — Use an `<img>` Tag
+### Rule 4: DIV Cannot Use `background-image` — Images Always Go in an `<img>` Tag
 
 ```html
 <!-- ❌ Wrong -->
-<div style="background-image: url('chart.png')"></div>
+<div style="background-image: url('trend.png'); width: 300pt; height: 200pt;"></div>
 
 <!-- ✅ Correct -->
-<img src="chart.png" style="position: absolute; left: 50%; top: 20%; width: 300pt; height: 200pt;" />
+<img src="trend.png" style="position: absolute; left: 60pt; top: 80pt; width: 300pt; height: 200pt;" />
 ```
 
-**Why**: `html2pptx.js` only extracts image paths from `<img>` elements; it doesn't parse `background-image` URLs in CSS.
+**Why**: the script only reads the (browser-resolved) absolute `src` of `<img>` elements to create picture objects; it never parses the `url(...)` inside a div's `background-image` property. When this rule hits, the script doesn't take the div's descendants down with it — the `div` itself produces nothing, but anything still wrapped inside it, such as `<p>`/`<img>`, keeps getting processed individually; only that background image is gone. To layer a picture with text, place the `<img>` and the text layer as two independent elements and align them by position.
 
 ---
 
@@ -202,13 +211,13 @@ Each slide is a standalone HTML file, scopes isolated (avoiding the CSS pollutio
 
 | Error message | Cause | Fix |
 |---------|------|---------|
-| `DIV element contains unwrapped text "XXX"` | Bare text in a div | Wrap the text in `<p>` or `<h1>`-`<h6>` |
-| `CSS gradients are not supported` | Used linear/radial-gradient | Switch to a solid color, or use flex children for segments |
-| `Text element <p> has background` | `<p>` tag has a background color | Wrap it in an outer `<div>` to carry the background; `<p>` only holds text |
-| `Background images on DIV elements are not supported` | Div uses background-image | Switch to an `<img>` tag |
-| `HTML content overflows body by Xpt vertically` | Content exceeds 540pt | Reduce content or font size, or use `overflow: hidden` to crop |
-| `HTML dimensions don't match presentation layout` | Body size doesn't match the presentation layout | Use `960pt × 540pt` for body with `LAYOUT_WIDE`; or defineLayout for a custom size |
-| `Text box "XXX" ends too close to bottom edge` | Large-font `<p>` less than 0.5 inch from the body's bottom edge | Move it up, leave enough bottom margin; the bottom of the PPT is partially covered anyway |
+| `<div> has text written directly inside it ("XXX")` | Bare text in a div | Wrap it in `<p>`, `<h1>`-`<h6>`, or `<ul>/<ol>` |
+| `<div> backgrounds cannot use CSS gradients` | Used linear/radial-gradient | Switch to a solid color, or export the gradient to PNG and place it via `<img>` / `slide.addImage()` |
+| `Text tag <p> has … set on it` | `<p>` tag has a background/border/shadow | Wrap it in an outer `<div>` to carry the background; `<p>` only holds text |
+| `<div> cannot use background-image` | Div uses background-image | Turn the picture into an `<img>` tag, or layer it with `slide.addImage()` |
+| `Content overflows the page vertically by Xpt` | Content exceeds 540pt | Reduce content or font size, or use `overflow: hidden` to crop |
+| `Page size mismatch: the HTML body is …` | Body size doesn't match the presentation layout | Use `960pt × 540pt` for body with `LAYOUT_WIDE`; or defineLayout for a custom size |
+| `Text frame "XXX" is only … inches from the bottom edge of the page` | Large-font `<p>` less than 0.5 inch from the body's bottom edge | Move it up, leave at least 0.5 inches of bottom margin (the bottom of the PPT slide is partially covered in presentation mode anyway) |
 
 ---
 
@@ -270,7 +279,15 @@ const html2pptx = require('../scripts/html2pptx.js');  // script from this skill
 
 Occasionally you'll hit this scenario: you/the user have already written a visually-driven HTML (gradients, web components, complex SVG all in use), where producing a PDF would have been most appropriate, but the user explicitly says "no, it must be an editable PPTX".
 
-**Don't hard-run `html2pptx` expecting it to pass** — in practice, visually-driven HTML has a pass rate of < 30% on html2pptx; the remaining 70% will error or render incorrectly. The correct fallback is:
+**Don't hard-run `html2pptx` expecting it to pass** — in practice, visually-driven HTML has a pass rate of < 30% on html2pptx; the remaining 70% will error or render incorrectly.
+
+> 🔴 **As of 2026-09, try the third route before considering the A/B below**: `scripts/pptx_from_rendered.py` reads the
+> coordinates **after the browser has finished rendering**, not the source code, so visually-driven HTML converts
+> with zero refactoring (20 pages passed clean in practice) — and the user no longer has to choose between
+> "lose the visuals" and "lose editability". See `references/pptx-from-rendered-html.md`.
+> The A/B below only comes up when that route doesn't apply either.
+
+The correct fallback is:
 
 ### Step 1 · State the Limitations First (Transparent Communication)
 

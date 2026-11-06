@@ -203,6 +203,8 @@
 
 ## 8. Xiaohongshu (RED) Images
 
+> This section is for image-generation prompts. For HTML-typeset image-text posts, covers, and multi-page carousels, go through `references/modules/xiaohongshu.md` (1242×1660 spec, 8 paradigm templates).
+
 **Specifications**:
 - Vertical: 3:4 (1080×1440px) optimal
 - Square: 1:1 (1080×1080px)

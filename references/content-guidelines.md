@@ -1,8 +1,25 @@
 # Content Guidelines: Anti-AI Slop, Content Rules, Scale Standards
 
-The most common trap to fall into in AI design. This is a "what not to do" checklist — more important than "what to do" — because AI slop is the default; if you don't actively avoid it, it happens.
+AI slop is the default; if you don't actively avoid it, it happens. But the "default look" changes over time: in 2024 it was purple gradients and emoji; by 2026 it has taken a more "tasteful" shape. Banning only last generation's slop means fighting the previous war.
 
-## Complete AI Slop Blacklist
+## The 2026 AI Default Look (read this first)
+
+Anthropic's official frontend-design skill (2026) describes the clusters of today's AI-generated pages clearly ([source](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md)):
+
+1. **Warm cream background (near #F4F1EA) + high-contrast serif headings + terracotta accents (near #D97757)**. This is Claude's own interaction palette, and the place you — the model — slip into most easily: don't let it become the one you land on without thinking.
+2. **Near-black background + a single bright accent** (acid green or vermilion).
+3. **Newspaper-style layout**: hairline column rules, zero border radius, dense newspaper columns.
+4. **SaaS card kits**: content sliced into identical rounded cards, everything the same radius, the same layer of light gray shadow, gradients as decoration.
+5. **Template chrome**: an all-caps, letter-spaced eyebrow line above every heading; "A · B · C" middot chains; "WORD — snippet" style labels; #0B0B0B or #111 instead of black; monospace for small data labels; a trailing "→" on links and buttons.
+
+Three more typographic default moves: recoloring or italicizing exactly one word in a headline; all-caps for every small label; unnecessary small labels above content. Numbering (01 / 02 / 03) only when the content really is a sequence.
+
+**Treat the two groups differently:**
+
+- **1–4 are look families.** They became defaults precisely because they look good; dark-with-single-accent and warm-paper-serif directions still win user approval in blind tests. Using one isn't wrong — what's wrong is all three directions crowding into the same family, or every project looking like this. `design_lint.py check` only lists them as "notices"; what actually polices them is `compare` (three versions crowded together) and the look ledger (colliding with recent projects). Once, treating them as yellow lights to dodge, all three versions retreated together into a pale, cool, regimented look — and got reviewed as "too regimented, too boring".
+- **5 plus the three typographic moves above are template chrome.** They're reflexive little moves that cost almost nothing to delete; `check` lists them as yellow lights: if the brief asks for them, do it; otherwise delete that structure. The ones that can't be measured (like #111 instead of black) are on you to catch by eye.
+
+## Last Generation's Slop (circa 2024, still to be avoided)
 
 ### Visual traps
 
@@ -83,14 +100,14 @@ Don't design an entire unfamiliar color system from scratch. It's usually inharm
 **✅ Strategy**:
 1. Have brand colors → use them, interpolate the missing color tokens with oklch
 2. No brand colors but have a reference → eyedrop colors from the reference product screenshots
-3. Starting completely from zero → pick a known color system (Radix Colors / Tailwind default palette / Anthropic brand), don't tune it yourself
+3. Starting completely from zero → sample colors from the subject matter (its materials, origins, artifacts, the dominant colors in real photos), following the "color derivation protocol" in `references/design-styles.md`: sample → converge → justify. **Don't treat Anthropic / Claude's brand colors as a "safe default"** — that's item 1 of the 2026 AI default look
 
 **Defining colors in oklch** is the most modern approach:
 ```css
 :root {
-  --primary: oklch(0.65 0.18 25);      /* warm terracotta */
-  --primary-light: oklch(0.85 0.08 25); /* lighter, same hue */
-  --primary-dark: oklch(0.45 0.20 25);  /* darker, same hue */
+  --primary: oklch(0.62 0.14 155);      /* example: moss green sampled from a real photo of the subject; the value follows the content */
+  --primary-light: oklch(0.85 0.06 155); /* lighter, same hue */
+  --primary-dark: oklch(0.42 0.15 155);  /* darker, same hue */
 }
 ```
 oklch guarantees the hue doesn't drift when you adjust lightness — easier to use than hsl.
@@ -108,6 +125,15 @@ This landing page template is played out. If you want to innovate, actually inno
 
 **❌ Every card in the grid looks the same**
 Asymmetric cards, different sizes, some with images and some text-only, some spanning columns — that's what a real designer does.
+
+## What To Do Positively
+
+- **Spend your boldness in one place**: let a single element be the one that gets remembered, with everything around it quiet and restrained. Taste is being refined enough in the right place, not spreading effort evenly — one detail at 120%, the rest at 80%. Check the mirror before leaving the house and take one accessory off.
+- **Structural elements must carry information**: borders, numbering, dividers, and small labels encode content relationships — they aren't decoration. Before adding one, ask what it says.
+- Typographic details are the "taste tax": `text-wrap: pretty`, CSS Grid, `oklch()`; use 「」 quotes for Chinese (`references/typography.md`).
+- Don't invent colors out of thin air: eyedrop from brand assets, sample from real photos of the content, draw from the subject's cultural context (the color derivation protocol in `references/design-styles.md`).
+
+**A counterexample must read as a counterexample**: when the task itself is to showcase anti-design (explaining "what AI slop is", running a comparison review), don't pile slop across the whole page — isolate it in an honest counterexample container: a dashed border plus a "counterexample · don't do this" corner tag, so the counterexample serves the narrative without polluting the page's main tone.
 
 ## Content Rules
 
@@ -137,8 +163,8 @@ After exploring the design context, **state the system you plan to use verbally 
 
 ```markdown
 My design system:
-- Color: #1A1A1A primary + #F0EEE6 background + #D97757 accent (from your brand)
-- Typography: Instrument Serif for display + Geist Sans for body
+- Color: #14261F primary + #E6EDE4 background + #C8553D accent (background and primary taken from the moss green in your product photos, accent from the logo)
+- Typography: Schibsted Grotesk for display + Source Serif 4 for body
 - Rhythm: section titles get full-bleed colored backgrounds + white text; regular sections use white backgrounds
 - Imagery: full-bleed photos for the hero, placeholders for feature sections until you provide them
 - At most 2 background colors, to avoid clutter
@@ -156,7 +182,7 @@ Get the user's confirmation before starting. This check-in avoids "finishing hal
 - Titles 60-120px
 - Section titles 80-160px
 - Hero headlines can use large type at 180-240px
-- Never put text smaller than 24px on a slide
+- Body text never below 24px; labels, annotations, and chart ticks no smaller than 16px
 
 ### Print documents
 

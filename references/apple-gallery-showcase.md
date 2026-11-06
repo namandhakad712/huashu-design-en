@@ -44,6 +44,8 @@
 }
 ```
 
+> This palette is huashu-design's own brand choice for its launch film (close to the Claude ecosystem), **not a default**. When you use this gallery approach for another subject, re-derive the colors from that subject — warm off-white + terracotta is literally item one on the 2026 AI default-look list.
+
 **Key principles**:
 1. **Never use a pure black background**. Black makes the work look like a movie, not like "work results that can be adopted"
 2. **Terracotta orange is the only hue accent**; everything else is grayscale + white

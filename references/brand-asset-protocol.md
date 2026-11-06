@@ -1,6 +1,6 @@
 # Core Asset Protocol (full version)
 
-> The full protocol descended from SKILL.md "Core Philosophy #1.a" (2026-06 slim-down). SKILL.md keeps the trigger conditions + 5-step titles + self-check; here are the 5 steps in detailed operation, download commands, the brand-spec template, full-process failure fallbacks, and anti-examples with cost comparisons.
+> The full version of SKILL.md's "Narrow Bridge §2 · Core Asset Protocol". SKILL.md keeps the trigger conditions + 5-step titles; here are the 5 steps in detailed operation, download commands, the brand-spec template, full-process failure fallbacks, and anti-examples with cost comparisons.
 > Trigger: enforced whenever a task involves a specific brand/product. Return to SKILL.md for the condensed version and context.
 
 #### 1.a Core Asset Protocol (enforced when a specific brand is involved)
@@ -227,7 +227,7 @@ Handle separately by asset type:
 | **Logo completely unfindable** | **Stop and ask the user**, don't force it (the logo is the foundation of brand recognition) |
 | **Product image (physical product) unfindable** | Prefer nano-banana-pro AI generation (based on the official reference image) → next, ask the user → last, an honest placeholder (gray block + text label, clearly marked "product image pending") |
 | **UI screenshot (digital product) unfindable** | Ask the user for screenshots from their own account → official demo video frames. Don't pad with a mockup generator |
-| **Color values completely unfindable** | Follow the "design direction consultant mode": recommend 3 directions to the user and annotate the assumptions |
+| **Color values completely unfindable** | Go through the three directions (`references/directions.md`): the three direction cards sample their colors from the subject and real photos, with assumptions flagged |
 
 **Forbidden**: silently forcing it through with CSS silhouettes / generic gradients when assets can't be found — this is the protocol's biggest anti-pattern. **Rather stop and ask than pad.**
 

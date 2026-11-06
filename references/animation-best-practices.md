@@ -7,7 +7,7 @@
 > the pitfalls are about "**how you should not do it**". The two are orthogonal, and both should be read.
 >
 > **Scope statement**: this file only covers **motion logic and expressive style**; it does **not introduce any concrete brand color values**.
-> Color decisions go through the §1.a core asset protocol (extracted from the brand spec) or the "Design Direction Advisor"
+> Color decisions go through the Core Asset Protocol (`references/brand-asset-protocol.md`, extracted from the brand spec) or the three directions (`references/directions.md`)
 > (each of the 20 philosophies' own color schemes). This reference discusses "**how it moves**", not "**what color**".
 
 ---
@@ -164,7 +164,7 @@ and `expoOut` is the technical root of the "premium feel" — it gives digital e
 None of Anthropic's three films uses `#FFFFFF` or `#000000` as the base color. **Neutral colors with a color temperature**
 (warm or cool) carry the materiality of "paper / canvas / desktop" and weaken the machine feel.
 
-**Concrete color decisions** go through the §1.a core asset protocol (extracted from the brand spec) or the "Design Direction Advisor"
+**Concrete color decisions** go through the Core Asset Protocol (extracted from the brand spec) or the three directions (`references/directions.md`)
 (each of the 20 philosophies' own base-color schemes). This reference gives no concrete color values — that is a **brand decision**, not a motion rule.
 
 ### 3.2 Easing Is Never linear
@@ -517,4 +517,4 @@ Of the reference materials, the three videos correspond to three product persona
 - Anthropic audio breakdown: `AUDIO-BEST-PRACTICES.md` in the same directory
 - The 3 reference videos: `ref-{1,2,3}.mp4` + the corresponding `gemini-ref-*.md` / `audio-ref-*.md`
 - **Strict filter**: this reference does not include any concrete brand color values, font names, or product names.
-  Color/typography decisions go through the §1.a core asset protocol or the 20 design philosophies.
+  Color/typography decisions go through the Core Asset Protocol or the three directions' direction cards.
