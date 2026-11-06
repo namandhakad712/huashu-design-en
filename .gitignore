@@ -39,3 +39,4 @@ __pycache__/
 
 # PARITY-AGENT.md（本地同步工作流说明，不分发）
 PARITY-AGENT.md
+.last-update-check
