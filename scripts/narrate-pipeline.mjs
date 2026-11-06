@@ -1,36 +1,36 @@
 #!/usr/bin/env node
 /**
- * narrate-pipeline.mjs · L2 长解说总指挥
+ * narrate-pipeline.mjs · L2 long-narration pipeline orchestrator
  *
- * 输入：markdown 解说稿（## scene-id 分段，[[cue:id]] 标关键句）
- * 输出：voiceover.mp3（拼接好的整段人声）+ timeline.json（每段 start/end + cues 绝对时间）
+ * Input:  a markdown narration script (## scene-id sections, [[cue:id]] marks key lines)
+ * Output: voiceover.mp3 (the full concatenated voice track) + timeline.json (per-scene start/end + absolute cue times)
  *
- * 用法：
+ * Usage:
  *   node scripts/narrate-pipeline.mjs --script demo.md --out-dir _narration_demo
  *
- * 解说稿格式：
+ * Narration script format:
  *   ---
- *   title: 什么是 LLM
- *   voice: S_JSdgdWk22   # 可选，不填走 .env
- *   speed: 1.0           # 可选
- *   gap: 0.3             # 段间静音秒数，默认 0.3
+ *   title: What is LLM
+ *   voice: S_JSdgdWk22   # optional; falls back to .env if omitted
+ *   speed: 1.0           # optional
+ *   gap: 0.3             # seconds of silence between scenes, default 0.3
  *   ---
  *
  *   ## intro
- *   大家好，我是花叔。今天我们 5 分钟讲清楚 LLM 是什么。
+ *   Hello everyone, I'm Peanut. Today we'll make clear what an LLM is in 5 minutes.
  *
  *   ## what-is
- *   LLM 全称 Large Language Model，[[cue:bigmodel]]它是一个有几千亿参数的神经网络。
- *   本质是一个文字接龙的预测器。
+ *   LLM stands for Large Language Model, [[cue:bigmodel]] it's a neural network
+ *   with hundreds of billions of parameters. At its core, a text-continuation predictor.
  *
- * 输出文件结构（out-dir 下）：
+ * Output file layout (under out-dir):
  *   audio/
  *     intro.mp3
  *     what-is.mp3
- *   voiceover.mp3       拼接全部 scene 的整段人声
- *   timeline.json       schema 见 references/voiceover-pipeline.md
+ *   voiceover.mp3       full voice track concatenating all scenes
+ *   timeline.json       schema in references/voiceover-pipeline.md
  *
- * 依赖：tts-doubao.mjs、ffmpeg、ffprobe
+ * Depends on: tts-doubao.mjs, ffmpeg, ffprobe
  */
 
 import fs from 'node:fs';
@@ -57,14 +57,14 @@ function parseArgs(argv) {
 
 function usage() {
   console.error(`
-narrate-pipeline.mjs · L2 长解说总指挥
+narrate-pipeline.mjs · L2 long-narration pipeline orchestrator
 
-  --script <path>     解说稿 .md 文件（必填）
-  --out-dir <path>    输出目录（必填）
-  --no-timestamps     不请求字级时间戳（默认请求，chunks 里带 words 供卡拉OK字幕）
-  --yes               确认将解说稿文本发送到豆包 TTS 官方接口（或设 HUASHU_CLOUD_OK=1）
+  --script <path>     narration script .md file (required)
+  --out-dir <path>    output directory (required)
+  --no-timestamps     skip character-level timestamps (requested by default; chunks carry words for karaoke subtitles)
+  --yes               confirm sending the narration script text to the official Doubao TTS API (or set HUASHU_CLOUD_OK=1)
 
-输出：<out-dir>/voiceover.mp3 + <out-dir>/timeline.json
+Output: <out-dir>/voiceover.mp3 + <out-dir>/timeline.json
 `.trim());
   process.exit(1);
 }
@@ -120,7 +120,7 @@ function splitByCues(text) {
   }
   const tail = text.slice(lastIdx).trim();
   chunks.push({ text: tail });
-  // 过滤空文本块（cue 紧贴段首/段尾时）
+  // Filter out empty text chunks (when a cue sits flush at a section's start/end)
   return chunks.filter((c) => c.text.length > 0 || c.cueAfter);
 }
 
@@ -134,10 +134,10 @@ function getDuration(filePath) {
   return parseFloat(out.trim());
 }
 
-let timestampsBroken = false; // 时间戳请求失败一次后，后续 chunk 全部降级，避免反复重试
+let timestampsBroken = false; // once one timestamp request fails, all later chunks downgrade to avoid repeated retries
 
 function callTTS(text, outPath, opts) {
-  // 同意门已在本管线入口过（见 main），子进程直接带 --yes
+  // The consent gate was already passed at this pipeline's entry (see main); the subprocess gets --yes directly
   const args = ['--text', text, '--out', outPath, '--yes'];
   if (opts.voice) args.push('--voice', opts.voice);
   if (opts.speed) args.push('--speed', String(opts.speed));
@@ -151,9 +151,10 @@ function callTTS(text, outPath, opts) {
     return JSON.parse(out.trim());
   } catch (e) {
     if (!wantTimestamps) throw e;
-    // 字级时间戳可能不被当前音色/资源支持（仅 2.0 资源+中英文）——降级重试，不带时间戳
+    // Character-level timestamps may not be supported by the current voice/resource
+    // (2.0 resources + CN/EN only) — degrade and retry without timestamps
     timestampsBroken = true;
-    console.error('[narrate] ⚠ 带 --timestamps 的 TTS 失败，降级为无时间戳模式（timeline 不含 words，卡拉OK字幕不可用）');
+    console.error('[narrate] ⚠ TTS with --timestamps failed; downgrading to no-timestamps mode (timeline will lack words; karaoke subtitles unavailable)');
     const out = execFileSync('node', [TTS_SCRIPT, ...args.filter((a) => a !== '--timestamps')], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'inherit'],
@@ -163,7 +164,7 @@ function callTTS(text, outPath, opts) {
 }
 
 function ffmpegConcat(inputs, output) {
-  // 用 concat demuxer 合并相同编码的 mp3
+  // Merge same-codec mp3s with the concat demuxer
   const listFile = output + '.list';
   fs.writeFileSync(
     listFile,
@@ -192,9 +193,9 @@ async function main() {
 
   if (!args.yes && process.env.HUASHU_CLOUD_OK !== '1') {
     console.error(
-      '[云能力确认] 本管线会把解说稿文本分段发送到豆包TTS官方接口（openspeech.bytedance.com，' +
-      '使用你自己的key合成配音）。\n确认无误请重跑并加 --yes，或设置环境变量 HUASHU_CLOUD_OK=1。' +
-      '数据流向声明见 SECURITY.md。',
+      '[Cloud capability consent] This pipeline sends the narration script text, segment by segment, to the official Doubao TTS API (openspeech.bytedance.com, ' +
+      'synthesizing the voiceover with your own key).\nIf this is OK, rerun with --yes, or set the environment variable HUASHU_CLOUD_OK=1. ' +
+      'See SECURITY.md for the data-flow statement.',
     );
     process.exit(2);
   }
@@ -209,7 +210,7 @@ async function main() {
   const md = fs.readFileSync(scriptPath, 'utf8');
   const { meta, scenes } = parseScript(md);
   if (scenes.length === 0) {
-    console.error('错：解说稿没有 ## scene 段，至少一段。');
+    console.error('Error: the narration script has no ## scene sections; at least one is required.');
     process.exit(1);
   }
 
@@ -220,7 +221,7 @@ async function main() {
 
   console.error(`[narrate] script=${path.basename(scriptPath)} scenes=${scenes.length} voice=${voice || '(env)'} speed=${speed} gap=${gap}s`);
 
-  // 段间静音文件（共用一个）
+  // The between-scenes silence file (one shared copy)
   const gapFile = path.join(tmpDir, 'gap.mp3');
   if (gap > 0) makeSilence(gap, gapFile);
 
@@ -243,13 +244,13 @@ async function main() {
     const chunks = splitByCues(scene.raw);
     const chunkFiles = [];
     const cueRecords = [];
-    const chunkRecords = []; // 每个 chunk 的实测 start/end 段内时间，用于字幕显示
+    const chunkRecords = []; // measured in-scene start/end per chunk, used for subtitle display
     let sceneInternalCursor = 0;
 
     for (let j = 0; j < chunks.length; j++) {
       const chunk = chunks[j];
       if (!chunk.text) {
-        // 空文本块（cue 紧贴），跳过 TTS 但仍记录 cue 位置
+        // Empty text chunk (cue glued to a boundary): skip TTS but still record the cue position
         if (chunk.cueAfter) {
           cueRecords.push({
             id: chunk.cueAfter,
@@ -268,14 +269,14 @@ async function main() {
         start: chunkStart,
         end: sceneInternalCursor,
         duration: result.duration,
-        // 字级时间戳（TTS 实测，TN 后文本）：换算成段内相对时间
+        // Character-level timestamps (TTS-measured, on TN-normalized text): converted to scene-relative times
         words: (result.words || []).map((w) => ({
           text: w.text,
           start: chunkStart + w.start,
           end: chunkStart + w.end,
         })),
       });
-      console.error(`  chunk ${j}: ${result.duration.toFixed(2)}s · ${chunk.text.length} 字 · ${chunk.text.slice(0, 30)}${chunk.text.length > 30 ? '…' : ''}`);
+      console.error(`  chunk ${j}: ${result.duration.toFixed(2)}s · ${chunk.text.length} chars · ${chunk.text.slice(0, 30)}${chunk.text.length > 30 ? '…' : ''}`);
       if (chunk.cueAfter) {
         cueRecords.push({
           id: chunk.cueAfter,
@@ -284,7 +285,7 @@ async function main() {
       }
     }
 
-    // 合并段内子段
+    // Merge the in-scene chunks
     const sceneAudio = path.join(audioDir, `${scene.id}.mp3`);
     if (chunkFiles.length === 1) {
       fs.copyFileSync(chunkFiles[0], sceneAudio);
@@ -293,7 +294,7 @@ async function main() {
     }
     const sceneDuration = getDuration(sceneAudio);
 
-    // 拼接到总轨：先加 gap（除了第一段），再加 scene
+    // Append to the master track: gap first (except before the first scene), then the scene
     if (i > 0 && gap > 0) {
       sceneAudioFiles.push(gapFile);
       cursor += gap;
@@ -307,8 +308,10 @@ async function main() {
       duration: sceneDuration,
       audio: path.relative(outDir, sceneAudio),
       text: scene.raw.replace(/\[\[cue:[\w-]+\]\]/g, ''),
-      // chunks: 用于字幕逐句显示。start/end 是段内相对时间，absoluteStart/absoluteEnd 是整轨绝对时间
-      // words: 字级时间戳（卡拉OK字幕用；TN 后文本，可能与 chunk.text 不完全一致）。空数组=不可用
+      // chunks: drives sentence-by-sentence subtitle display. start/end are scene-relative
+      // times; absoluteStart/absoluteEnd are absolute times on the full track
+      // words: character-level timestamps (for karaoke subtitles; TN-normalized text, may
+      // not exactly match chunk.text). Empty array = unavailable
       chunks: chunkRecords.map((c) => ({
         text: c.text,
         start: c.start,
@@ -333,7 +336,7 @@ async function main() {
     cursor += sceneDuration;
   }
 
-  // 合并整轨
+  // Merge the full track
   const voiceoverPath = path.join(outDir, 'voiceover.mp3');
   ffmpegConcat(sceneAudioFiles, voiceoverPath);
   timeline.totalDuration = getDuration(voiceoverPath);
@@ -344,23 +347,23 @@ async function main() {
     JSON.stringify(timeline, null, 2),
   );
 
-  // 清理 tmp
+  // Clean up tmp
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
-  console.error(`\n[narrate] 完成。`);
-  console.error(`  voiceover: ${voiceoverPath}`);
-  console.error(`  timeline:  ${path.join(outDir, 'timeline.json')}`);
-  console.error(`  总时长:    ${timeline.totalDuration.toFixed(2)}s (${(timeline.totalDuration / 60).toFixed(2)} min)`);
-  console.error(`  段数:      ${timeline.scenes.length}`);
+  console.error(`\n[narrate] Done.`);
+  console.error(`  voiceover:     ${voiceoverPath}`);
+  console.error(`  timeline:      ${path.join(outDir, 'timeline.json')}`);
+  console.error(`  total duration: ${timeline.totalDuration.toFixed(2)}s (${(timeline.totalDuration / 60).toFixed(2)} min)`);
+  console.error(`  scenes:        ${timeline.scenes.length}`);
   const totalCues = timeline.scenes.reduce((sum, s) => sum + s.cues.length, 0);
-  console.error(`  cue 数:    ${totalCues}`);
+  console.error(`  cues:          ${totalCues}`);
   const totalWords = timeline.scenes.reduce(
     (sum, s) => sum + s.chunks.reduce((a, c) => a + (c.words ? c.words.length : 0), 0), 0);
-  console.error(`  字级时间戳: ${totalWords > 0 ? `${totalWords} words（<Subtitles karaoke /> 可用）` : '无'}`);
+  console.error(`  char timestamps: ${totalWords > 0 ? `${totalWords} words (usable by <Subtitles karaoke />)` : 'none'}`);
 }
 
 main().catch((err) => {
-  console.error(`narrate-pipeline 失败：${err.message}`);
+  console.error(`narrate-pipeline failed: ${err.message}`);
   console.error(err.stack);
   process.exit(1);
 });
