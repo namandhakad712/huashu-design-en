@@ -1,38 +1,50 @@
 [
   {
     "id": 1,
-    "prompt": "我想做一个SaaS产品的登录页面，给我3个风格方向对比看看",
-    "expected": "触发clarifying questions问design context/brand；产出3个variation的design_canvas；不用紫渐变/emoji/Inter等AI slop；有具体理由说明每个variation的差异维度",
-    "tests": "workflow问问题 + variations逻辑 + 反AI slop清单 + design_canvas使用"
+    "prompt": "I want a login page for a SaaS product — show me 3 style directions to compare",
+    "expected": "Runs the three kickoff steps first (learn / ledger / capabilities); asks one round of questions and asks for references; three logics × two candidates each = six direction cards (real-world reference screenshotted with ref_board.py, roulette opens the specimen image first); after the six-thumbnail page, picks three to build as full HTML + screenshots (not all in one look family, no look-ledger collisions, at most one trying too hard), design_lint compare shows no collision; presents the three full versions plus the thumbnail alternates and stops",
+    "tests": "three-direction gate + six candidates → pick three + reference board & specimens + compare and look-ledger self-check"
   },
   {
     "id": 2,
-    "prompt": "帮我做一份10页的产品pitch deck，讲一个AI工具的创业项目",
-    "expected": "用deck_stage.js起手；先口头vocalize设计系统（色彩/字型/layout节奏）等确认；Section divider/content/data/quote多种layout交替；字号≥24px；1-indexed labels",
-    "tests": "Junior Designer先汇报再做 + deck_stage使用 + 视觉节奏 + scale规范"
+    "prompt": "Make me a 10-page product pitch deck for an AI-tool startup",
+    "expected": "Three directions × 2 representative pages each (cover + the most different page), deck shell uses assets/deck_index.html multi-file overview wall; presents and stops; after the pick, fixes the showcase grammar on 2 pages before batching; body ≥24px, labels ≥16px; no per-page page numbers; auto-produces PDF when done",
+    "tests": "three-direction gate + deck module delivery chain + multi-file architecture + font-size floors"
   },
   {
     "id": 3,
-    "prompt": "做个30秒的HTML动画，讲神经网络怎么工作",
-    "expected": "用animations.jsx的Stage+Sprite；先写时间轴再写组件；入场easeOut出场easeIn；分phase讲故事而不是堆动画；文字停留≥3秒",
-    "tests": "animations工作流 + easing正确 + 节奏设计 + 时长控制"
+    "prompt": "Make a 30-second HTML animation explaining how neural networks work",
+    "expected": "Uses animations.jsx Stage+Sprite; writes the timeline before the components; entrances easeOut, exits easeIn; tells the story in phases instead of piling up animations; text stays ≥3s",
+    "tests": "animations workflow + correct easing + rhythm design + duration control"
   },
   {
     "id": 4,
-    "prompt": "做一个 Habit Tracker App 原型",
-    "expected": "问用户要 overview 平铺 or flow demo（默认走 overview）；用 assets/ios_frame.jsx，不手写 Dynamic Island；Tracker 属高密度型，每屏 ≥ 3 处信息密度元素（习惯完成率、连续天数、趋势曲线、成就badge等，非装饰）；至少 5-7 屏并排（首页/新建习惯/详情/统计/设置）",
-    "tests": "overview/flow 形态路由 + ios_frame 硬绑定 + 信息密度分型（高密度型）+ 多屏并排"
+    "prompt": "Build a Habit Tracker App prototype",
+    "expected": "Asks the user for overview tiles or flow demo (defaults to overview); uses assets/ios_frame.jsx, no hand-written Dynamic Island; Tracker is the high-density type, ≥3 information-density elements per screen (habit completion rate, streak days, trend curves, achievement badges, etc. — not decoration); at least 5-7 screens side by side (home / new habit / detail / stats / settings)",
+    "tests": "overview/flow shape routing + ios_frame hard binding + information-density typing (high-density type) + multi-screen side-by-side"
   },
   {
     "id": 5,
-    "prompt": "做一个读书笔记 App 原型",
-    "expected": "overview 平铺为主；ios_frame.jsx；读书笔记偏内容展示类，信息密度要求不如 Tracker 极端，但笔记列表页仍需 ≥ 3 层信息（书籍、引文、标签、进度）；至少 4-6 屏（首页书架/笔记详情/标注高亮/搜索/笔记本管理）；字体优先 serif display",
-    "tests": "overview 默认 + ios_frame + 信息层次 + 内容为主的视觉节奏"
+    "prompt": "Build a reading-notes App prototype",
+    "expected": "Overview tiles as the main form; ios_frame.jsx; reading notes lean content-display, density requirements less extreme than Tracker, but the notes list page still needs ≥3 layers of information (book, quote, tags, progress); at least 4-6 screens (home bookshelf / note detail / highlight annotation / search / notebook management); serif display fonts preferred",
+    "tests": "overview default + ios_frame + information hierarchy + content-led visual rhythm"
   },
   {
     "id": 6,
-    "prompt": "做一个跑步记录 App 原型",
-    "expected": "overview 平铺；ios_frame.jsx；跑步 App 属高密度型（地图、配速曲线、心率区间、每公里分段数据），每屏 ≥ 3 处产品差异化信息；至少 5 屏（今日总览/跑步中实时数据/路线地图/历史记录/月度统计）；避免撞 AI slop（不用紫渐变、不堆装饰 icon，但数据可视化 icon 允许保留）",
-    "tests": "overview + ios_frame + 高密度型数据可视化 + 地图/图表混排 + slop 边界条件"
+    "prompt": "Build a running-log App prototype",
+    "expected": "Overview tiles; ios_frame.jsx; a running App is the high-density type (map, pace curve, heart-rate zones, per-kilometer splits), ≥3 product-differentiated information pieces per screen; at least 5 screens (today overview / live run data / route map / history / monthly stats); avoids AI slop (no purple gradients, no decorative icon piles — but data-visualization icons are allowed to stay)",
+    "tests": "overview + ios_frame + high-density data visualization + map/chart mixing + slop boundary conditions"
+  },
+  {
+    "id": 7,
+    "prompt": "Turn this reading note into a Xiaohongshu image-text set, around 6 pages",
+    "expected": "Routes to modules/xiaohongshu.md; three directions = three different paradigms, each with a cover + one inner page side by side; 1242×1660; body ≥42px, labels ≥32px; starts from the assets/style-specimens/xhs/ templates but swaps the example stickers and example palette; xhs_render.py produces the images with no ✗; no external links, QR codes, or superlative claims inside the images",
+    "tests": "new routing + paradigm pool + template reuse + font-size floors + render script + platform constraints"
+  },
+  {
+    "id": 8,
+    "prompt": "Make a Xiaohongshu cover plus a three-page continuous panorama strip for my coffee-shop visit note",
+    "expected": "The cover is a standalone page; the strip uses .xhs-strip --n:3 with the lead material crossing the seams, each page standing on its own; xhs_render.py slices it into 3 pages with no text across seams; colors derived from the coffee-shop photos or brand, not copying the Mingji yellow",
+    "tests": "panorama-strip paradigm + seam checks + color derivation instead of copying the example"
   }
 ]

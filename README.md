@@ -1,14 +1,16 @@
+<sub>🌐 <a href="https://github.com/alchaincyf/huashu-design/blob/master/README.md">中文 (original repo)</a> · <b>English</b></sub>
+
 <div align="center">
 
 # Huashu Design
 
 > *"Type. Hit enter. A finished design lands in your lap."*
-
-[![Zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=for-the-badge&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4z5ODQgNC45NjAxVjIuMjQwMUwxNC4zOTg0IDEuODg2NjQgMTQuMTExOSAxLjYwMDEgMTMuNzU4NCAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0yIDEyTDEyIDRMMiAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNMCAwTDE2IDBMMCAxNloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc%2B&logoColor=ffffff)](https://zread.ai/namandhakad712/huashu-design-en)
+> *「打字。回车。一份能交付的设计。」*
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Agent-Agnostic](https://img.shields.io/badge/Agent-Agnostic-blueviolet)](https://skills.sh)
 [![Skills](https://img.shields.io/badge/skills.sh-Compatible-green)](https://skills.sh)
+[![Zread](https://zread.ai/badge/namandhakad712/huashu-design-en)](https://zread.ai/namandhakad712/huashu-design-en)
 
 <br>
 
@@ -18,44 +20,97 @@
 
 3 to 30 minutes — you ship a **product launch animation**, a clickable App prototype, an editable PPT deck, a print-grade infographic.
 
-Not "decent for AI" quality — it looks like a real design team made it. Give the skill your brand assets (logo, colors, UI screenshots) and it reads your brand's voice; give it nothing and the built-in 20 design vocabularies still keep you out of AI slop territory.
+Not "decent for AI" quality — it looks like a real design team made it. Give the skill your brand assets (logo, colors, UI screenshots) and it reads your brand's voice; give it nothing and **three real directions picked from six thumbnails, backed by a 92-style library with a visual specimen for every style**, still keep you out of AI slop territory.
 
-**Every animation in this README was made by huashu-design itself.** No Figma, no After Effects — just a sentence + skill run. Next product launch needs a promo video? You can make it too.
+**Every design in this README was made by huashu-design itself.** No Figma, no After Effects — just a sentence + skill run. Next product launch needs a promo video? You can make it too.
 
 ```
 npx skills add namandhakad712/huashu-design-en
 ```
 
-> 📣 **Now MIT-licensed.** As of 2026-05-14 this skill is fully open-source under the [MIT License](LICENSE) — free for personal **and** commercial use, no authorization required.
+> 📣 **Now MIT-licensed.** As of 2026-05-14 this skill is fully open-source under the [MIT License](LICENSE) — free for personal **and** commercial use, no authorization required. ([what changed](#license))
 
-[See it work](#demo-gallery) · [Install](#install) · [What it does](#what-it-does) · [How it works](#core-mechanics) · [vs. Claude Design](#vs-claude-design)
+> 🆕 **3.1: Xiaohongshu (RED) carousels.** Eight layout paradigms for 3:4 image sets — specimen journal, product notebook, index, panorama strip, daily paper, trading cards, vertical blank, area infographic — and every specimen doubles as an editable template. One command slices the pages and checks type size, overflow, text across panorama seams and overlapping text. [See the specimens](#design-direction-advisor)
 
-> 📖 **English-only version**: This is the English localization of huashu-design. All skill prompts (`SKILL.md`, `references/*.md`) are in English. For the original Chinese version, see [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design).
+> **3.0: bolder directions, and projects that stop looking alike.** Six thumbnails first, then the three strongest become real designs; the style library grows to 84 (new App and Chinese & East Asian sections), each with a specimen; reference works are screenshotted before they are borrowed from; plus a facts-only design check and a "look ledger" that remembers what you've already shipped. [How it works](#core-mechanics)
 
-## Available Languages
+> 📖 **English-only version**: this is the English localization of huashu-design. All skill prompts (`SKILL.md`, `references/*.md`) are in English. For the original Chinese version, see [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design). This fork tracks parent version **3.2.0**.
 
-This skill is also available in other languages (community-maintained; translation quality and license terms are the responsibility of each maintainer):
-
-| Language | Maintainer | Repository |
-|----------|------------|-------------|
-| 中文 (original) | alchaincyf | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
-| English | [@namandhakad712](https://github.com/namandhakad712) | [namandhakad712/huashu-design-en](https://github.com/namandhakad712/huashu-design-en) |
-| 한국어 (Korean) | [@ktkarchive](https://github.com/ktkarchive) | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
-| Tiếng Việt (Vietnamese) | [@letrquan](https://github.com/letrquan) | [letrquan/huashu-design](https://github.com/letrquan/huashu-design) |
-
-Want to add your language? Fork the repo, translate `SKILL.md` + `README.md`, and open an issue there so it can be linked.
+[See it work](#30-showcase) · [Install](#install) · [What it does](#what-it-does) · [How it works](#core-mechanics) · [vs. Claude Design](#vs-claude-design)
 
 </div>
 
 ---
 
 <p align="center">
-  <video src="https://github.com/alchaincyf/huashu-design/releases/download/v2.0/hero-animation-v10-en.mp4" autoplay muted loop playsinline width="100%">
-    Your browser doesn't support inline video. <a href="https://github.com/alchaincyf/huashu-design/releases/download/v2.0/hero-animation-v10-en.mp4">Download MP4</a>.
-  </video>
+  <img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/launch-3.0.gif" alt="huashu-design 3.0 launch film" width="100%">
 </p>
 
-<p align="center"><sub>▲ 10-second hero animation showing what huashu-design does (<a href="https://github.com/alchaincyf/huashu-design/releases/download/v2.0/hero-animation-v10-en.mp4">download MP4</a> if autoplay doesn't work)</sub></p>
+<p align="center"><sub>
+  ▲ 3.0 launch film · 32s · every page in it was designed by 3.0 itself; edited with <a href="https://github.com/alchaincyf/huashu-motion">huashu-motion</a><br>
+  👉 <a href="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/launch-3.0.mp4">Download MP4 (1080p · with music · 24MB)</a> ·
+  <a href="https://github.com/alchaincyf/huashu-design/releases/download/v2.0/hero-animation-v10-en.mp4">2.0 hero animation (English)</a>
+</sub></p>
+
+---
+
+## 3.0 Showcase
+
+All made with 3.0. The first five are picked from 6 fresh prompts run for the launch: one sentence each, the agent picked the direction, the author didn't step in. The last two are the version that won the third blind round, and a real project the author built with it after release. (Prompts and on-page copy are in Chinese; the skill itself is fully English in this fork.)
+
+### Web · *Thirty-six Views of Mount Fuji* online exhibition
+
+> "Make an online exhibition site for Hokusai's *Thirty-six Views of Mount Fuji*"
+
+Three directions: a Rijksmuseum-style dark gallery, an Ikko Tanaka triangle window, and a Republic-era book-cover title frame. The design check flagged a collision: two versions opened with *The Great Wave*, so the dark gallery switched to *Rainstorm Beneath the Summit*.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-hokusai-hero.jpg" width="100%" alt="Hokusai exhibition hero"></p>
+
+A chapter on Prussian blue follows, based on the Met's spectral research; all 46 prints come from the open-access collections of the Art Institute of Chicago and the Met.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-hokusai-prussian-blue.jpg" width="100%" alt="Prussian blue chapter"></p>
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-hokusai-all-46.jpg" width="60%" alt="All 46 prints"></p>
+
+### App · Mingji (birding log)
+
+> "Make a prototype of a birding log App"
+
+The real-world reference was CapWords, a 2025 Apple Design Award winner; `ref_board.py` screenshotted it into a reference board before any design started. What it borrowed: "peel a sticker out of a photo". Every bird is segmented from a real Wikimedia photo and stuck into a year-long notebook; the call waveforms are computed from real recordings.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-mingji-birding-app.jpg" width="75%" alt="Mingji birding app board"></p>
+
+### App · What's for dinner (home recipes)
+
+> "Make a home-cooking recipe App"
+
+The seconds roulette landed on Lü Jingren's book design, so it became a recipe book: one dish per page, a margin column beside the fore-edge for notes like "pat it dry so the oil won't spit", and the cinnabar red reserved for the single "start cooking" seal. The look ledger noticed 5 of the last 6 deliveries used sans-serif headlines, so this one went with Song type.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-recipe-app.jpg" width="75%" alt="Recipe app board"></p>
+
+### Slides · *A Thousand Li of Rivers and Mountains* lecture
+
+An Abbott Miller–style dark display case; the dark ground is sampled from the darkest part of the silk. The thin bar under the cover is a thumbnail of the whole scroll, framing which stretch of the 11.9-meter painting the current slide is on.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-qianli-cover.jpg" width="100%" alt="Lecture cover"></p>
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-qianli-pages.jpg" width="100%" alt="Four lecture slides"></p>
+
+### Slides · How the black hole photo was taken
+
+Referenced Jonathan Corum's lecture slides: black ground, photos as the protagonist, labels written directly on the image. Every slide cites its sources.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-blackhole-pages.jpg" width="100%" alt="Black hole deck, four slides"></p>
+
+### App · Green Thumb (won the third blind round)
+
+Reads a plant like vital signs. The App prototype is laid out as a composed display board, with the phones staggered.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-plant-health-app.jpg" width="75%" alt="Green Thumb plant health app"></p>
+
+### Web · Travel archive (the author's own project)
+
+A map of every travel photo from three years, in a Kaoru Kasai–style long scroll of white paper and Mincho type: a satellite map ties all the trips together up top, then one chapter per trip. After picking it the author said "try not to leave any out", and it saved that as experience: personal memory archives should be complete, scoped to photo archives only, not product UIs.
+
+<p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v3.0.0/case-travel-archive.jpg" width="100%" alt="Travel archive"></p>
 
 ---
 
@@ -64,6 +119,20 @@ Want to add your language? Fork the repo, translate `SKILL.md` + `README.md`, an
 ```bash
 npx skills add namandhakad712/huashu-design-en
 ```
+
+**DeepSeek Harness**: this repo is also a DSH plugin. `dsh plugin --profile desktop add github:namandhakad712/huashu-design-en` (use `web` for the web app), then restart DSH. Remove with `dsh plugin --profile desktop remove huashu-design-en`.
+
+> **Verify after install**: this skill is more than a single SKILL.md — the `references/`, `assets/`, `scripts/`, and `demos/` subdirectories hold 99 referenced recipes, scripts, and assets that the skill depends on. After installing, check the install path (e.g. `~/.claude/skills/huashu-design-en/`); if you only see SKILL.md and none of those subdirectories, your `skills` CLI is too old (≤1.5.15 had a bug that synced only the single file, fixed in 1.5.19). Upgrade and reinstall:
+>
+> ```bash
+> npm i -g skills@latest        # or npx skills@latest add namandhakad712/huashu-design-en
+> ```
+>
+> If it's still wrong after upgrading, fall back to a `git clone` install — clone the repo into any skills directory:
+>
+> ```bash
+> git clone https://github.com/namandhakad712/huashu-design-en.git ~/.claude/skills/huashu-design-en
+> ```
 
 Then just talk to Claude Code:
 
@@ -97,20 +166,31 @@ No buttons, no panels, no Figma plugin. Agent-agnostic — drops into Claude Cod
 | Motion design | MP4 (25fps / 60fps interpolation) + GIF (palette-optimized) + BGM | 8–12 min |
 | Design variations | 3+ side-by-side · Tweaks live params · cross-dimension exploration | 10 min |
 | Infographic / data viz | Print-quality typography · exports to PDF/PNG/SVG | 10 min |
-| Design direction advisor | 5 schools × 20 philosophies · 3 directions recommended · Demos generated in parallel | 5 min |
+| Xiaohongshu carousel / cover | 3:4 image sets (≤18) · 8 paradigm templates · continuous panorama strips · one-command slicing with checks | 10–15 min |
+| Design direction advisor | Three logics × two candidates each · six thumbnails → three real designs, the other three kept as alternates | 10 min |
 | 5-dimension expert critique | Radar chart + Keep/Fix/Quick Wins · actionable punch list | 3 min |
 
 ---
 
 ## Demo Gallery
 
-> English parallel versions of the demos. Chinese versions live at the default filenames (see the Chinese README).
+> English parallel versions of the demos. Chinese versions live in the parent repo.
 
 ### Design Direction Advisor
 
-The fallback for vague briefs: pick 3 differentiated directions from 5 schools × 20 philosophies, generate all 3 demos in parallel, let the user choose.
+The fallback for vague briefs: **three complementary logics, two candidates each** — best designer, an award-winning work in the same medium (screenshotted first), and a seconds roulette over the style library. Six thumbnails, then the three strongest and most distinct become **real designs** to choose from, with the other three as alternates. Backed by a **92-style HTML-native library** (web 20 + deck 20 + infographic 20 + app 12 + Chinese & East Asian 12 + Xiaohongshu 8, pure CSS, no image generation), each with a specimen.
 
 <p align="center"><img src="https://github.com/alchaincyf/huashu-design/releases/download/v2.0/w3-fallback-advisor-en.gif" width="100%"></p>
+<p align="center"><sub>The animation shows the 2.0 flow (one design per logic)</sub></p>
+
+The two sections new in 3.0 — every cell is a specimen (pure HTML/CSS, fictional subjects and numbers):
+
+<p align="center"><img src="assets/style-specimens/sheet-east.jpg" width="100%" alt="12 Chinese and East Asian design styles"></p>
+<p align="center"><img src="assets/style-specimens/sheet-app.jpg" width="100%" alt="12 app styles"></p>
+
+New in 3.1, the Xiaohongshu section: each cell is one paradigm's cover plus an inner page (the panorama is three pages forming one picture). They come from a real post, so all eight carry the same story:
+
+<p align="center"><img src="assets/style-specimens/sheet-xhs.jpg" width="100%" alt="8 Xiaohongshu carousel paradigms"></p>
 
 ### iOS App Prototype
 
@@ -188,13 +268,23 @@ A/B-tested (v1 vs v2, 6 agents each): **v2 reduced stability variance by 5×**. 
 
 ### Design Direction Advisor (Fallback)
 
-Triggered when the brief is too vague to execute:
+Triggered when the brief is too vague to execute (rebuilt in 3.0):
 
-- Don't run on generic intuition — enter Fallback mode
-- Recommend 3 differentiated directions from 5 schools × 20 philosophies, each **from a different school**
-- Each comes with flagship works, gestalt keywords, representative designer
-- Generate 3 visual demos in parallel, let the user choose
-- Once chosen, continue into the Junior Designer main flow
+- One round of questions, asking for references up front (name / logo / brand colors / sites you like)
+- Fetch the real images the content needs (public domain / royalty-free) before designing
+- **Three logics, two candidates each — six in total**: ① Best designer (two designers of different temperament, thinking from scratch the way they would) ② Real-world reference (two award-winning works **in the same medium** — apps for an app, publications for a deck; `scripts/ref_board.py` screenshots them so the agent actually looks before extracting grid, type ratios and color proportions) ③ Seconds roulette (`date +%S` picks one style from the matching section and one from the Chinese & East Asian section; the agent opens its specimen first)
+- **Six thumbnails → three full designs**: strong on its own, different from each other, not a repeat of your recent projects. The other three thumbnails come along as alternates
+- **You never pick a style from words alone** — it stops once the designs are on the table
+- Backed by a **92-style HTML-native library**, each with a specimen image and source (`assets/style-specimens/`) — ammunition, not dogma
+
+Why: we ran three rounds of blind before/after tests on fixed briefs (internal). Round one forced a big metaphor onto every direction, turned pages into props, and won 1 of 4; round two piled on bans to dodge the "AI default look", made all three directions "too regular, too boring", and lost both briefs; round three switched to more options instead of more bans — more candidates, visible specimens, real references — and won both.
+
+### Learns as you use it: experience, look ledger, design check
+
+- **Experience**: `scripts/learn.py` recalls your verbatim taste notes ("too plain", "A's layout with C's colors") and past lessons before work starts, and records what's worth keeping afterwards — it tells you when it records, and you can decline
+- **Look ledger**: every delivery logs what it looked like (background, palette, fonts, layout skeleton, plus the project name and path), so the next project steers away — the "each one fine, together all the same" kind of monotony
+- **Design check**: `scripts/design_lint.py` only measures checkable facts — broken images, unreadably small text, low contrast, console errors are red; habitual template chrome (uppercase eyebrows, "A · B · C" chains) is yellow; `compare` and `ledger check` catch reskins and repeats. Whether it looks good is your call; it gives no score
+- All of this lives only on your machine in `~/.huashu-design/`, never ships with the skill; delete the folder to forget everything
 
 ### Junior Designer Workflow
 
@@ -208,11 +298,13 @@ The default working mode across every task:
 
 ### Fact Verification First (Principle #0)
 
-The highest-priority rule, added after a real failure mode: when the task mentions a specific product / technology / event (e.g., "DJI Pocket 4", "Nano Banana Pro", "Gemini 3 Pro"), the first action **must** be a `WebSearch` to confirm existence, release status, current version, and specs. No claims from training-corpus memory. Cost of a search: ~10 seconds. Cost of a wrong assumption: 1–2 hours of rework.
+The highest-priority rule, added after a real failure mode: when the task mentions a specific product / technology / event (e.g. "DJI Pocket 4", "Nano Banana Pro", "Gemini 3 Pro"), the first action **must** be a `WebSearch` to confirm existence, release status, current version, and specs. No claims from training-corpus memory. Cost of a search: ~10 seconds. Cost of a wrong assumption: 1–2 hours of rework.
 
 ### Anti AI-slop Rules
 
-Avoid the visual common denominator of AI output (purple gradients / emoji icons / rounded-corner + left border accent / SVG humans / Inter-as-display / **CSS silhouettes standing in for real product shots**). Use `text-wrap: pretty` + CSS Grid + carefully chosen serif display faces + oklch colors.
+Avoid the visual common denominator of AI output: purple gradients, emoji icons, rounded-corner + left border accent, SVG humans, Inter-as-display, **CSS silhouettes standing in for real product shots**, and the 2026 generation of template chrome (an uppercase eyebrow over every heading, "A · B · C" dot chains, trailing "→", one recolored word per headline). No invented data, testimonials or logo walls.
+
+"Look families" like warm paper + serif or dark + one accent are not banned: the versions users approved in blind tests included both. What to avoid is all three directions crowding into one family, or every project looking the same — that's the look ledger's job.
 
 ---
 
@@ -237,7 +329,7 @@ Claude Design is a **better graphics tool**. Huashu-design makes **the graphics-
 
 ## Security & Data Flow
 
-The core pipeline (design → render → MP4/PDF/PPTX export) runs **100% locally — zero network calls, zero API keys**. Cloud features (Doubao TTS narration, AI video review) are isolated in `scripts/cloud/`, fully optional: your own keys, official vendor APIs only, and an explicit `--yes` consent gate before anything leaves your machine. No telemetry; nothing is ever sent to any author-controlled server. Every outbound host, credential touchpoint, and deletion boundary is exhaustively declared in [SECURITY.md](SECURITY.md) — point your agent at it and verify against the code.
+The core pipeline (design → render → MP4/PDF/PPTX export) runs **100% locally — zero network calls, zero API keys**. Cloud features (Doubao TTS narration, AI video review) are isolated in `scripts/cloud/`, fully optional: your own keys, official vendor APIs only, and an explicit `--yes` consent gate before anything leaves your machine. No telemetry; nothing is ever sent to any author-controlled server. The 3.0 local records (taste experience, look ledger) are written only to `~/.huashu-design/` and never uploaded; the reference board only visits URLs when you have the agent screenshot reference works. Every outbound host, credential touchpoint, and deletion boundary is exhaustively declared in [SECURITY.md](SECURITY.md) — point your agent at it and verify against the code.
 
 ---
 
@@ -257,8 +349,6 @@ This is an 80-point skill, not a 100-point product. For people unwilling to open
 huashu-design-en/
 ├── SKILL.md                 # Main doc (read by agent, English)
 ├── README.md                # English README (this file)
-├── SECURITY.md              # Data-flow & security declaration
-├── package.json             # Export toolchain dependencies
 ├── assets/                  # Starter Components
 │   ├── animations.jsx       # Stage + Sprite + Easing + interpolate
 │   ├── ios_frame.jsx        # iPhone 15 Pro bezel
@@ -269,10 +359,13 @@ huashu-design-en/
 │   ├── deck_index.html      # Multi-file deck assembler
 │   ├── design_canvas.jsx    # Side-by-side variation display
 │   ├── showcases/           # 24 prebuilt samples (8 scenes × 3 styles)
+│   ├── style-specimens/     # Specimens for all 92 styles (html source + jpg) and section overviews; the xhs/ ones double as templates
 │   └── bgm-*.mp3            # 6 scene-specific background tracks
 ├── references/              # Drill-down docs by task (English)
 │   ├── animation-pitfalls.md
-│   ├── design-styles.md     # 20 design philosophies in detail
+│   ├── directions.md        # Three directions: six candidates → thumbnails → pick three
+│   ├── design-styles.md     # 92 HTML-native styles (web 20 + deck 20 + infographic 20 + app 12 + Chinese & East Asian 12 + Xiaohongshu 8)
+│   ├── modules/             # Web / deck / infographic / Xiaohongshu / motion module manuals
 │   ├── slide-decks.md
 │   ├── editable-pptx.md
 │   ├── critique-guide.md
@@ -280,11 +373,16 @@ huashu-design-en/
 │   └── ...
 ├── scripts/                 # Export toolchain
 │   ├── render-video.js      # HTML → MP4
+│   ├── xhs_render.py        # Xiaohongshu pages → 3:4 images + checks
 │   ├── convert-formats.sh   # MP4 → 60fps + GIF
 │   ├── add-music.sh         # MP4 + BGM
 │   ├── export_deck_pdf.mjs
 │   ├── export_deck_pptx.mjs
 │   ├── html2pptx.js
+│   ├── design_lint.py       # Design check, reskin/repeat detection, look ledger
+│   ├── learn.py             # Taste experience read/write
+│   ├── ref_board.py         # Screenshot reference works into a board
+│   ├── capabilities.py      # Detect local capabilities (image gen, sibling skills, Node, ffmpeg)
 │   └── verify.py
 └── demos/                   # Capability demos referenced by this README
 ```
@@ -301,19 +399,34 @@ Thanks to Anthropic for writing the Claude Design prompts so clearly. This kind 
 
 ---
 
-## License
+## Available Languages
 
-[MIT License](LICENSE) — free to use, modify, and distribute for any purpose, including commercial use. Attribution appreciated but not required.
+Community-maintained translations of this skill. Translation quality and license terms are the responsibility of each maintainer — please check the linked repo before relying on it.
+
+| Language | Maintainer | Repository |
+|---|---|---|
+| 中文 (original) | [@alchaincyf](https://github.com/alchaincyf) | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) |
+| English | [@namandhakad712](https://github.com/namandhakad712) | [namandhakad712/huashu-design-en](https://github.com/namandhakad712/huashu-design-en) |
+| 한국어 (Korean) | [@ktkarchive](https://github.com/ktkarchive) | [ktkarchive/ktk-design](https://github.com/ktkarchive/ktk-design) |
+| Tiếng Việt (Vietnamese) | [@letrquan](https://github.com/letrquan) | [letrquan/huashu-design](https://github.com/letrquan/huashu-design) |
+
+Want to add your language? Fork the repo, translate `SKILL.md` + `README.md`, and open an issue on the original repo so it can be linked.
+
+---
+
+## License
 
 **Relicensed to MIT on 2026-05-14.** This skill was previously released under a Personal Use License that restricted commercial use. That restriction is now removed.
 
 Under the [MIT License](LICENSE) you are free to **use, modify, and distribute** this skill for any purpose, **including commercial use** — inside companies, in client deliverables, as part of a paid product, anywhere. No prior authorization, no licensing fee, no notification required. Attribution is appreciated but not required.
 
+One exception: the demo stickers in `assets/style-specimens/xhs/_kit/stickers/` come from [huashu-bird-sticker](https://github.com/alchaincyf/huashu-bird-sticker) and are licensed under PolyForm Shield 1.0.0 (see the LICENSE.md in that folder). They only demonstrate the layouts; use your own assets in your work.
+
 ---
 
 ## Connect · Huasheng (Huashu)
 
-Huasheng is an AI-native coder, independent developer, and AI content creator. Notable work: Cat Fill Light (App Store Top 1 in Paid category), *A Book on DeepSeek*, Nüwa.skill (GitHub 21k+ stars). Combined 300k+ followers across platforms.
+Huasheng is an AI-native coder, independent developer, and AI content creator. Notable work: Cat Fill Light (App Store Top 1 in Paid category), *A Book on DeepSeek*, Nüwa.skill (GitHub 30k+ stars). Combined 300k+ followers across platforms.
 
 | Platform | Handle | Link |
 |---|---|---|
@@ -327,17 +440,15 @@ Huasheng is an AI-native coder, independent developer, and AI content creator. N
 
 For collaborations or sponsored content, DM on any of the above.
 
+<p align="center"><img src="https://raw.githubusercontent.com/alchaincyf/alchaincyf/main/assets/follow.svg" width="100%" alt="Follow Huashu: WeChat 花叔 · Bilibili 花叔v · Xiaohongshu 花叔"></p>
+
 ---
 
 ## English Version Information
 
-| Item | Detail |
-|------|--------|
-| Forked from | [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) (Chinese) |
-| English Version | [namandhakad712/huashu-design-en](https://github.com/namandhakad712/huashu-design-en) |
-| Original Author | Peanut (Uncle Hua) / alchaincyf |
-| English Version Maintainer | [namandhakad712](https://github.com/namandhakad712) |
-| Translation Scope | README, SKILL.md, references (complete) |
-| License | MIT (identical to original, relicensed 2026-05-14) |
+This is the **English localization** of [huashu-design](https://github.com/alchaincyf/huashu-design), created and maintained by [@namandhakad712](https://github.com/namandhakad712).
 
-For issues, contributions, or inquiries about the English version, please use the Issues section of this repository.
+- **Tracks parent version**: 3.2.0 — `SKILL.md`, all `references/*.md` (including the v3 module manuals), and the v3 scripts (`design_lint.py`, `learn.py`, `xhs_render.py`, `pptx_from_rendered.py`, `ref_board.py`, `capabilities.py`, …) are fully translated and kept in sync with the Chinese original.
+- **All credit for the skill itself goes to the original author**, 花叔 (Peanut) / [@alchaincyf](https://github.com/alchaincyf). This fork only localizes his work; the MIT license and his authorship are preserved everywhere.
+- **Found a translation issue or a sync lag?** Open an issue [here](https://github.com/namandhakad712/huashu-design-en/issues).
+- The upstream repo now also ships an official English `README.en.md` (README only — the skill's agent prompts stay Chinese there). For a fully English skill, use this fork.
