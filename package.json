@@ -1,8 +1,38 @@
 {
+  "name": "huashu-design-en",
+  "version": "3.2.0",
+  "description": "Huashu-Design (English fork): build high-fidelity prototypes, slide decks, animations and visualizations with HTML; export PDF and editable PPTX.",
+  "license": "MIT",
+  "author": "花叔 (Peanut)",
+  "homepage": "https://github.com/namandhakad712/huashu-design-en",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/namandhakad712/huashu-design-en.git"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "agent-skill"
+  ],
+  "files": [
+    "SKILL.md",
+    "references",
+    "scripts/*.py",
+    "scripts/*.mjs",
+    "scripts/*.js",
+    "scripts/*.sh",
+    "assets",
+    "demos",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "dependencies": {
     "pdf-lib": "^1.17.1",
     "playwright": "^1.59.1",
-    "pptxgenjs": "^4.0.1",
-    "sharp": "^0.34.5"
+    "pptxgenjs": "^4.0.1"
   }
 }
