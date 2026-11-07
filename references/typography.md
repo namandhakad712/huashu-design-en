@@ -112,7 +112,7 @@ Three sources of contrast for a pairing; decide which one you're using before pa
 | Fraunces as display | the default "tasteful" option in every 2023-2025 AI design tool | Newsreader, Libre Caslon Text |
 | Inter as display | Inter was designed for small UI text; at large sizes it's uniform and expressionless | Archivo, Anton, Schibsted Grotesk |
 | Space Grotesk | the lazy answer to "techy feel," flooded across crypto/AI landing pages | Schibsted Grotesk, Familjen Grotesk |
-| Playfair Display | the lazy answer to "elegance," wedding-invitation vibes | Cormorant (more extreme), DM Serif Display (more wholesome) |
+| Playfair Display | the lazy answer to "elegance," wedding-invitation vibes | Cormorant (more extreme), DM Serif Display (chunkier, more naive) |
 
 The "high-contrast serif × warm cream background" **combination** is not on the list: it's a look family, not one overused font. Using it is fine — just don't crowd all three directions into it, and don't use it on every project — that's the look ledger's business (`references/content-guidelines.md`).
 
@@ -160,9 +160,9 @@ Why this order: font-family matches character by character. A Latin font contain
 
 **Baseline alignment**: when CJK and Latin baselines differ, the symptom is English words "sinking" inside Chinese lines. Prefer switching to a taller-x-height Latin face; in specific display scenarios use `vertical-align: -0.02em~-0.06em` to nudge Latin spans — but not in body text (maintenance cost outweighs the benefit).
 
-**Number rules**: digits always go through the Latin font (the fallback chain guarantees it), and data tables must add `font-variant-numeric: tabular-nums`, otherwise 1 and 8 have different widths and columns shiver.
+**Number rules**: digits always go through the Latin font (the fallback chain guarantees it), and data tables must add `font-variant-numeric: tabular-nums`, otherwise 1 and 8 have different widths and columns jitter.
 
-**No space between Chinese and English**: this is the repository norm (the original author explicitly rejects Pangu spacing); the whitespace comes from the fonts' own side-bearings in the fallback chain, not from hand-typed spaces.
+**No space between Chinese and English**: this is the repository norm (花叔 (Peanut) explicitly rejects Pangu spacing); the whitespace comes from the fonts' own side-bearings in the fallback chain, not from hand-typed spaces.
 
 ### 4.3 Chinese has no italics
 
@@ -211,7 +211,7 @@ Chinese has no display-font ecosystem like Latin's Ultra Thin through Black; the
 | ❌ Anti-pattern | Why it's wrong |
 |-----------|----------|
 | Inter everywhere (display + body in one go) | Inter is a UI small-text tool; as display it's uniform and expressionless; the #1 fingerprint of "AI-generated pages" |
-| Chinese delegated to the `sans-serif` system default | Windows falls to SimSun/SimHei, macOS to PingFang — the same page wears two completely different faces across devices, which is designing not at all |
+| Chinese delegated to the `sans-serif` system default | Windows falls to SimSun/Microsoft YaHei, macOS to PingFang — the same page wears two completely different faces across devices, which is designing not at all |
 | faux italic / faux bold | browser-synthesized deformation: italics twist hanzi, synthetic bold smears strokes into ink blobs; cut it off at the root with `font-synthesis: none` |
 | Oversized heading tracking | Latin display needs tightening (large-size gaps get amplified); AI often does the opposite and adds +0.05em, leaving headings loose like temporary placeholders |
 | Runaway line length (no max-width) | 60 hanzi per line on a big screen, and the reader is guaranteed to get lost rewrapping; runaway line length is the #1 readability problem — it hurts more than a wrong font |

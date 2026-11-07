@@ -94,7 +94,7 @@ async function main() {
 
   if (errors.length) {
     console.error(`\n⚠️ ${errors.length} slide(s) failed to convert. Common cause: the HTML violates the 4 hard constraints.`);
-    console.error(`  See the "common errors quick reference" in references/editable-pptx.md.`);
+    console.error(`  See the "Common Error Quick Reference" in references/editable-pptx.md.`);
     if (errors.length === files.length) {
       console.error(`✗ All slides failed — no PPTX will be generated.`);
       process.exit(1);

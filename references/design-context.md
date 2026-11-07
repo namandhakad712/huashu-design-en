@@ -34,7 +34,7 @@ Lets you see real visual vocabulary.
 User may have: Logo files, brand color specs, marketing materials, slide templates. All are context.
 
 ### 5. Competitor Reference
-User says "like XX website" — get URL or screenshot from them. **Don't** do based on your training data's vague impression.
+User says "like XX website" — get URL or screenshot from them. **Don't** work from the vague impression in your training data.
 
 ### 6. Known Design Systems (fallback)
 If none of above, use recognized design systems as base:
@@ -80,7 +80,7 @@ If user gave codebase path, you read:
 4. **Read global stylesheet**: base resets, font loading
 5. **If Figma link/screenshots**: look at images, but **trust code more**
 
-**Important**: **Don't** glance and do from impression. Only truly lifted when you have 30+ specific values.
+**Important**: **Don't** glance and do from impression. You've only truly lifted the context once you've read 30+ specific values.
 
 ### Step 4: Vocalize System You're Using
 
@@ -200,7 +200,7 @@ If user gave Figma link:
 - Figma links usually not publicly accessible
 - Let user: export as **screenshot** send to you + tell you specific color/spacing values
 
-If only got Figma screenshot, tell user:
+If you only got a Figma screenshot, tell the user:
 - I can see visuals, but can't extract precise values
 - Key numbers (hex, px) tell me, or export as code (Figma supports)
 

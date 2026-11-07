@@ -6,7 +6,7 @@
 
 ## Scoring Criteria Explained
 
-### 0. Concept (Concept) · Highest weight
+### 0. Concept / Intent · Highest weight
 
 First ask "does this design have an idea", then look at how well it's done. Why it's in position 0: execution is an amplifier — amplifying an empty concept only makes it emptier.
 

@@ -73,7 +73,7 @@ Then open the style overviews with your vision capability: `$HD/assets/style-spe
 | Where the daring goes | The one boldest spot; everything else serves the content |
 | Where the form grew out of the content | One sentence: which thing in this design only this subject could have |
 
-**4c · Draw six thumbnails.** One `design-demos/thumbs.html`, six cells, each cell the candidate's most crucial single screen (the web first screen, the deck cover, the infographic's opening, the app's main screen), roughly 480×300: real fonts, real palette, real skeleton, real headline — the details can be spared. Screenshot it, then look with your vision capability. Thumbnails are cheap, and this step exists precisely to try more styles — when a thumbnail looks wrong, swap the source and redraw that cell; you don't wait for the full build to find out.
+**4c · Draw six thumbnails.** One `design-demos/thumbs.html`, six cells, each cell the candidate's most crucial single screen (the web first screen, the deck cover, the infographic's opening, the app's main screen), roughly 480×300: real fonts, real palette, real skeleton, real headline — the details can be left out. Screenshot it, then look with your vision capability. Thumbnails are cheap, and this step exists precisely to try more styles — when a thumbnail looks wrong, swap the source and redraw that cell; you don't wait for the full build to find out.
 
 **4d · Pick three to build in full**, criteria in order:
 
@@ -87,7 +87,7 @@ The three don't need one per logic: two best-designer plus one roulette is fine 
 One example (subject: the official website of an artisanal soy sauce brewery, three generations deep):
 
 - Best designer | Kenya Hara | Borrowed: generous whitespace, the material itself as protagonist, very few words | Lead: real photos of the clay vats and the sunning yard | Skeleton: one screen, one image, one sentence, a slow vertical pace | Daring: a full-bleed close-up of salt frost as the hero | Form: the sauce suns for 180 days, so the pace slows down
-- Real-world reference | the official site of an award-winning long-established Japanese food maker (screenshot attached) | Borrowed: the relation between vertical titles and horizontal captions, the ratio of two colors, thin-ruled sections | Lead: real bottle shots + a vertical title | Skeleton: vertical title on the left, three content columns on the right | Daring: only two colors | Form: the old house's "family recipe" presence
+- Real-world reference | the official site of an award-winning long-established Japanese food maker (screenshot attached) | Borrowed: the relation between vertical titles and horizontal captions, the ratio of two colors, thin-ruled sections | Lead: real bottle shots + a vertical title | Skeleton: vertical title on the left, three content columns on the right | Daring: only two colors | Form: the old establishment's "family recipe" presence
 - Seconds roulette | drew "Media-Grade Editorial Brutalism" | Borrowed: large type-size contrast and a modular grid | Lead: an oversized 「酱」 (the character for "sauce") cut into the hero | Skeleton: modular grid, text and images interleaved | Daring: the hero's type-size contrast | Form: one character tells the whole sauce house
 
 ### Phase 5 · Build in parallel, self-check each version

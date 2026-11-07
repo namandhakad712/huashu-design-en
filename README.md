@@ -114,6 +114,18 @@ A map of every travel photo from three years, in a Kaoru Kasai–style long scro
 
 ---
 
+## 📺 Beginner Tutorial (recorded by 花叔 (Peanut))
+
+Not sure how to start? Watch Peanut's recorded getting-started tutorial for huashu-design:
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=m-_BlUdcIvw"><img src="https://img.youtube.com/vi/m-_BlUdcIvw/maxresdefault.jpg" alt="huashu-design tutorial" width="70%"></a>
+</p>
+
+<p align="center"><sub>👉 <a href="https://www.youtube.com/watch?v=m-_BlUdcIvw">Watch the full tutorial on YouTube</a></sub></p>
+
+---
+
 ## Install
 
 ```bash
@@ -242,6 +254,38 @@ Mandatory whenever the task involves a specific brand: ask → search → downlo
 
 ---
 
+## Showcase · Real-world cases from the 2.0 era
+
+### Parrot Evolution website · the three-logics advisor flow in practice (2.0)
+
+> **Live demo · [https://www.huasheng.ai/parrots/](https://www.huasheng.ai/parrots/)**
+
+One sentence — "make a website introducing parrot evolution" — zero extra requirements, and the skill ran the full 2.0 advisor flow on its own: first judged that images were content-essential → pulled public-domain natural-history illustrations (Edward Lear / John Gould parrot plates) → **three logics in parallel** (seconds roulette + award-winning sites as real-world references + Kenya Hara's "White" philosophy), each producing a version with real visuals. **Design only after the materials are in — not color-block placeholders filled in as you go.**
+
+### "Talking about skills" · PM after-party talk deck
+
+> **Live demo · [https://skill-huasheng.vercel.app](https://skill-huasheng.vercel.app)**
+
+A 13-page HTML deck, **done entirely with huashu-design**:
+
+- Black-background minimal-serif visual system (cover / about / hook / what / why / closing)
+- 2 cinematic demos with BGM + SFX, 22 seconds each (Nuwa skill workflow + Darwin skill workflow), each in a **completely independent visual language**:
+  - **Nuwa**: 3D knowledge orbit + Pentagon distillation + SKILL.md typewriter + "21 minutes" hero reveal
+  - **Darwin**: autoresearch loop spin + v1/v5 side-by-side diff + full-screen Hill-Climb curve + Ratchet gear lock
+- Each cinematic shows a **complete static workflow dashboard** by default (the audience can always see how the skill is running); press ▶ to trigger the animation, which fades back to the dashboard when it finishes
+- Embeds huasheng.ai's 25-second hero animation (iframe with a localized fallback)
+- Real data: the real 14,495-stargazer growth curve (pulled from the gh API) + DeepSeek V4's real specs (WebSearch-verified)
+- Real AI material: a 4×2 grid image generated with `huashu-gpt-image`, 8 standalone transparent PNGs cut out with `extract_grid.py`, floating on the 3D orbit
+
+**Pages worth studying**:
+- `/slides/slide-04b-nuwa-flow.html` · the two-layer architecture of static dashboard + cinematic overlay
+- `/slides/slide-06b-darwin-flow.html` · a contrast case of two completely independent visual languages
+- `/slides/slide-03b-deepseek-cover.html` · AI slop vs the real-designer point of view, side by side
+
+For the cinematic patterns in detail, see `references/cinematic-patterns.md`.
+
+---
+
 ## Core Mechanics
 
 ### Core Asset Protocol
@@ -277,7 +321,7 @@ Triggered when the brief is too vague to execute (rebuilt in 3.0):
 - **You never pick a style from words alone** — it stops once the designs are on the table
 - Backed by a **92-style HTML-native library**, each with a specimen image and source (`assets/style-specimens/`) — ammunition, not dogma
 
-Why: we ran three rounds of blind before/after tests on fixed briefs (internal). Round one forced a big metaphor onto every direction, turned pages into props, and won 1 of 4; round two piled on bans to dodge the "AI default look", made all three directions "too regular, too boring", and lost both briefs; round three switched to more options instead of more bans — more candidates, visible specimens, real references — and won both.
+Why: we ran three rounds of blind before/after tests on fixed briefs (internal). Round one forced a big metaphor onto every direction, turned pages into props, and won 1 of 4; round two piled on bans to dodge the "AI default look", made all three directions "too tidy, too boring", and lost both briefs; round three switched to more options instead of more bans — more candidates, visible specimens, real references — and won both.
 
 ### Learns as you use it: experience, look ledger, design check
 
@@ -396,6 +440,14 @@ The day Anthropic launched Claude Design I played with it until 4 a.m. A few day
 So I had an agent deconstruct Claude Design itself (including the system prompts circulating in the community, the brand asset protocol, the component mechanics), distill it into a structured spec, then write it as a skill installed in my own Claude Code.
 
 Thanks to Anthropic for writing the Claude Design prompts so clearly. This kind of derivative work inspired by other products is the new form of open-source culture in the AI era.
+
+---
+
+## Products built with huashu-design
+
+The three interface skins of **[FanBox · a coding-agent cockpit](https://github.com/alchaincyf/fanbox)** were designed with huashu-design. Direct Claude Code / Codex to do the work, and see every file it touches and every line it changes.
+
+[![FanBox · Coding Agent cockpit](https://raw.githubusercontent.com/alchaincyf/fanbox/master/assets/promo-banner.jpg)](https://github.com/alchaincyf/fanbox)
 
 ---
 

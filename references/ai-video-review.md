@@ -19,7 +19,7 @@
 cd <project-dir> && unset ALL_PROXY   # script is already proxy-immune; unset is a double safeguard
 uv run ~/.claude/skills/huashu-design/scripts/cloud/ai-review-video.py \
   --video <final>.mp4 \
-  --context <director-notes>.md \      # highly recommended: the model uses it to distinguish "design intent" from "bug"
+  --context 导演稿.md \      # highly recommended: the model uses it to distinguish "design intent" from "bug"
   --yes                      # confirm sending video segments to Volcano Ark (or HUASHU_CLOUD_OK=1)
 ```
 
@@ -40,7 +40,7 @@ uv run ~/.claude/skills/huashu-design/scripts/cloud/ai-review-video.py \
 
 ## Checklist and severity
 
-① black frames / incomplete render ② text cropping/typos ③ overlapping/occluding elements ④ narrative coherence (transitions identified using camera-language.md §7's three-layer vocabulary: six forms [white-flow / black-dip / defocus-relay / black-title-card / whip-pan / mask-wipe], hidden-cut, travel [shared-element reset / letter-counter traversal]; a bare cut = unwrapped hard cut, recorded as ⚡)
+① black frames / incomplete render ② text cropping/typos ③ overlapping/occluding elements ④ narrative coherence (transitions identified using camera-language.md §7's three-layer vocabulary: six forms [flash-wash / dip-to-dark / defocus-handoff / title-card / whip-pan / mask-wipe], hidden-cut, travel [shared-element settle / letterform counter traversal]; a bare cut = unwrapped hard cut, recorded as ⚡)
 ⑤ hero continuity ⑥ pacing dead segments (objective checklist + model judgment on whether it's a deliberate hold or genuinely dead) ⑦ SFX cueing (onset + on-screen event cross-check) ⑧ imbalanced composition / empty space
 
 ⚠️ fatal = must fix before delivery | ⚡ important = noticeably impairs viewing | 💡 suggestion = nice to have
@@ -55,4 +55,4 @@ uv run ~/.claude/skills/huashu-design/scripts/cloud/ai-review-video.py \
 
 ## Measured baseline
 
-First run target: B00-first-3-minutes-mainline-SFX.mp4 (210s). The model independently spotted the inter-act transition problem and pointed in the right direction on the hero breakpoint, but misreported fades as hard cuts; pure-model dead-segment detection only hit 3/14, and after wiring in freezedetect it covered everything. Conclusion: the objective detection layer is the lower-bound guarantee of this loop, while the model handles semantic judgment.
+First run target: B00-前三分钟主线-SFX.mp4 (210s). The model independently spotted the inter-act transition problem and pointed in the right direction on the hero breakpoint, but misreported fades as hard cuts; pure-model dead-segment detection only hit 3/14, and after wiring in freezedetect it covered everything. Conclusion: the objective detection layer is the lower-bound guarantee of this loop, while the model handles semantic judgment.

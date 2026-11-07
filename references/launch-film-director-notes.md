@@ -17,7 +17,7 @@ In the second round, following the user's instruction to "stop, first write a 10
 
 **The core difference**: writing the script is think; writing HTML is execute. Once you've thought it through, execution is mechanical translation. If you execute first, every shot is an on-the-spot decision, and chaos is inevitable.
 
-Writing the director's notes isn't "putting on airs" — it's sedimenting every visual decision into a document **before touching the code** — every shot has already been visualized in the head, reasoned through, and traced against context. During HTML implementation you no longer need to make creative decisions; you only need to translate faithfully.
+Writing the director's notes isn't "putting on airs" — it's distilling every visual decision into a document **before touching the code** — every shot has already been visualized in the head, reasoned through, and traced against context. During HTML implementation you no longer need to make creative decisions; you only need to translate faithfully.
 
 ---
 
@@ -88,7 +88,7 @@ SHOT NN · NAME
 [TIMECODE]    start/end time + duration
 [FUNCTION]    this shot's function in the story arc (one sentence)
 [VISUAL]      frame composition + element positions + motion direction
-[CAMERA]      shot scale (extreme-wide/wide/medium/close/close-up, mapped to zoom steps) + camera move + one sentence of motivation; write why "static" is static too; push-ins must specify a concrete anchor (vocabulary and budget in camera-language.md; shot-scale system in storyboard-basics.md §3)
+[CAMERA]      shot scale (extreme long / long / medium / close-up / extreme close-up, mapped to zoom tiers) + camera move + one sentence of motivation; write why "static" is static too; push-ins must specify a concrete anchor (vocabulary and budget in camera-language.md; shot-scale system in storyboard-basics.md §3)
 [TYPE]        typography spec (font / size / letter-spacing / line-height / color / alignment)
 [ANIM]        each element's in/out timing + easing + duration + stagger + delay
 [AUDIO]       music beat + SFX cue (each shot's BGM rhythm + required SFX schedule)

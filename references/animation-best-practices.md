@@ -179,7 +179,7 @@ See §1.
 
 - Claude Design shows parameter tweaks and slider dragging (not one-click perfect results)
 - Claude Code shows code errors + AI fixing them (not one-shot success)
-- Claude for Word shows the redline editing process of deletions in red and additions in green (not dropping the final draft)
+- Claude for Word shows the redline editing process of deletions in red and additions in green (not handing over the final draft in one go)
 
 **Shared subtext**: the product is a **collaborator, pair engineer, senior editor** — not a one-click magician.
 This precisely hits professional users' pain points around "controllability" and "authenticity."
@@ -272,7 +272,7 @@ visually there's no "receding into the background" effect. blur(4-8px) genuinely
 
 ### 4.1 FLIP / Shared Element Transition
 
-The button "expands" into an input field; this is **not** button disappears + new panel appears. The core is **the same DOM element**
+The button "expands" into an input field; it is **not** the button disappearing + a new panel appearing. The core is **the same DOM element**
 transitioning between two states, not two elements cross-fading.
 
 ```jsx
@@ -466,10 +466,10 @@ Of the reference materials, the three videos correspond to three product persona
 **The director's notes (or any animation brief) must explicitly include three things**:
 
 1. **Visual density standard**: the required magnitude of detail elements per screen (skeleton-UI content rows, legends, textures, secondary elements), plus one executable acceptance statement, such as "pause at any frame and it doesn't look embarrassing next to the reference benchmark"
-2. **Reference benchmark**: point at a specific finished work (an older animation in the same project / the A-series / some demo), and borrow the build craft directly — don't let the agent invent things from nothing
-3. **Global atmosphere layer checklist**: ground-line anchoring, soft shadows on elements, paper/surface background texture, hero element's companion or similar personified small elements, idle micro-motion for static elements (breathing / cursor / micro-advance) — the main remedy for "empty and boring" is this layer, not the primary elements themselves
+2. **Reference benchmark**: point at a specific finished work (an older animation in the same project / the A-series / some demo), and borrow the component workmanship directly — don't let the agent invent things from nothing
+3. **Global atmosphere layer checklist**: ground-line anchoring, soft shadows on components, paper/surface background texture, hero element's companion or similar personified small elements, idle micro-motion for static components (breathing / cursor / micro-advance) — the main remedy for "empty and boring" is this layer, not the primary components themselves
 
-**The fix path also has a standard pattern**: the motion skeleton (timeline / camera moves / morph path / text-card timing) and the visual craft (elements / density / atmosphere) are two layers. When acceptance is rejected, first ask which layer the problem is in — if the motion passes, just do a re-skin, don't re-choreograph.
+**The fix path also has a standard pattern**: the motion skeleton (timeline / camera moves / morph path / text-card timing) and the visual craft (components / density / atmosphere) are two layers. When acceptance is rejected, first ask which layer the problem is in — if the motion passes, just do a re-skin, don't re-choreograph.
 
 ---
 
@@ -504,7 +504,7 @@ Of the reference materials, the three videos correspond to three product persona
 | **This file** | Positive motion design syntax | "**How you should do it**" |
 
 **Call order**:
-1. First look at Step 3 form-derivation's five questions in the SKILL.md workflow (decides the narrative role and visual temperature)
+1. First look at the five form questions in Step 3 of the SKILL.md workflow (they decide the narrative role and visual temperature)
 2. After choosing a direction, read this file to lock the **motion language** (recipe A/B/C)
 3. When writing code, consult `animations.md` and `animation-pitfalls.md`
 4. When exporting video, go through `audio-design-rules.md` + `sfx-library.md`

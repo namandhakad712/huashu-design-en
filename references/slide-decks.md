@@ -296,7 +296,7 @@ The combiner already has built-in: keyboard navigation (←/→/Home/End/number 
 Opening the deck defaults to **overview**; when the user hasn't specified, it's randomized by seconds: **grid 60% / infinite gallery 40%** (can be pinned with the URL `?ov=grid|gallery` or `window.DECK_OVERVIEW='grid'|'gallery'`).
 
 - **Grid (default primary)**: renders the **real child pages in iframes** (sharp, what-you-see-is-what-you-get, no thumbnails needed). **Adaptive**: if it all fits on one screen → tilt diagonally and center to fill; if there are too many pages → cards keep a comfortable size with **vertical scrolling** (never cram dozens of pages onto one screen shrunk to postage stamps).
-- **Infinite gallery**: all pages **tile seamlessly and infinitely + slow drift + subtle breathing scale**, one tile per page (shuffled layout, repeats only after seeing every page). With many tiles, **you must use `<img>` thumbnails** to carry the performance (see below); when there's no thumb it falls back to iframes.
+- **Infinite gallery**: all pages **tile seamlessly and infinitely + slow drift + subtle breathing scale**, a single tile contains every page (shuffled layout, repeats only after seeing every page). With many tiles, **you must use `<img>` thumbnails** to carry the performance load (see below); when there's no thumb it falls back to iframes.
 
 🛑 **Three hard constraints from real-world use (read before editing this file, or you'll repeat past mistakes)**:
 1. **Never use `transform-style: preserve-3d` for the overview wall of cards**. In a preserve-3d scene, the browser's hit-testing for the "cards receding backward" (top row) is unreliable → top row can't be clicked, middle row works intermittently. **Correct approach**: make the whole wall a **single plane tilted in 3D** (no preserve-3d), all cards coplanar, clicks unprojected onto one plane → reliable. Use 2D `scale` for hover, not `translateZ`.
@@ -741,5 +741,5 @@ If your deck will be maintained long-term, revised repeatedly, and worked on by 
 2. [ ] Page through every slide with the → key; no blank pages, no layout misalignment
 3. [ ] Press P for print preview; each page is exactly one A4 (or 1920×1080) with nothing cropped
 4. [ ] Randomly pick 3 pages, Cmd+Shift+R hard refresh; localStorage memory works correctly
-5. [ ] Playwright batch screenshots (multi-page architecture: iterate `slides/*.html`; single-file architecture: switch with goTo), manually eyeball them all
+5. [ ] Playwright batch screenshots (multi-file architecture: iterate `slides/*.html`; single-file architecture: switch with goTo), manually eyeball them all
 6. [ ] Search for leftover `TODO` / `placeholder` and confirm they're all cleaned up

@@ -99,7 +99,7 @@ What's the animation's personality?
 ├─ Tutorial / tool usage → bgm-tutorial.mp3 (warm, instructional)
 ├─ Education / explanations → bgm-educational.mp3 (curious, thoughtful)
 ├─ Marketing / brand promo → bgm-ad.mp3 (upbeat, promotional)
-└─ Need a variant of the same style → bgm-*-alt.mp3 (alternate of each)
+└─ Need a variant of the same style → bgm-*-alt.mp3 (an alternate for each style)
 ```
 
 ### Going Without BGM (Worth Considering)

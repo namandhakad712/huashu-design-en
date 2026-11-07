@@ -101,11 +101,11 @@ function AppPhone({ initial }) {
 
 Screen components take callback props (`onTabChange`, `onOpen`, `onClose`, `onToggle`, `onAnnotation`) instead of hardcoding state. TabBar, buttons, work cards, and toggles get `cursor: pointer` + hover feedback. Each phone lands on a different main screen, but they can reach each other after tab switching — tiling gives the overview, clicking gives the depth.
 
-The flex above is just the minimal skeleton to get it running — swap it for a presentation-board composition before delivery.
+The flex above is just the minimal skeleton to get it running — swap it for a display-board composition before delivery.
 
-#### Presentation board: don't line the phones up in a row
+#### Display board: don't line the phones up in a row
 
-In blind reviews, for app prototypes in any direction, whenever five or six equal-sized phones sit evenly spaced in a row, the user verdict is always "too regimented, too boring". However good the screens themselves are, what the eye hits first is a tidy grid. The display board is this direction's first poster, and it needs design of its own:
+In blind picks, for app prototypes in any direction, whenever five or six equal-sized phones sit evenly spaced in a row, the user verdict is always "too tidy, too boring". However good the screens themselves are, what the eye hits first is a tidy grid. The display board is this direction's first poster, and it needs design of its own:
 
 | Technique | How | Suits |
 |---|---|---|

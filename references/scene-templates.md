@@ -32,10 +32,10 @@
 
 ---
 
-## 2. Body Illustrations / Concept Art
+## 2. Body Illustrations / Concept Illustrations
 
 **Specifications**:
-- 16:9 (1200×675px) most common
+- 16:9 (1200×675px) most versatile
 - 1:1 (800×800px) good for emphasis
 - 4:3 (1200×900px) good for information-dense
 
@@ -94,7 +94,7 @@
 - Widescreen: 16:10 (1920×1200px)
 
 **Key design elements**:
-- One core message per slide (don't pile)
+- One core message per slide (don't pile up)
 - Clear type hierarchy (title 40pt+ / body 24pt+ / notes 16pt+)
 - Generous whitespace, clearer in projection
 - Image-to-text ratio at least 60:40
@@ -233,7 +233,7 @@
 
 ## Combination Example
 
-**Scenario**: WeChat public account cover, introducing an AI programming tool, wants professional but warm
+**Scenario**: WeChat public account cover, introducing an AI programming tool, wanting a professional but warm feel
 
 **Step 1**: Choose style → 17 Takram (professional + warm)
 **Step 2**: Combine Takram prompt DNA + WeChat cover template

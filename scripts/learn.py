@@ -90,7 +90,7 @@ def recall(topics):
     parts = []
     if prefs:
         parts.append(f"## This user's preferences ({len(prefs)} entries) — their verbatim words, holding until they say otherwise. "
-                     f'Note: preferences have a scope. One stated for a certain kind of deliverable must not spill over into a default for all design\n\n'
+                     f'Note: preferences have a scope. One stated as only for a certain kind of deliverable must not spill over into a default for all designs\n\n'
                      + '\n\n'.join(e['body'] for e in prefs))
     else:
         parts.append(f"## This user's preferences: nothing recorded yet ({local_file()})")

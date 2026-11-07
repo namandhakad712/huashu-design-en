@@ -1,5 +1,5 @@
 # DeepSeek Harness plugin entry: reuse DSH's bundled filesystem skill provider,
-# treating this package's node_modules directory as the skill root, so the SKILL.md at the package root is discovered.
+# treating the node_modules directory that contains this package as the skill root, so the SKILL.md at the package root is discovered.
 - insert:
     - id: huashu-design-skill
       name: '@deepseek-ai/dsh-skill-filesystem'

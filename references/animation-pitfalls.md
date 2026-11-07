@@ -395,11 +395,11 @@ When mounting `render(t)` into a GSAP timeline with a proxy tween (the old-demo 
 
 ## 20. 【HyperFrames】The contrast Gate Conflicts with Dark Cinematic Style — Use `--no-contrast`; the Other Four Gates Must Be 0 Errors
 
-The `npm run check` contrast gate checks all text against WCAG AA 4.5:1. In dark cinematic designs, 16-40% opacity watermarks, mono labels, and decorative text are **deliberately** low-contrast (part of the cinematic feel); they'd report errors on delivery, and the framework has no per-element exemption mechanism. In the c3 measurements, all 42 contrast errors were by design.
+The `npm run check` contrast gate checks all text against WCAG AA 4.5:1. In dark cinematic designs, 16-40% opacity watermarks, mono labels, and decorative text are **deliberately** low-contrast (part of the cinematic feel); they will throw errors en masse, and the framework has no per-element exemption mechanism. In the c3 measurements, all 42 contrast errors were by design.
 
-**Fix**: for dark cinematic output use `npx hyperframes check --no-contrast`; the lint/runtime/layout/motion four gates must still be 0 errors. **For light-background informational output, don't skip contrast** — errors in that context are usually real readability problems (the readability hard floor is in SKILL.md's Narrow Bridge §5).
+**Fix**: for dark cinematic output use `npx hyperframes check --no-contrast`; the lint/runtime/layout/motion four gates must still be 0 errors. **For light-background informational output, don't skip contrast** — errors in that context are usually real readability problems (the readability floors are in SKILL.md's Narrow Bridge §5).
 
-## 21. 【HyperFrames/GSAP】the fromTo immediateRender Phantom — Elements Appear Seconds Early
+## 21. 【HyperFrames/GSAP】The fromTo immediateRender Phantom — Elements Appear Seconds Early
 
 GSAP's `fromTo()` defaults to `immediateRender: true`: when the timeline is built, the from state is rendered onto the elements. If the from state itself is visible (`autoAlpha > 0`), the element appears on screen before its tween starts — short-lived effects like sparks, click circles, ripples, and dust are the most prone (B00 measured a case that hit 4 of these: effects hung on the frame several seconds before their alignment moment).
 

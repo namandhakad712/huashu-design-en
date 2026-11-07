@@ -26,7 +26,7 @@ an environment problem, not your file. This step saves hours of debugging in the
 
 | Tool | Can it be trusted |
 |---|---|
-| `qlmanage -t` thumbnails | ❌ Not acceptable as an acceptance basis |
+| `qlmanage -t` thumbnails | ❌ Cannot serve as an acceptance basis |
 | LibreOffice headless | ⚠️ Layout trustworthy; fonts/Chinese may drop out entirely |
 | Keynote + AppleScript export to PDF | ✅ The first choice for automation — a real layout engine |
 | The target app itself (PowerPoint / WPS) opening it | ✅ Final confirmation, human eyes |
@@ -236,4 +236,4 @@ bash scripts/verify-video.sh raw.mp4 --duration=10 --fps=60 --no-audio
 bash scripts/verify-video.sh film.mp4 --duration=30 --fps=60 --allow-black-open
 ```
 
-Checks: resolution/frame rate, duration tolerance (±2%), audio stream existence (the machine-executed rule that no audio track = unfinished film), black frames at head/tail (blackdetect, a typical symptom of recording offset/loop bounce-back), LUFS loudness (final film target −14±4). A non-zero exit code means it must not be delivered.
+Checks: resolution/frame rate, duration tolerance (±2%), audio stream existence (machine enforcement of the iron rule that no audio track = half-finished), black frames at head/tail (blackdetect, a typical symptom of recording offset/loop bounce-back), LUFS loudness (final film target −14±4). A non-zero exit code means it must not be delivered.

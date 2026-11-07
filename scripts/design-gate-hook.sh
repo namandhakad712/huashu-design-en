@@ -57,7 +57,7 @@ done
 cat >&2 << EOF
 🛑 Design-flow gate: this composition is ${DUR}s (a ≥45s long film), but no direction-approved.md was found in the project.
 huashu-design iron rule: before rendering a long film you must complete "three directions of real visuals for the user to choose from" (or an explicit user exemption), and write the pick/exemption record into the project directory's direction-approved.md (including: which versions were shown, screenshot paths, the user's verbatim pick).
-Re-render after fixing this; when the user explicitly says skip to your face, prefix the command with SKIP_DESIGN_GATE=1 for an explicit pass.
+Re-render after fixing this; when the user explicitly tells you to skip, prefix the command with SKIP_DESIGN_GATE=1 for an explicit pass.
 (Basis: 2026-07-17 B00 field test — skipping direction confirmation on a 210s full film → full visual rework)
 EOF
 exit 2

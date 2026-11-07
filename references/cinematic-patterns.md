@@ -81,7 +81,7 @@ POINT ▶ trigger (overlay floats up): 22-second cinematic
 
 **Comparison case**:
 
-| Dimension | Nuwa (distillation) | Darwin (optimization skill) |
+| Dimension | Nuwa (person-distillation) | Darwin (optimization skill) |
 |---|---|---|
 | Core metaphor | collect → distill → write | loop → evaluate → ratchet |
 | Visual motion | floating / radiating / pentagon | looping / ascending / comparing |

@@ -61,7 +61,7 @@ bash add-music.sh <input.mp4> [--mood=<name>] [--music=<path>] [--out=<path>]
 | `ad` | Upbeat modern electronic with a build + drop | Social media ads, product teasers, promos |
 | `educational` | Warm and bright, light guitar / electric piano, inviting | Science explainers, tutorial intros, course teasers |
 | `educational-alt` | Same category, alternate track to try | Same as above |
-| `tutorial` | Lo-fi ambient, almost imperceptible | Software demos, coding tutorials, long recordings |
+| `tutorial` | Lo-fi ambient, almost imperceptible | Software demos, coding tutorials, long-form demos |
 | `tutorial-alt` | Same category, alternate track | Same as above |
 
 **Behavior**:

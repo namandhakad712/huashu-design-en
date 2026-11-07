@@ -192,14 +192,14 @@ Put it anywhere in the project directory, filename suggested as `script.md`:
 
 ```markdown
 ---
-title: What is LLM
+title: What is an LLM
 voice: S_JSdgdWk22   # optional, overrides the default voice in .env
 speed: 1.0           # optional, 0.5-2.0
 gap: 0.4             # silence between scenes in seconds, default 0.3
 ---
 
 ## intro
-Hello everyone, today in 5 minutes we'll explain what LLM is.
+Hello everyone, today in 5 minutes we'll explain what an LLM is.
 
 ## what-is
 LLM stands for Large Language Model, [[cue:bigmodel]]it's a neural network with hundreds of billions of parameters.
@@ -207,7 +207,7 @@ Essentially it's a predictor that continues text.
 
 ## demo
 For example you type "today's weather", [[cue:input]]the model predicts what the next character most likely is.
-[[cue:predict]]Maybe "great out", maybe "pretty nice".
+[[cue:predict]]Maybe " is great", maybe " isn't bad".
 ```
 
 **Rules**:
@@ -287,7 +287,7 @@ const { NarrationStage, Subtitles } = NarrationStageLib;
 | Font | `PingFang SC` / `Noto Sans SC` (sans-serif, Bilibili standard) | Serif fonts look like movie subtitles |
 | Position | bottom: 90px (not edge-bound) | Hugging the bottom edge looks cheap |
 | Line length | **≤ 12-13 characters** (for mixed CN/EN, count English as 0.5 character) | >15 characters per line can't be read fully on mobile |
-| Line-breaking | **Never truncate across a sentence period**: first split by 。！？, then merge each sentence by 、；： to ≤maxLen | Hard-cutting by character count turns "this is good" into "this is goo" + "d" |
+| Line-breaking | **Never truncate across a sentence period**: first split by `。！？`, then merge each sentence by `，、；：` up to ≤maxLen | Hard-cutting by character count turns "this is good" into "this is goo" + "d" |
 
 `<Subtitles />` runs by the above rules by default, no props needed. For dark backgrounds: `<Subtitles color="#fff" haloColor="rgba(0,0,0,0.85)" />`.
 
@@ -371,7 +371,7 @@ NarrationStage auto-detects `window.__recording`:
 
 > ⚠️ TTS is an optional cloud capability: the narration script text is sent to the official Doubao TTS API (openspeech.bytedance.com),
 > using your own key. The first script call needs explicit confirmation via `--yes` or `HUASHU_CLOUD_OK=1`,
-> and the endpoint is hard-validated against the byte-dance official domain allowlist. Data-flow statement is in the repo root `SECURITY.md`.
+> and the endpoint is hard-validated against the official ByteDance domain allowlist. Data-flow statement is in the repo root `SECURITY.md`.
 
 `.env` in the skill root directory (already gitignored):
 

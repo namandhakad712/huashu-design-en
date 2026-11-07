@@ -1,7 +1,7 @@
 # Camera Language · Camera Moves Direction System
 
 > **When to read this file**: before any "camera-level" motion appears on screen — zoom / pan / orbit / parallax /
-> transitions / establishing shots and closing credits. As long as what moves is the "camera" and not the "elements", read this first before writing the timeline.
+> transitions / establishing shots and finales. As long as what moves is the "camera" and not the "elements", read this first before writing the timeline.
 > How elements move (entrance / stagger / physical feel) belongs in `animation-best-practices.md`;
 > this file answers **when the camera moves, how much it moves, how long it moves, and how camera shots connect**.
 > The runnable GSAP-side implementations (rig containers, PageCam translation, logarithmic-duration helper) are in
@@ -33,7 +33,7 @@ That is the shared source of both motion sickness and cheapness. The correct men
 
 Two more style axioms on top (shotcraft):
 
-1. **Cinematic feel = camera moves × light and shadow × rhythm × sound, not flashy animation**. Passing on each of the four dimensions beats maxing out a single one.
+1. **Cinematic feel = camera moves × light and shadow × rhythm × sound, not flashy animation**. A passing grade on each of the four dimensions beats maxing out a single one.
 2. **Pacing preference is one-directional: prefer slow over fast**. All historical user feedback points to "slow down / linger", none points to "speed up".
    When unsure of a duration, pick the longer one; when unsure whether to move the camera, don't move it.
 
@@ -49,11 +49,11 @@ Ask motivation first for every camera move: **which question does this shot answ
 | Shot | Motivation (when to give it) | Parameter range | Taboos |
 |---|---|---|---|
 | **push in** | "Look here next": focus on one specific UI element / data / keyword; rising tension | Zoom ratios 1.3 / 1.45 / 1.8 / 2.3 tiers (see §4); duration follows the logarithmic formula; enter the shot 0.15s early (HuaRec) | Don't push below 1.25x; don't push during full-screen-level changes like scrolling / page switching / video playback ("push-in during scroll causes dizziness"); no camera moves mid-narration (see §6 move on pause) (HuaRec) |
-| **pull out** | Revealing the full picture and context: "so it belongs to a larger system"; closing finale | Duration follows the same logarithmic formula; finale pull-out 0.55s + ≥0.8s full-frame pause (HuaRec) | No "out-in-out" pumping: when the gap between shots is smaller than the transition duration, cut straight to the next shot without returning to 1x (see §5) (HuaRec) |
+| **pull out** | Revealing the full picture and context: "so it belongs to a larger system"; finale | Duration follows the same logarithmic formula; finale pull-out 0.55s + ≥0.8s full-frame pause (HuaRec) | No "out-in-out" pumping: when the gap between shots is smaller than the transition duration, cut straight to the next shot without returning to 1x (see §5) (HuaRec) |
 | **pan** | Transfer between two mid-distance focal points (normalized distance 0.22-0.45); sweeping across multiple side-by-side elements in one shot | Only worth panning at combined zoom ≥1.25; diagonal pan uses dual-frequency sine (X/Y frequency ratio 0.22:0.35, amplitude 30-40px) (HuaRec / existing in this skill) | Don't pan between focal points farther than 0.45 (diagonal jump) — drop the shot; pure single-axis pan feels mechanical, prefer diagonal |
 | **orbit** | Single-protagonist texture close-up, the shot with the strongest "physicality"; building the hero element's legend | rotY dominant + persp 1100-1200px; measured camera positions rotX46/rotY−30/rotZ9 → rotX42/rotY26/rotZ−7 (shotcraft) | A single technique gets to be the protagonist only once per film (shotcraft); forbidden on information-dense frames (the camera position serves readability — face it head-on when there's lots of text) |
 | **dolly zoom** | The reveal moment of "worldview inversion": subject unchanged, context drastically changes | Fake recipe in §8: subject pinned, background scale 1→2.0-2.5 + opacity ≤0.6 (shotcraft) | At most once per film; using it without a narrative drop = pure showing off |
-| **static** | Text reading, real-human-speed interaction demos, information-dense shots; the default answer when budget runs low | Brand lockup settles and holds ≥1s; 0.5s of stillness after mass motion finishes; opening subject action arc ≥3s (shotcraft) | None. Staying still is always a legitimate choice — "not giving a shot" is itself a director's decision |
+| **static** | Text reading, real-human-speed interaction demos, information-dense shots; the default answer when budget runs low | Brand wordmark settles and holds ≥1s; 0.5s of stillness after mass motion finishes; opening subject action arc ≥3s (shotcraft) | None. Staying still is always a legitimate choice — "not giving a shot" is itself a director's decision |
 
 Two horizontal rules:
 
@@ -333,7 +333,7 @@ satisfying the determinism requirement of gsap-recipes §6.
 
 ## §10 · Camera-Move Self-Checklist (60 seconds after writing the timeline)
 
-- [ ] Does every camera move answer "which question did it answer for the audience"? Were the unanswerable ones deleted?
+- [ ] Can every camera move answer "what question does it answer for the audience"? Were the unanswerable ones deleted?
 - [ ] No zoom below 1.25x (except the establishing 1.06x)?
 - [ ] Adjacent shot interval ≥2.6s, ≤4-5 per 15s window?
 - [ ] All push/pull durations follow the logarithmic formula, no pulled-from-thin-air fixed durations?

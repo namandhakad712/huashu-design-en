@@ -15,7 +15,7 @@
 | Axiom | Content | Source |
 |---|---|---|
 | **Visibility invariant** | At any moment, the cursor and the UI operation in progress must be inside the visible area (including an 8% safety margin). Violating shots should instead reduce their zoom, merge shots, or not be shot | huarec A1 |
-| **Visual language grows from the product** | First extract the product's own design tokens (typeface/corner radius/color palette/grid), and the whole film may only reuse or restrain-edly extend them. Shot cards only inherit motion grammar and pacing; the skin is re-skinned per the target product | shotcraft axiom 1 |
+| **Visual language grows from the product** | First extract the product's own design tokens (typeface/corner radius/color palette/grid), and the whole film may only reuse them or extend them with restraint. Shot cards only inherit motion grammar and pacing; the skin is re-skinned per the target product | shotcraft axiom 1 |
 
 ---
 
@@ -33,7 +33,7 @@ Product UI needs to appear
  │   └─ Yes → [Path Three] hybrid: screenshot as the base + key elements rebuilt as slices
  │
  └─ Is the interface itself the narrative subject, with elements entering one by one / responding to operations / changing state?
-     └─ Yes → [Path Two] HTML rebuild. Use the build-up eight-form ②
+     └─ Yes → [Path Two] HTML rebuild. Use the build-up form ②
 ```
 
 | Path | Approach | Workload | Applicability criteria |
@@ -52,7 +52,7 @@ The five steps of the hybrid path:
 4. Stack the slice on the patch and animate it, ending back at the layout.json slot
 5. During the close-up push-in segment, use 4x high-res slices crossfaded for 6f to cover the low-zoom texture (shotcraft·PageCam companion technique)
 
-**Device frame selection**: the frame is the contextual signal of "this is real software"; a bare screenshot floating on the canvas reads like a sticker. But the frame also eats frame area — once a close-up pushes past zoom 2x the frame is out of frame, and you can use a frameless slice directly.
+**Device frame selection**: the frame is the contextual signal of "this is real software"; a bare screenshot floating on the canvas reads like a sticker. But the frame also eats screen area — once a close-up pushes past zoom 2x the frame has left the picture, and you can use a frameless slice directly.
 
 ### The asset trio (collect all three before taking Path One/Three)
 
@@ -95,7 +95,7 @@ Stand one core object (card/panel/module) up as the product's atomic unit. The s
 |---|---|---|
 | Camera position | rotY 34° dominant + rotX only 8°, perspective 1200px | Side shots beat top-down, "shoot from the left, not from below"; a large rotX turns it into looking at a desktop |
 | Push-in | Full-page zoom 0.78 holds one beat, then 16f push to zoom 2.6 | The stillness before the push is "let the audience see the whole first"; pushing straight in has no sense of space |
-| Action arc | rise 10f (`cubic-bezier(0.2,1.25,0.3,1)` overshoot) → hover 54f (sin bob amplitude 4px period 40f, translateZ 110px) → reseat 18f landing at press scale 0.997 | Lockdown to landing is about 3.3s; a texture shot must be this slow — the first draft is almost always too fast |
+| Action arc | rise 10f (`cubic-bezier(0.2,1.25,0.3,1)` overshoot) → hover 54f (sin bob amplitude 4px period 40f, translateZ 110px) → reseat 18f landing at press scale 0.997 | From lock to landing is about 3.3s; a texture shot must be this slow — the first draft is almost always too fast |
 | Contour beam | SVG rounded-rect stroke runs two loops: first loop 14f fast and bright, second loop 20f slow and weak (opacity 0.62) | The two loops must differ in speed to read as "continuous scanning"; one loop reads as a blink; the beam is given to the protagonist only once per film |
 | Double shadow | `0 8·lift px …, 0 46·lift px 90·lift px` growing with hover height | If the shadow doesn't grow with height, the hover doesn't hold |
 | Spotlight guidance | Wandering light passes 4 intermediate stations then locks on the card center, light pool radius 620→420→360 closing in, +6% pulse at the moment of lock; outer vignette 0.16→0.42 dimming | The intermediate stations make "random illumination" believable; heading straight for the target reads as procedural; the vignette is the other half of the spotlight |
@@ -116,7 +116,7 @@ The three source cards divide labor by object: **one interface** progressively b
 | Parameter | Typical value | Tuning feel |
 |---|---|---|
 | Three-stage reveal | Sketch (seed swapped every 5f to "boil") → one-beat switch-to-real with 8f accelerated shrink-back + skeleton spring pop-in → skeleton rows stagger in at 6f → revealed rows stagger at 13f, 12f within a row | The switch-to-real beat must be fast and decisive; dragging it into a crossfade "jump" loses the effect; the three stages must be strictly isomorphic — misalignment reads as a page change |
-| Word-by-word entrance | 2.5f/word floating up 14px; the last word of the last row +14f, half a beat late | The half-beat-late is the period of "loading complete"; all landing together is flat |
+| Word-by-word entrance | 2.5f/word floating up 14px; the last word of the last row +14f, half a beat late | The half-beat delay is the full stop on "loading complete"; all landing together is flat |
 | Row embedding | Row i cue = 12 + i·9, flying 12f; `perspective(900px) translateY(−120·air) rotateX(16°·air)` | **rotateX flattening to horizontal is the key read of "embedding"**; pure translateY is just "dropping" |
 | Embedding accent seam | A 2px accent-color seam on the bottom edge expands from center in 5f, fades out in 8f | Gives each embed a confirmation point, but must fade fast |
 | Document block-by-block | Block g cue = 6 + g·3.5, each block wipes 8f; accent-color caret follows only the newest block | **"Block count × beat must first fit the budget" is the core arithmetic**; with too many blocks, cut blocks first, don't speed up; "there is always only one pen tip" — two carets flashing simultaneously means two authors |
@@ -285,7 +285,7 @@ Sound-hook quick reference (only after visuals are locked; pin frames in relativ
 
 | Form | What sound to pin |
 |---|---|
-| ① hero close-up | Pop whoosh-big, beam sparkle, a single snap on reseat — three actions, three dedicated sounds |
+| ① hero close-up | Rise whoosh-big, beam sparkle, a single snap on reseat — three actions, three dedicated sounds |
 | ② build-up | A pop on the switch-to-real beat, one very light tick per revealed row, a soft chime at the half-beat-late last word to close it out |
 | ③ typing | Keyboard sounds exactly as long as the typing segment (truncated by character count); short — cut, long — trim |
 | ④ click | Click is the loudest sound in the film (the top of the loudness hierarchy); ripples are silent |

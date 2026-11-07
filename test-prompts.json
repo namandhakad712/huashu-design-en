@@ -26,7 +26,7 @@
   {
     "id": 5,
     "prompt": "Build a reading-notes App prototype",
-    "expected": "Overview tiles as the main form; ios_frame.jsx; reading notes lean content-display, density requirements less extreme than Tracker, but the notes list page still needs ≥3 layers of information (book, quote, tags, progress); at least 4-6 screens (home bookshelf / note detail / highlight annotation / search / notebook management); serif display fonts preferred",
+    "expected": "Overview tiles as the main form; ios_frame.jsx; reading notes lean toward the content-display type, density requirements less extreme than Tracker, but the notes list page still needs ≥3 layers of information (book, quote, tags, progress); at least 4-6 screens (home bookshelf / note detail / highlight annotation / search / notebook management); serif display fonts preferred",
     "tests": "overview default + ios_frame + information hierarchy + content-led visual rhythm"
   },
   {

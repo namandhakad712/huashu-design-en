@@ -195,7 +195,7 @@ whatever window the user is typing in right now.
 
 - Lost-text check: **runs automatically by default after the script exports** (`verify_text()`); compares
   the page's rendered `innerText` against the text inside the pptx, page by page (whitespace stripped,
-  case-insensitive), and if anything is missing prints "⚠️ 丢字校验" plus the missing fragments. It's on by
+  case-insensitive), and if anything is missing prints "⚠️ Text-loss check" plus the missing fragments. It's on by
   default because lost text is silent — it raises no error, and a check that depends on a human remembering
   to run it is no check at all
 - Count comparison: image counts and shape counts aligned page by page

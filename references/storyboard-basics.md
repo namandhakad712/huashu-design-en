@@ -54,7 +54,7 @@ Each scene's frozen frame must have: **1 concrete protagonist + ≤3 active elem
 
 push-in / zoom endpoints can only be: brand logo, a key number, that button in the UI, that line of code, a character's expression. **Background textures, atmosphere elements, and decorative graphics don't deserve a zoom**. Pushing in on something with no information is telling the audience "there's really nothing worth looking at here."
 
-HuaRec precedent adds a cut: **a zoom under 1.25x isn't worth doing** (the visual change is below perception threshold, pure shakiness; the only exception is the opening 1.06x establishing micro-push). When designing the storyboard, write down the anchor for every [CAMERA] push-in; if you can't write an anchor, delete that camera move.
+The HuaRec precedent doubles down: **a zoom under 1.25x isn't worth doing** (the visual change is below perception threshold, pure shakiness; the only exception is the opening 1.06x establishing micro-push). When designing the storyboard, write down the anchor for every [CAMERA] push-in; if you can't write an anchor, delete that camera move.
 
 > Self-check: can the endpoint of this shot's push-in be named with a noun (that button / that number / that logo)? If not, cut the camera move.
 
@@ -163,7 +163,7 @@ Two notes:
 | Focus far apart → drop a shot | Two focal points jumping diagonally across: never shoot two zooms back to back — cut one or insert a long-shot transition | HuaRec "drop shot" precedent |
 | Duration scales with magnitude | Transition duration for shot-size changes is not a constant: `duration = 0.55 × |ln(zoomTo/zoomFrom)| / ln2`, clamp [0.30, 0.94]s; a fixed duration is a source of amateurism | HuaRec logarithmic scaling formula |
 | Rhythm budget | Interval between adjacent shot-size changes ≥2.6s; within any 15s window, shot-size changes ≤4-5 times | HuaRec comfort budget A2 |
-| Curtain-closing law | The finished film always ends on a long shot / extreme long shot, with a ≥0.8s long-shot pause before the end; **never end abruptly in a pushed-in state** | HuaRec curtain-closing precedent |
+| Finale iron rule | The finished film always ends on a long shot / extreme long shot, with a ≥0.8s full-frame pause before the end; **never end abruptly in a pushed-in state** | HuaRec finale precedent |
 
 ---
 
@@ -176,7 +176,7 @@ Multi-shot films (≥10s) don't distribute shots evenly; apply shotcraft's promo
 | ① Opening | 8-12% | Low | Brand / theme reveal | Wordmark settled hold ≥1s |
 | ② Single protagonist portrait | 12-15% | Low-medium · slowest in the film | One complete action arc for the protagonist (enter → hover → settle) | Action arc ≥3s, the segment with the highest production quality |
 | ③ Feature ramp | 55-65% | Medium-high ⇄ low alternating | Each shot ties to one unique feature, energy alternating high and low | After every 1-2 feature shots, insert a **breathing text card** (low energy, large negative space, 2-6 characters) |
-| ④ Closing | 13-16% | Peak of the film | Group shot + sign-off | Closing hold; curtain returns to long shot (§3 law) |
+| ④ Closing | 13-16% | Peak of the film | Group shot + sign-off | Closing hold; returns to long shot for the finale (§3 law) |
 
 **Scheduling discipline: carve out the hold / rest frame budget first, then arrange the motion effects** (shotcraft fill-in-the-blank process precedent). Specific order:
 
@@ -187,7 +187,7 @@ Multi-shot films (≥10s) don't distribute shots evenly; apply shotcraft's promo
 
 The breathing text card's composition also has a fixed form: 2-6 characters of big text + full-screen negative space + zero decoration. It is itself a frozen frame that passes the cover test (active elements = 1), and its job is to lower the energy of the feature-ramp segment and give the viewer time to digest. Don't turn the breathing text card into yet another information shot — that's as good as not inserting one.
 
-Relationship to the five-act narrative in `animation-best-practices.md` §1: Slow-Fast-Boom-Stop is the rhythm curve for **a single scene / short piece** (≤15s in one breath); promo-energy-arc is the skeleton for **multi-shot films**; under 15s pick either, over 20s use the energy skeleton to order shots, and inside each shot use the feel of the five-act narrative.
+Relationship to the five-segment narrative (Slow-Fast-Boom-Stop) in `animation-best-practices.md` §1: Slow-Fast-Boom-Stop is the rhythm curve for **a single scene / short piece** (≤15s in one breath); promo-energy-arc is the skeleton for **multi-shot films**; under 15s pick either, over 20s use the energy skeleton to order shots, and inside each shot use the feel of the five-segment narrative.
 
 ---
 
@@ -215,14 +215,14 @@ Imaginary product: PicSort, a screenshot-organization tool. 1920×1080 · 30fps 
 
 | # | Time | Shot size | [CAMERA] move + motivation | Composition (percentage language) | Key motion | Transition to next shot | Acceptance frames |
 |---|---|---|---|---|---|---|---|
-| 1 | 0-2.0s | Long shot 1x | Static; last 0.3s light push to 1.06x · establishing + planting suspense | Messy screenshot pile occupying center 70%, big text "3000 screenshots" landing in top 20% negative space, 10% safe margin from all four edges; foreground 2 screenshots slightly occluding the midground pile | Screenshots 30ms stagger landing on the desktop; big text two-beat entrance ("3000" slams in, "screenshots" color block fills in after) | Defocus relay (the messy pile blurs open) | f30 / f55 |
-| 2 | 2.0-3.5s | Extreme close-up 2.3x | push-in 1x→2.3x · anchor = the date corner-tag at the bottom-right of a screenshot | Single screenshot occupying 80% centered with 2° perspective, date corner-tag at bottom-right 15%; remaining screenshots retreat to background blur | Push-in with background blur+dim in sync (focal-switch triple combo) | Shared element settles (this screenshot shrinks and flies into the next shot beside the input box) | f85 |
+| 1 | 0-2.0s | Long shot 1x | Static; last 0.3s light push to 1.06x · establishing + planting suspense | Messy screenshot pile occupying center 70%, big text "3000 screenshots" landing in top 20% negative space, 10% safe margin from all four edges; foreground 2 screenshots slightly occluding the midground pile | Screenshots 30ms stagger landing on the desktop; big text two-beat entrance ("3000" slams in, "screenshots" color block fills in after) | Defocus-handoff (the messy pile blurs open) | f30 / f55 |
+| 2 | 2.0-3.5s | Extreme close-up 2.3x | push-in 1x→2.3x · anchor = the date corner-tag at the bottom-right of a screenshot | Single screenshot occupying 80% centered with 2° perspective, date corner-tag at bottom-right 15%; remaining screenshots retreat to background blur | Push-in with background blur+dim in sync (focal-switch triple combo) | Shared-element settle (this screenshot shrinks and flies into the next shot beside the input box) | f85 |
 | 3 | 3.5-6.0s | Medium shot 1.4x | Horizontal pan following the cursor · guide line = the cursor's arc trajectory | Product UI occupying 85% with perspective, logo at top-left 10%, search box horizontally centered occupying 55%; cursor arcs in from bottom-left 25% | Typing 3f/character + Chunk Reveal on results; breathing 0.4s after typing completes | mask-wipe (the result panel's edge unfolds into the next shot's grid) | f130 / f165 |
-| 4 | 6.0-8.5s | Long shot 1x | pull-out 1.4x→1x · motivation = showing the scale after organizing | 3-column category grid occupying 85%, each column header a color tag; top 15% negative space reserved for the next shot's numbers | Cards stagger into columns (30ms between columns), 0.5s static after full board | Flowing whitespace | f210 / f250 |
-| 5 | 8.5-10.5s | Close-up 1.8x | Static · key result hold, don't steal the numbers' scene | "3000 → 12 categories" occupying center 60%, action word largest, attributive color block; large negative space around | digit-roll settling (tabular-nums), 0.6s hold after settling | Shared element settles (numbers shrink and rise to make way for the logo) | f290 |
-| 6 | 10.5-12s | Long shot 1x | Static · curtain closing, ending on a long shot | Logo centered occupying 12%, one-line slogan below at 8%, rest all blank | Logo morph-closure (previous element collapses → expands), final frame hold ≥1s | None (end of film) | f330 / f359 |
+| 4 | 6.0-8.5s | Long shot 1x | pull-out 1.4x→1x · motivation = showing the scale after organizing | 3-column category grid occupying 85%, each column header a color tag; top 15% negative space reserved for the next shot's numbers | Cards stagger into columns (30ms between columns), 0.5s static after full board | Flash-wash | f210 / f250 |
+| 5 | 8.5-10.5s | Close-up 1.8x | Static · key result hold, don't steal the numbers' scene | "3000 → 12 categories" occupying center 60%, action word largest, attributive color block; large negative space around | digit-roll settling (tabular-nums), 0.6s hold after settling | Shared-element settle (numbers shrink and rise to make way for the logo) | f290 |
+| 6 | 10.5-12s | Long shot 1x | Static · finale, ending on a long shot | Logo centered occupying 12%, one-line slogan below at 8%, rest all blank | Logo morph-closure (previous element collapses → expands), final frame hold ≥1s | None (end of film) | f330 / f359 |
 
-Cross-checking this table reveals the skeleton: shot 1 is the suspense-planting setup (Law 7), shots 2-4 are the feature-ramp's shot-size alternation (extreme close-up → medium → long, no same-level cuts, no two-level jumps), shot 5 is the energy peak + hold budget, shot 6 is the long-shot curtain closing. Every shot has ≤3 on-screen active elements.
+Cross-checking this table reveals the skeleton: shot 1 is the suspense-planting setup (Law 7), shots 2-4 are the feature-ramp's shot-size alternation (extreme close-up → medium → long, no same-level cuts, no two-level jumps), shot 5 is the energy peak + hold budget, shot 6 is the long-shot finale. Every shot has ≤3 on-screen active elements.
 
 ---
 
@@ -234,7 +234,7 @@ The storyboard table is text; the thumbnail pass turns it into a visible composi
 
 Beautification is forbidden in the gray-box phase (no font selection, color picking, or shadows): beauty is already settled by the direction board; the gray box validates only composition and rhythm. Starting to beautify = starting to avoid the composition problem.
 
-**Step 2 · Do only 3-5 keyframes**: not every shot — pick the energy skeleton's key nodes: the opening setup frame, the hero frame of the portrait segment, one representative frame of the ramp segment, the peak frame, the curtain-closing frame.
+**Step 2 · Do only 3-5 keyframes**: not every shot — pick the energy skeleton's key nodes: the opening setup frame, the hero frame of the portrait segment, one representative frame of the ramp segment, the peak frame, the finale frame.
 
 **Step 3 · Playwright batch screenshots**:
 
@@ -263,12 +263,12 @@ Transitions aren't decoration; they're the narrative logic at the seam. First de
 
 | Narrative relationship between adjacent shots | First-choice transition | Alternative | Precedent basis |
 |---|---|---|---|
-| Time jump ("three days later" / "after organizing is complete") | Black-screen text card / flowing whitespace | whip-pan | shotcraft six forms: big contrast cushioned with white / black |
+| Time jump ("three days later" / "after organizing is complete") | Title-card / flash-wash | whip-pan | shotcraft six forms: big contrast cushioned with white / black |
 | Spatial pan (different regions of the same interface) | **One shot panning across, no cut at all** | hidden-cut | HuaRec "mid-distance change to pan": rather do one shot one level wider, no out-in pumping |
 | Concept comparison (before/after, A vs B) | mask-wipe | Split-screen hard cut + white flash | shotcraft mask-wipe through-window precedent |
-| Progression / causality (the answer to the setup is in the next shot) | Shared element settles (previous shot's element flies into being the next shot's protagonist) | morph | shotcraft travel two forms; same origin as the voiceover-pipeline iron law "hero morphs across scenes, no cut" |
-| Large energy gap (breathing text card → high-energy shot) | Flowing whitespace / white-flash FlashCut | whip-pan | shotcraft: pick by energy gap at the seam |
-| Small energy gap (adjacent feature shots in the ramp) | Defocus relay / cross-fade ≥8f | hidden-cut | shotcraft graze-face-tour "cross-fade between segments to prevent black flashing" |
+| Progression / causality (the answer to the setup is in the next shot) | Shared-element settle (previous shot's element flies into being the next shot's protagonist) | morph | shotcraft travel two forms; same origin as the voiceover-pipeline iron law "hero morphs across scenes, no cut" |
+| Large energy gap (breathing text card → high-energy shot) | Flash-wash / white-flash FlashCut | whip-pan | shotcraft: pick by energy gap at the seam |
+| Small energy gap (adjacent feature shots in the ramp) | Defocus-handoff / cross-fade ≥8f | hidden-cut | shotcraft graze-face-tour "cross-fade between segments to prevent black flashing" |
 
 Three disciplines:
 

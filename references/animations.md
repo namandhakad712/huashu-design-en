@@ -99,7 +99,7 @@ function SlideIn({ children, from = 'left' }) {
 A constant-speed per-character Typewriter is the official counter-example (in the best-practices "AI slop" list: it looks like old movie subtitles). Pick the right solution by content:
 
 - **AI output** (token streaming emergence) → Chunk Reveal: irregular blocky emergence, see `animation-best-practices.md` §4.5 / `gsap-recipes.md` §3.4
-- **User input** (a real person typing in an input box) → 3f/character + cursor steady-on turning to blinking + occasional backspaces, see `ui-demo-animation.md` trick ③
+- **User input** (a real person typing in an input box) → 3f/character + cursor steady-on turning to blinking + occasional backspaces, see `ui-demo-animation.md` form ③
 
 ### 4. Number Count-Up
 
@@ -187,7 +187,7 @@ Human attention is limited. Say one thing in 10 seconds, then move on to the nex
 **Wrong**: first want to do fancy animation, then stuff content into it
 **Right**: first figure out what information you want to convey, then use animation to serve that information
 
-Animation is **signal**, not **decoration**. A fade-in emphasizes "this is important, please look" — if everything fade-ins, the signal loses its meaning.
+Animation is **signal**, not **decoration**. A fade-in emphasizes "this is important, please look" — if everything fades in, the signal loses its meaning.
 
 ### 2. Write the timeline by Scene
 

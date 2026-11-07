@@ -156,7 +156,7 @@ Look families (warm paper + serif, dark + single accent, hairline newspaper, car
 they're popular because they look good, and using one isn't wrong; the real monotony is different projects
 repeatedly landing on the same one — that's the look ledger's job to catch. Full notes: `references/content-guidelines.md`.
 
-Readability floors are exempted by no style: web body text ≥14px, labels ≥12px; deck body text ≥24px, labels ≥16px;
+No style is exempt from the readability floors: web body text ≥14px, labels ≥12px; deck body text ≥24px, labels ≥16px;
 1080-wide long-form images meant for phones: body text ≥36px, labels ≥28px (canvas pixels);
 body text contrast ≥4.5:1; whitespace should be composition, not missing content.
 

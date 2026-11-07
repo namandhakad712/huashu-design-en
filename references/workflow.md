@@ -167,7 +167,7 @@ After user approves direction, start filling. At this point:
 - Make variations (use design_canvas or Tweaks)
 - If slides/animation, use starter components to begin
 
-**Show again halfway through** — don't wait until fully done. Wrong direction late in design means showing equals wasted work.
+**Show again halfway through** — don't wait until fully done. If the design direction turns out wrong, showing it only at the end means all that work was for nothing.
 
 ### Pass 3: Detail Polish
 
@@ -236,7 +236,7 @@ Notes:
 - Page 4 data is fake, wait for your real data for replacement
 - Animation uses CSS transition, no JS needed
 
-Next step: open in your browser first, tell me which page has issues.
+Suggested next step: open it in your browser and look through it first; if anything's off, tell me which page and which spot.
 ```
 
 Don't:

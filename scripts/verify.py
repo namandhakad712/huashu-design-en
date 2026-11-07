@@ -128,7 +128,7 @@ def main():
     parser.add_argument("--viewports", default="1440x900",
                         help="Comma-separated viewport list, format WxH (default 1440x900)")
     parser.add_argument("--slides", type=int, default=0,
-                        help="Slide mode: screenshot first N pages (requires HTML support ArrowRight navigation)")
+                        help="Slide mode: screenshot first N pages (requires the HTML to support ArrowRight navigation)")
     parser.add_argument("--output", default=None,
                         help="Output directory (default: screenshots/ in HTML directory)")
     parser.add_argument("--show", action="store_true",
