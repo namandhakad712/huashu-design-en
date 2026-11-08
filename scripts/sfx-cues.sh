@@ -21,7 +21,7 @@ for a in "$@"; do case "$a" in --dur=*) DUR="${a#*=}";; esac; done
 
 INPUTS=(-i "$IN")
 FILTER=""; MIX=""; i=1
-while IFS=$'\t' read -r t f db; do
+while IFS=$'\t' read -r t f db || [ -n "$t" ]; do
   [ -z "$t" ] && continue
   case "$t" in \#*) continue;; esac
   [ ! -f "$SFX_DIR/$f" ] && { echo "✗ SFX not found: $f"; exit 1; }

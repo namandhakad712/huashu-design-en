@@ -120,7 +120,7 @@ JS = r"""
   return pages.map((pg) => {
     const pb = pg.getBoundingClientRect();
     const out = [];
-    let svgSeq = 0;
+    const svgSeq = {}; // counted per tagName: the Python side's nth() indexes only within same-tag matches
 
     // One group of adjacent nodes → one text element. own=true means this is "bare text
     // between block-level children"; the position must come from the text's own bounding
@@ -170,7 +170,7 @@ JS = r"""
         return;
       }
       if (tag === 'svg' || tag === 'canvas') {
-        out.push({...base, kind: 'svg', seq: svgSeq++, tagName: tag});
+        out.push({...base, kind: 'svg', seq: (svgSeq[tag] = (svgSeq[tag] || 0) + 1) - 1, tagName: tag});
         return;
       }
 
