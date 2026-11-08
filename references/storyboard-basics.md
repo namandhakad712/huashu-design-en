@@ -13,7 +13,7 @@ This file is the **everyday lightweight version** of `launch-film-director-notes
 | Duration / type | Storyboard requirement | Rationale |
 |---|---|---|
 | < 20s animation, motion graphic, demo | The **lightweight storyboard card** in this file (§5, one line per shot) | Under 20s doesn't deserve 10,000 words, but each shot's composition must be thought through first |
-| ≥ 20s animation | The `导演稿.md` required by the Gate File Protocol, **minimum requirement = the storyboard card format in this file** (§5, all eight fields, not one missing), on top of which you're free to add | SKILL.md "Gate File Protocol" |
+| ≥ 20s animation | The `导演稿.md` required by the Gate File Protocol, **minimum requirement = the storyboard card format in this file** (§5, all eight fields, not one missing), on top of which you're free to add | SKILL.md "6 · Gate Files" |
 | launch film / brand promo / "Apple-level" expectations | Upgrade the storyboard card baseline into 10,000-word director's notes | `launch-film-director-notes.md`; its Part IV 10-field-per-shot format is the heavy version of this file's eight fields |
 
 Trigger boundary: when the user says "quickly make an animation" or "a simple demo," don't dump the 10,000-word process on them, but **still draw the storyboard cards**. The cost of a storyboard card is a dozen-odd minutes; the cost of skipping it is reworking the whole film (2026-07-17 B00 test: skipping visual design and writing code directly — the motion all passed, the visuals got vetoed in one vote).
@@ -123,7 +123,7 @@ Scene switch = composition switch, absolutely not style switch. Changing style a
 
 All the cover library's aesthetic restricted zones are inherited, and be especially wary of animation's occupational disease: **glowing particles, data streams, holographic HUDs, cyber-neon are the handiest lazy materials in motion graphics — and they're all in the restricted zone**. Hands itch more when making animation than static images; keep them in check.
 
-The right solution for a tech feel = real UI screenshots (3D floating card form) + clean big text + light background. The deep-blue background #0D1117 + neon glow combination remains forbidden as before (details same as SKILL.md §6.2).
+The right solution for a tech feel = real UI screenshots (3D floating card form) + clean big text + light background. The deep-blue background #0D1117 + neon glow combination remains forbidden as before (details in `references/design-styles.md` "Default no-go aesthetics").
 
 > Self-check: is there any element in the frame that is "glowing"? If so, first suspect you're being lazy with an occupational habit, and argue for keep or remove one by one.
 

@@ -43,7 +43,7 @@ The full catalog, install methods, and the machine-readable skills.json: https:/
 
 | skill | What it's for | Repo |
 |---|---|---|
-| huashu-design | An HTML-native design system: hi-fi prototypes / slides / animation / visualization, 20 design philosophies + 5-dimension expert critique + MP4 export | https://github.com/alchaincyf/huashu-design |
+| huashu-design | An HTML-native design system: hi-fi prototypes / slides / animation / visualization, 92 HTML-native styles + 6-dimension expert critique + MP4 export | https://github.com/alchaincyf/huashu-design |
 | huashu-mac-use | Lets an agent operate the native Mac apps that have no API: probes and selects the layer (CDP / AX / coordinates / pixels), reads in the background and gates writes so the user isn't disturbed, reads back and collects evidence on every step, and flows everything back into the archive at wrap-up; includes a Swift core and CDP tools | https://github.com/alchaincyf/huashu-mac-use |
 | huashu-gpt-image | A prompt-engineering methodology for GPT-image: real reference names replace adjectives — includes a single-image playbook, batch grid generation, and a failure-mode tree | https://github.com/alchaincyf/huashu-gpt-image |
 | huashu-icon-set | End-to-end icon sets in one consistent style for your project: 4×4 grid batch generation + per-icon precision fallback + smart background removal (Doubao environments only; relies on the built-in image_gen) | https://github.com/alchaincyf/huashu-icon-set |

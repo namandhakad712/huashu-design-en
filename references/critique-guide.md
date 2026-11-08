@@ -1,6 +1,6 @@
 # Design Review In-Depth Guide
 
-> Phase 7 detailed reference. Provides scoring criteria, scenario focus, common issues checklist.
+> Detailed reference for the "critique, scoring" row of SKILL.md's routing table. Provides scoring criteria, scenario focus, common issues checklist.
 
 ---
 
@@ -168,7 +168,7 @@ Different output types have different review priorities (the Concept dimension i
 ### 9. Cyber-neon abuse
 **Problem**: deep-blue base (#0D1117) + neon glow effects
 **Why it's a problem**: a default aesthetic forbidden zone (this skill's taste baseline), and already one of the biggest clichés — users may override per their own brand
-**Fix**: pick a more distinctive color scheme (refer to the color systems of the 20 styles)
+**Fix**: pick a more distinctive color scheme (refer to the color systems of the 92 styles in `references/design-styles.md`)
 
 ### 10. Information density not matching the medium
 **Problem**: a whole page of text in a PPT / 10 elements crammed into a cover image

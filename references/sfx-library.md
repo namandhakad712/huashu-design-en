@@ -4,7 +4,7 @@
 > A production-grade SFX asset library covering every scenario across the original author's animations/demos/product demos.
 
 **Asset location**: `assets/sfx/<category>/<name>.mp3`
-**Total count**: 37 SFX (30 batch-generated + 7 kept from v7b)
+**Total count**: 37 SFX (31 batch-generated + 6 kept from v7b)
 **Generation model**: ElevenLabs Sound Generation API (prompt_influence 0.4)
 **Audio quality**: 44.1kHz MP3, Apple-keynote-level clarity, no added reverb
 

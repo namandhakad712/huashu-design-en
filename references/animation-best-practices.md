@@ -8,7 +8,7 @@
 >
 > **Scope statement**: this file only covers **motion logic and expressive style**; it does **not introduce any concrete brand color values**.
 > Color decisions go through the Core Asset Protocol (`references/brand-asset-protocol.md`, extracted from the brand spec) or the three directions (`references/directions.md`)
-> (each of the 20 philosophies' own color schemes). This reference discusses "**how it moves**", not "**what color**".
+> (each of the 92 styles' own color schemes, see `references/design-styles.md`). This reference discusses "**how it moves**", not "**what color**".
 
 ---
 
@@ -165,7 +165,7 @@ None of Anthropic's three films uses `#FFFFFF` or `#000000` as the base color. *
 (warm or cool) carry the materiality of "paper / canvas / desktop" and weaken the machine feel.
 
 **Concrete color decisions** go through the Core Asset Protocol (extracted from the brand spec) or the three directions (`references/directions.md`)
-(each of the 20 philosophies' own base-color schemes). This reference gives no concrete color values — that is a **brand decision**, not a motion rule.
+(each of the 92 styles' own base colors, see `references/design-styles.md`). This reference gives no concrete color values — that is a **brand decision**, not a motion rule.
 
 ### 3.2 Easing Is Never linear
 
@@ -240,8 +240,7 @@ then the color block "expands" out into the wordmark. Use a 150ms fast cut + mot
 
 **A single font family is always wrong**. Serif gives "taste," sans-serif gives "function."
 
-Specific font choices go through the brand spec (the Display / Body / Mono stacks in brand-spec.md) or the Design Direction
-Advisor's 20 philosophies. This reference gives no specific fonts — that is a **brand decision**.
+Concrete font choices go through the brand spec (brand-spec.md's Display / Body / Mono stacks) or `references/design-styles.md`'s 92 styles. This reference gives no specific fonts — that is a **brand decision**.
 
 ### 3.8 Focus Switch = Dim Background + Sharpen Foreground + Flash Guide
 
@@ -496,7 +495,7 @@ Of the reference materials, the three videos correspond to three product persona
 
 | reference | Positioning | Relationship |
 |---|---|---|
-| `animation-pitfalls.md` | Technical pitfalls (16) | "**How you should not do it**" · the inverse of this file |
+| `animation-pitfalls.md` | Technical pitfalls (24) | "**How you should not do it**" · the inverse of this file |
 | `animations.md` | Stage/Sprite engine usage | The basics of **how to write** animation |
 | `audio-design-rules.md` | Dual-track audio rules | Rules for **scoring** animation with audio |
 | `sfx-library.md` | Catalog of 37 SFX | The sound-effect **asset library** |
@@ -504,7 +503,7 @@ Of the reference materials, the three videos correspond to three product persona
 | **This file** | Positive motion design syntax | "**How you should do it**" |
 
 **Call order**:
-1. First look at the five form questions in Step 3 of the SKILL.md workflow (they decide the narrative role and visual temperature)
+1. First go through the five form questions in step 3 of the standard flow in `references/workflow.md` (SKILL.md Narrow Bridge §1; they decide the narrative role and visual temperature)
 2. After choosing a direction, read this file to lock the **motion language** (recipe A/B/C)
 3. When writing code, consult `animations.md` and `animation-pitfalls.md`
 4. When exporting video, go through `audio-design-rules.md` + `sfx-library.md`

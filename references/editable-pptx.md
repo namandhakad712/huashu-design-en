@@ -19,7 +19,7 @@ This document covers the path of using `scripts/html2pptx.js` + `pptxgenjs` to t
 
 ## Canvas Size: Use 960×540pt (LAYOUT_WIDE)
 
-PPTX units are **inches** (physical size), not px. Decision principle: the body's computedStyle size must **match the presentation layout's inch size** (±0.1", enforced by `html2pptx.js`'s `validateDimensions`).
+PPTX units are **inches** (physical size), not px. Decision principle: the body's computedStyle size must **match the presentation layout's inch size** (±0.1", enforced by `html2pptx.js`'s dimension-consistency check).
 
 ### 3 Candidate Size Comparison
 

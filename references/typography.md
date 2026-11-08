@@ -1,6 +1,6 @@
 # Typography: a reasoning system for typesetting
 
-> **This is not a font list; it is the reasoning rules for pairing and layout.** `design-styles.md` already gives each of the 60 styles its font names; this file answers "why pair them this way" and "given any content, how to derive font size / line length / weight." Goal: the same style label, applied to different content, should yield different typesetting outcomes — not the same font sizes copied every time.
+> **This is not a font list; it is the reasoning rules for pairing and layout.** `design-styles.md` already gives each of the 92 styles its font names; this file answers "why pair them this way" and "given any content, how to derive font size / line length / weight." Goal: the same style label, applied to different content, should yield different typesetting outcomes — not the same font sizes copied every time.
 >
 > The standing discipline is unchanged: when there's a design context, lift the user's own fonts first (see `design-context.md`); everything in this file only kicks in when "the user has no font spec."
 

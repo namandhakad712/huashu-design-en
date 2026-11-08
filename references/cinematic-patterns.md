@@ -98,7 +98,7 @@ POINT ▶ trigger (overlay floats up): 22-second cinematic
 
 **Problem**: 3D orbit / gallery needs asset fragments floating; emoji (📚🎤) is ugly and unbranded, and hand-drawn SVG book spines never look like real books.
 
-**Solution**: run `huashu-gpt-image` to generate one 4×2 grid image (8 theme-related objects · white background · 60px breathing space · unified style), then use `extract_grid.py --mode bbox` to cut out 8 separate transparent PNGs.
+**Solution**: run `huashu-gpt-image` to generate one 4×2 grid image (8 theme-related objects · white background · 60px breathing space · unified style), then use the `huashu-gpt-image` repo's `extract_grid.py --mode bbox` to cut out 8 separate transparent PNGs.
 
 **Prompt essentials** (detailed prompt patterns in the `huashu-gpt-image` skill):
 - IP anchoring ("1960s Caltech archive aesthetic" / "Hearthstone-style consistent treatment")

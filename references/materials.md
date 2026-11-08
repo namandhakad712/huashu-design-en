@@ -24,7 +24,7 @@ It checks which related skills are installed on this machine, whether there's an
 
 ### T0 · Every user has these (the default; no extra capability required)
 
-- **Real photos**: `python3 "$HD/scripts/fetch_images.py" --query "English keywords" --out <project>/assets/img --count 2 --width 1600` (Wikimedia Commons, Met / Art Institute open collections, Biodiversity Heritage Library, Unsplash, Pexels — with license info in the output and failure fallbacks). The user's own products go through the Core Asset Protocol for official shots.
+- **Real photos**: `python3 "$HD/scripts/fetch_images.py" --query "English keywords" --out <project>/assets/img --count 2 --width 1600` (Wikimedia Commons, with license info in the output). The user's own products go through the Core Asset Protocol for official shots.
 - **Named products' logos**: however many recognizable products appear in the design, that many logos get fetched (svgl → simpleicons → favicon, see `references/brand-asset-protocol.md`). If a single one on the list doesn't land, keep filling the gap; only when it truly can't be fetched do you fall back to an honest placeholder and say so plainly.
 - **Procedural materials** (work in a single file, no fetch needed):
   - SVG filters: `feTurbulence` + `feDisplacementMap` for paper grain, noise, ink bleed, misregistered print

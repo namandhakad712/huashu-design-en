@@ -669,7 +669,7 @@ How it works: `html2pptx` reads computedStyle element by element and translates 
 - No CSS gradients (not renderable)
 - Divs don't use `background-image` (use `<img>`)
 
-The script has a built-in **automatic preprocessor** — it auto-wraps "bare text in leaf divs" into `<p>` (preserving classes). This solves the most common violation (bare text). But other violations (border on p, margin on span, etc.) still require compliance at the HTML source.
+The script has **no** automatic preprocessing: bare text in a div is the most common violation — it errors out and skips the page outright, so the text must be wrapped in `<p>`/`<h1>`-`<h6>`/`<ul>`/`<ol>` at the HTML source. Other violations (border on p, margin on span, etc.) likewise require compliance at the source.
 
 **Font fallback caveat**:
 - Playwright measures text-box sizes with webfonts; PowerPoint/Keynote renders with local fonts

@@ -19,7 +19,7 @@ This was the first systematic "multi-perspective parallel director's notes" expe
 
 Don't just pick 6 designers arbitrarily — they must have **extremely high visual differentiation** to avoid convergence.
 
-The 6 perspectives ultimately chosen (with reasons):
+The v5 baseline + 6 new perspectives ultimately chosen (with reasons):
 
 | Perspective | Genre | Aesthetic Anchor | Difference from Other Perspectives |
 |------|------|---------|----------------|
@@ -112,7 +112,7 @@ use case assignment (by platform and audience):
 - WeChat Official Account / X / Bilibili / Moments / Dribbble / client demos / private traffic / ...
 ```
 
-See the REVIEW.md that sits in the same directory as `assets/director-notes-samples/launch-film-30s-sample.md`.
+See the REVIEW.md that sits in the same directory as `assets/director-notes-samples/launch-film-30s-sample.md` (the author's local file, not distributed with this repo).
 
 ---
 

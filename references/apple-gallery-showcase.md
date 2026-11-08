@@ -49,7 +49,7 @@
 **Key principles**:
 1. **Never use a pure black background**. Black makes the work look like a movie, not like "work results that can be adopted"
 2. **Terracotta orange is the only hue accent**; everything else is grayscale + white
-3. **Three font stacks** (serif EN + serif CN + sans + mono) create a "publication" feel rather than an "internet product" one
+3. **Four font stacks** (serif EN + serif CN + sans + mono) create a "publication" feel rather than an "internet product" one
 
 ---
 

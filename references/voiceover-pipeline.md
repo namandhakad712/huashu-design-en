@@ -109,6 +109,8 @@ const App = () => (
 
 **Fully runnable reference**: `demos/md-html-narration/md-html-demo.html` (3 min 21 s, 7 scenes, 21 cues, battle-tested)
 
+Another complete example: `demos/voiceover-demo/` (`script.md` narration script + `什么是token.html`, with [[cue:…]] markers and gap settings).
+
 ### Rule #2 · No "Hard Cuts" Between Scenes
 
 | Wrong pattern (PowerPoint slop) | Correct pattern (cinematic) |
@@ -389,7 +391,7 @@ DOUBAO_ACCESS_KEY=<your_access_token>
 DOUBAO_TTS_VOICE_ID=zh_female_xiaohe_uranus_bigtts
 ```
 
-`DOUBAO_TTS_RESOURCE_ID` is auto-inferred from the voice by default: `S_` cloned voices use `seed-icl-1.0`, `uranus` official voices use `seed-tts-2.0`, other official voices use `seed-tts-1.0`.
+`DOUBAO_TTS_RESOURCE_ID` is auto-inferred from the voice by default: `S_` cloned voices use `seed-icl-2.0`, `uranus` official voices use `seed-tts-2.0`, other official voices use `seed-tts-1.0`.
 
 ## Standard Workflow (10 Steps)
 

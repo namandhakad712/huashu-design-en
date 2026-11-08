@@ -2,7 +2,7 @@
 
 > A **reusable visual orchestration structure** distilled from the huashu-design hero animation v9 (25 seconds, 8 scenes).
 > Not an animation production pipeline, but **under what circumstances this orchestration is "right"**.
-> Live reference: [demos/hero-animation-v9.mp4](../demos/hero-animation-v9.mp4) · [https://www.huasheng.ai/huashu-design-hero/](https://www.huasheng.ai/huashu-design-hero/)
+> Live reference: [hero-animation-v10-en.mp4 (V2.0 Release)](https://github.com/alchaincyf/huashu-design/releases/download/V2.0/hero-animation-v10-en.mp4) · [interactive online version](https://www.huasheng.ai/huashu-design-hero/)
 
 ## In One Sentence
 

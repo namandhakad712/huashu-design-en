@@ -908,5 +908,5 @@ Full AI image generation methodology → `huashu-gpt-image` skill.
 
 ---
 
-**Version**: v3.2 (2026-06 restructured as an HTML-native library; 2026-08 filled in the infographic section, 40 → 60 styles; 2026-10 added the App and Chinese & East Asian sections, every style with a specimen, 60 → 84 styles)
+**Version**: v3.2 (2026-06 restructured as an HTML-native library; 2026-08 filled in the infographic section, 40 → 60 styles; 2026-10 added the App and Chinese & East Asian sections, every style with a specimen, 60 → 84 styles; 2026-10 added the Xiaohongshu section, 84 → 92 styles)
 **Applies to**: the default HTML path for all visual design — web/PPT/PDF/infographics/covers/Apps etc.

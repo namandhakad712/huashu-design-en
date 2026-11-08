@@ -27,7 +27,7 @@ By default, produce all three formats at once and let the user choose:
 
 ## Toolchain
 
-Two scripts live in `scripts/`:
+Four scripts live in `scripts/`:
 
 ### 1. `render-video.js` — HTML → MP4
 
@@ -198,7 +198,7 @@ A 30-second self-check before exporting:
 - [ ] The duration argument matches the actual animation length in the HTML
 - [ ] The Stage in the HTML checks `window.__recording` to force loop=false (must verify for hand-written Stages; built-in when using `assets/animations.jsx`)
 - [ ] The final Sprite has `fadeOut={0}` (the video's last frame doesn't fade out)
-- [ ] Contains the "Created by Huashu-Design" watermark (required for animation projects only; add the "Unofficial · " prefix for third-party brand work. See the "Skill promo watermark" section in SKILL.md)
+- [ ] Contains the "Created by Huashu-Design" watermark (required for animation projects only; add the "Unofficial · " prefix for third-party brand work. See the "Skill promo watermark template" section in this file and `references/modules/motion.md`)
 
 ## Notes to Include with Delivery
 
@@ -233,7 +233,7 @@ Let me know if you want a different size or frame rate.
 
 ## Skill Promo Watermark Template (for Animation Exports Only)
 
-SKILL.md requires animation MP4s/GIFs to carry the watermark by default. Template below (use `rgba(255,255,255,0.35)` on dark backgrounds; third-party brand animations get the "Unofficial · " prefix):
+`references/modules/motion.md` requires animation MP4s/GIFs to carry the watermark by default. Template below (use `rgba(255,255,255,0.35)` on dark backgrounds; third-party brand animations get the "Unofficial · " prefix):
 
 ```jsx
 <div style={{
